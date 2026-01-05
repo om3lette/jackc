@@ -1,0 +1,37 @@
+name: Build and test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { compiler: gcc, version: 14, std: 23, build_type: Release }
+
+    name: "${{matrix.config.compiler}} ${{matrix.config.version}} (C${{matrix.config.std}}, ${{matrix.config.build_type}})"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup compiler and build system
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: ${{ matrix.config.compiler }}-${{ matrix.config.version }}
+          cmake: 3.31.6
+          ninja: true
+
+      - name: Configure and install dependencies and
+        run: cmake --preset release
+
+      - name: Build
+        run: cmake --build --preset release -j $(nproc)
+
+      - name: Test
+        run: |
+          ctest --preset release
