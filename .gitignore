@@ -3,7 +3,7 @@
 
 .idea
 
-*build*
+/*build*
 *.out
 
 third-party
