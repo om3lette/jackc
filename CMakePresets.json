@@ -1,0 +1,59 @@
+{
+  "version": 10,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug build",
+      "description": "Debug build with sanitizers and debug symbols",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release build",
+      "description": "Release build without debug symbols and extra optimizations",
+      "binaryDir": "${sourceDir}/cmake-build-release",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "execution": {
+        "jobs": 0
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "execution": {
+        "jobs": 0
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
