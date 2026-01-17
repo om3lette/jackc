@@ -7,7 +7,7 @@ endif()
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow -Wcast-qual)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-g -fsanitize=address -fsanitize=undefined)
