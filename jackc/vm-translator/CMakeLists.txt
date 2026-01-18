@@ -1,3 +1,8 @@
 add_library(vm-translator STATIC
-    tmp.c
+    parser.c
+)
+
+target_link_libraries(vm-translator PUBLIC
+    common
+    platform_impl
 )

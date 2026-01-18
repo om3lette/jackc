@@ -7,11 +7,22 @@ endif()
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow -Wcast-qual)
+add_compile_options(
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Werror
+    -Wconversion
+    -Wshadow
+    -Wcast-qual
+)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-g -fsanitize=address -fsanitize=undefined)
-    add_link_options(-fsanitize=address -fsanitize=undefined)
+    # Do not add debug flags for cross-compiling
+    if(NOT CMAKE_CROSSCOMPILING)
+        add_compile_options(-g -fsanitize=address,undefined)
+        add_link_options(-fsanitize=address,undefined)
+    endif()
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-O3 -DNDEBUG)
 else()
@@ -19,14 +30,22 @@ else()
 endif()
 
 include(FetchContent)
-FetchContent_Declare(
-    Tau
-    URL https://github.com/jasmcaus/tau/archive/dev.zip
-)
-FetchContent_MakeAvailable(Tau)
+if(NOT CMAKE_CROSSCOMPILING)
+    FetchContent_Declare(
+        Tau
+        URL https://github.com/jasmcaus/tau/archive/dev.zip
+    )
+    FetchContent_MakeAvailable(Tau)
+endif()
 
 include_directories(jackc)
+include_directories(platform)
+add_subdirectory(platform)
 add_subdirectory(jackc)
 
-enable_testing()
-add_subdirectory(tests)
+add_custom_target(riscv_asm)
+
+if(NOT CMAKE_CROSSCOMPILING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()

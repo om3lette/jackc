@@ -1,3 +1,4 @@
+add_subdirectory(common)
 add_subdirectory(vm-translator)
 add_subdirectory(compiler)
 

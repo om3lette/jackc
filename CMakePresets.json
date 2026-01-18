@@ -22,6 +22,18 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
+    },
+    {
+      "name": "riscv",
+      "displayName": "RISC-V build",
+      "description": "Release build crosscompiled for RISC-V",
+      "binaryDir": "${sourceDir}/build-riscv",
+      "toolchainFile": "${sourceDir}/riscv.toolchain.cmake",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -32,6 +44,10 @@
     {
       "name": "release",
       "configurePreset": "release"
+    },
+    {
+      "name": "riscv",
+      "configurePreset": "riscv"
     }
   ],
   "testPresets": [
