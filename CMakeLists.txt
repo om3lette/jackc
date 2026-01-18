@@ -54,13 +54,14 @@ if (CMAKE_CROSSCOMPILING)
             ${CMAKE_C_COMPILER}
                 -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
                 -I${CMAKE_CURRENT_SOURCE_DIR}/platform
+                -DNDEBUG
                 -S
                 $<TARGET_PROPERTY:common,SOURCES>
                 $<TARGET_PROPERTY:vm-translator,SOURCES>
                 $<TARGET_PROPERTY:compiler,SOURCES>
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc,SOURCES>
-            && sh ${CMAKE_CURRENT_SOURCE_DIR}/cmake/merge-assembly.sh ${CMAKE_CURRENT_BINARY_DIR} ${ASM_DIR}
+            && python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-postprocessing.py ${CMAKE_CURRENT_BINARY_DIR} ${ASM_DIR} "jackc.s"
         DEPENDS
             $<TARGET_PROPERTY:common,SOURCES>
             $<TARGET_PROPERTY:vm-translator,SOURCES>
