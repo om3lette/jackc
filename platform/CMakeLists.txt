@@ -10,16 +10,18 @@ else()
     message(FATAL_ERROR "Unsupported platform: ${PLATFORM}")
 endif()
 
-add_library(platform_impl STATIC)
-target_sources(platform_impl PRIVATE
-    ${PLATFORM_DIR}/io.c
-    ${PLATFORM_DIR}/memory.c
-    ${PLATFORM_DIR}/process.c
+add_library(platform_impl-obj OBJECT
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/io.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/memory.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/process.c
 )
+target_compile_options(platform_impl-obj PRIVATE -S)
 
 # RARS specific files
 if (PLATFORM STREQUAL "rars")
-    target_sources(platform_impl PRIVATE
-        ${PLATFORM_DIR}/syscalls.c
+    target_sources(platform_impl-obj PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/syscalls.c
     )
 endif()
+
+add_library(platform_impl STATIC $<TARGET_OBJECTS:platform_impl-obj>)

@@ -1,6 +1,6 @@
 #include "jack_stdlib.h"
-#include <stdlib.h>
+#include "rars/rars_syscalls.h"
 
 void jackc_exit(int code) {
-    exit(code);
+    rars_exit2(code);
 }

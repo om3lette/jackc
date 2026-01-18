@@ -56,27 +56,30 @@ void jackc_print_string(const char *str) {
  * @todo: Normalize variable names accross platforms
  */
 char* jackc_read_file_content(const char* file_path) {
-    int fd = rars_open_file(file_path);
+    int fd = rars_open_file(file_path, READ_ONLY_MODE);
     if (fd < 0) {
         return NULL;
     }
     LOG_DEBUG("Opened source file.");
+    LOG_DEBUG(file_path);
 
-    long file_content_length = rars_lseek(fd);
     long file_size = rars_lseek(fd, SEEK_END);
     if (file_size < 0) {
-        // TODO: Close file
+        rars_close_file(fd);
         return NULL;
     }
     rars_lseek(fd, SEEK_SET);
     LOG_DEBUG("Calculated file content length.");
+    jackc_print_string("File size: ");
+    jackc_print_int((int)file_size / 1024);
+    jackc_print_string(" KB");
+    jackc_print_newline();
 
     char* content_buffer = jackc_alloc((size_t)file_size + 1);
     long bytes_read = rars_read(fd, content_buffer, (size_t)file_size);
     content_buffer[bytes_read] = '\0';
-    // TODO: Close file
+    rars_close_file(fd);
 
-    printf("%zu, %ld\n", bytes_read, file_size);
     if (bytes_read != file_size) {
         return NULL;
     }

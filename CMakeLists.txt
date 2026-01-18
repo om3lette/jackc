@@ -43,7 +43,35 @@ include_directories(platform)
 add_subdirectory(platform)
 add_subdirectory(jackc)
 
-add_custom_target(riscv_asm)
+if (CMAKE_CROSSCOMPILING)
+    add_custom_command(
+        OUTPUT final.s
+        COMMAND
+            ${CMAKE_C_COMPILER}
+                -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
+                -I${CMAKE_CURRENT_SOURCE_DIR}/platform
+                -DNDEBUG
+                -S
+                $<TARGET_PROPERTY:common-obj,SOURCES>
+                $<TARGET_PROPERTY:vm-translator-obj,SOURCES>
+                $<TARGET_PROPERTY:compiler-obj,SOURCES>
+                $<TARGET_PROPERTY:platform_impl-obj,SOURCES>
+                $<TARGET_PROPERTY:jackc-obj,SOURCES>
+            && sh ${CMAKE_CURRENT_SOURCE_DIR}/cmake/rename-labels.sh ${CMAKE_CURRENT_BINARY_DIR}
+            && cat ${CMAKE_CURRENT_BINARY_DIR}/*.s > jackc.s
+        DEPENDS
+            $<TARGET_PROPERTY:common-obj,SOURCES>
+            $<TARGET_PROPERTY:vm-translator-obj,SOURCES>
+            $<TARGET_PROPERTY:compiler-obj,SOURCES>
+            $<TARGET_PROPERTY:platform_impl-obj,SOURCES>
+            $<TARGET_PROPERTY:jackc-obj,SOURCES>
+        COMMAND_EXPAND_LISTS
+    )
+
+    add_custom_target(riscv_asm ALL
+        DEPENDS jackc.s
+    )
+endif()
 
 if(NOT CMAKE_CROSSCOMPILING)
     enable_testing()
