@@ -4,10 +4,10 @@ set -e
 BIN_DIR="$1"
 ASM_DIR="$2"
 
-mkdir -p $ASM_DIR
-rm -rf $ASM_DIR/*.s
+mkdir -p "$ASM_DIR"
+rm -rf "$ASM_DIR"/*.s
 
-find . -maxdepth 1 -name "*.s" -exec mv {} $ASM_DIR \;
+find . -maxdepth 1 -name "*.s" -exec mv {} "$ASM_DIR" \;
 
 for f in "$ASM_DIR"/*.s; do
     [ -f "$f" ] || continue
@@ -24,5 +24,5 @@ for f in "$ASM_DIR"/*.s; do
     mv "$f_tmp" "$f"
 done
 
-cat ${ASM_DIR}/*.s > $BIN_DIR/jackc.s
+cat "${ASM_DIR}"/*.s > "$BIN_DIR"/jackc.s
 sed -i.bak '/^[[:space:]]*\.string[[:space:]]*"main"/d' "$BIN_DIR/jackc.s"
