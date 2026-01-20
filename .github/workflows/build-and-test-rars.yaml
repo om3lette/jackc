@@ -48,7 +48,7 @@ jobs:
           cmake: 3.31.6
           ninja: true
 
-      - name: Configure and install dependencies and
+      - name: Configure
         run: cmake --preset rars
 
       - name: Build
