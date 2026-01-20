@@ -12,7 +12,7 @@ bool jackc_should_log(jackc_log_level_t log_level);
 // TODO: Improve if strcat is introduced
 #define LOG_WITH_CALLER(msg, level, caller) do { \
     if (jackc_should_log(LOG_LEVEL_DEBUG)) { \
-        jackc_print_string("TODO"); \
+        jackc_print_string("[TODO] "); \
         jackc_print_string(caller);\
         jackc_print_string(": ");\
         jackc_print_string(msg); \

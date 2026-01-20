@@ -1,5 +1,5 @@
-#ifndef JACK_STDLIB_H
-#define JACK_STDLIB_H
+#ifndef JACKC_STDLIB_H
+#define JACKC_STDLIB_H
 
 #include <stddef.h>
 
@@ -44,5 +44,7 @@ void* jackc_alloc(size_t size);
  * @param code Termination status code.
  */
 void jackc_exit(int code);
+
+void jackc_free(void* ptr);
 
 #endif

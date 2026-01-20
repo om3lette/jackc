@@ -3,6 +3,11 @@
 
 #include <stddef.h>
 
+
+#define RARS_SEEK_SET	0	/* Seek from beginning of file.  */
+#define RARS_SEEK_CUR	1	/* Seek from current position.  */
+#define RARS_SEEK_END	2	/* Seek from end of file.  */
+
 typedef enum {
     READ_ONLY_MODE = 0,
     WRITE_CREATE_MODE = 1,
@@ -13,7 +18,7 @@ int rars_open_file(const char* path, file_mode mode);
 
 void rars_close_file(int fd);
 
-long rars_lseek(int fd, int whence);
+long rars_lseek(int fd, long offset, int whence);
 
 /**
  * RARS Read syscall wrapper.

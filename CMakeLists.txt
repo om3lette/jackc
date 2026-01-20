@@ -15,7 +15,7 @@ add_compile_options(
     -Werror
     -Wconversion
     -Wshadow
-    -Wcast-qual
+    # -Wcast-qual TODO: Think about void*
 )
 
 # CFLAGS / LDFLAGS
@@ -61,14 +61,19 @@ if (CMAKE_CROSSCOMPILING)
                 $<TARGET_PROPERTY:compiler,SOURCES>
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc,SOURCES>
-            && python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-postprocessing.py ${CMAKE_CURRENT_BINARY_DIR} ${ASM_DIR} "jackc.s"
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-postprocessing.py
+                ${CMAKE_CURRENT_BINARY_DIR}
+                ${ASM_DIR}
+                "jackc.s"
         DEPENDS
-            $<TARGET_PROPERTY:common,SOURCES>
-            $<TARGET_PROPERTY:vm-translator,SOURCES>
-            $<TARGET_PROPERTY:compiler,SOURCES>
-            $<TARGET_PROPERTY:platform_impl,SOURCES>
-            $<TARGET_PROPERTY:jackc,SOURCES>
+            common
+            vm-translator
+            compiler
+            platform_impl
+            jackc
         COMMAND_EXPAND_LISTS
+        VERBATIM
     )
 
     add_custom_target(rars-build ALL

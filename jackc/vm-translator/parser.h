@@ -18,17 +18,27 @@ typedef enum {
     C_CONST
 } jackc_vm_cmd_type;
 
+#include <stddef.h>
+
 /**
  * Parser struct for jackc.
  *
  * @todo Consider writing a `string_view`
  */
-#include <stddef.h>
 typedef struct {
     const char* buffer; /**< Input file buffer to parse. */
     const char* line_start; /**< Pointer to the current line start. */
     size_t position; /**< Current position in the buffer. */
 } jackc_parser;
+
+/**
+ * Frees the memory allocated for a jackc_parser instance.
+ *
+ * Invalidates the pointer.
+ *
+ * @param parser The parser instance to free.
+ */
+void jackc_parser_free(jackc_parser* parser);
 
 /**
  * Allocates memory for a new jackc_parser instance.

@@ -1,4 +1,4 @@
-#include "jack_stdlib.h"
+#include "jackc_stdlib.h"
 #include "common/logger.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -43,7 +43,6 @@ char* jackc_read_file_content(const char* file_path) {
     content[bytes_read] = '\0';
     fclose(file);
 
-    printf("%zu, %ld\n", bytes_read, file_size);
     if (bytes_read != (size_t)file_size) {
         return NULL;
     }

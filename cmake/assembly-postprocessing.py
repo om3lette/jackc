@@ -17,7 +17,11 @@ PROGRAM_NAME: str = Path(__file__).stem.replace("-", " ").capitalize()
 print(f"\n{PROGRAM_NAME.center(80, '=')}")
 print(f"Moving asm files to {asm_dir.absolute()}")
 for file_path in bin_dir.iterdir():
-    if not file_path.is_file() or file_path.suffix != ".s":
+    if (
+        not file_path.is_file()
+        or file_path.suffix != ".s"
+        or file_path.name == merged_path.name
+    ):
         continue
 
     shutil.move(file_path, asm_dir / file_path.name)
@@ -59,9 +63,10 @@ for file_path in asm_dir.iterdir():
         continue
     merged_file_content += process_file(file_path)
 
-# Remove '.string "main"', which is prohibited in .text in RARS
+# ".srodata" is not supported by RARS.
+# Replace ".srodata" with supported ".rodata"
 merged_file_content = merged_file_content = re.sub(
-    r'^\s*\.string\s*"main".*$\n?', "", merged_file_content, flags=re.MULTILINE
+    r".srodata", ".rodata", merged_file_content, flags=re.MULTILINE
 )
 
 print(f"Saving the result to {merged_path.absolute()}...")

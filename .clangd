@@ -1,2 +1,8 @@
 CompileFlags:
   Add: [-xc, -std=c23]
+---
+If:
+  PathMatch: "platform/rars/.*"
+CompileFlags:
+  Add: [--target=riscv32]
+  Remove: [-I/usr/include]
