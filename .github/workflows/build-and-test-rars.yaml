@@ -1,0 +1,55 @@
+name: Build and test
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {
+              compiler: riscv32-unknown-elf-gcc,
+              version: 2026.01.09,
+              std: 23,
+              build_type: Release,
+            }
+
+    name: "${{matrix.config.compiler}} ${{matrix.config.version}} (C${{matrix.config.std}}, ${{matrix.config.build_type}})"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache RISC-V toolchain
+        id: cache-riscv-toolchain
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/riscv
+          key: riscv32-elf-${{ matrix.config.version }}-${{ runner.os }}-24.04
+
+      - name: Fetch and extract RISC-V toolchain
+        if: steps.cache-riscv-toolchain.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ${{ runner.temp }}
+          curl -L -o /tmp/riscv-toolchain.tar.xz \
+            https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/${{ matrix.config.version }}/riscv32-elf-ubuntu-24.04-gcc.tar.xz
+          tar -xf /tmp/riscv-toolchain.tar.xz -C ${{ runner.temp }}
+
+      - name: Add toolchain to PATH
+        run: echo "${{ runner.temp }}/riscv/bin" >> $GITHUB_PATH
+
+      - name: Setup compiler and build system
+        uses: aminya/setup-cpp@v1
+        with:
+          cmake: 3.31.6
+          ninja: true
+
+      - name: Configure
+        run: cmake --preset rars
+
+      - name: Build
+        run: cmake --build --preset rars
