@@ -3,24 +3,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-void jackc_print_newline() {
-    putchar('\n');
+void jackc_printf(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
 }
 
-void jackc_print_char(char c) {
-    putchar(c);
-}
-
-void jackc_print_int(int n) {
-    printf("%d", n);
-}
-
-void jackc_print_float(float f) {
-    printf("%f", f);
-}
-
-void jackc_print_string(const char *str) {
-    printf("%s", str);
+void jackc_vprintf(const char* format, va_list args) {
+    vprintf(format, args);
 }
 
 char* jackc_read_file_content(const char* file_path) {
@@ -28,7 +19,7 @@ char* jackc_read_file_content(const char* file_path) {
     if (!file) {
         return NULL;
     }
-    LOG_DEBUG("Opened source file.");
+    LOG_DEBUG("Opened source file.\n");
 
     if (fseek(file, 0, SEEK_END) != 0) {
         fclose(file);
@@ -36,7 +27,7 @@ char* jackc_read_file_content(const char* file_path) {
     }
     long file_size = ftell(file);
     rewind(file);
-    LOG_DEBUG("Calculated file content length.");
+    LOG_DEBUG("Calculated file content length.\n");
 
     char* content = jackc_alloc((size_t)file_size + 1);
     size_t bytes_read = fread(content, sizeof(char), (size_t)file_size, file);
@@ -47,6 +38,6 @@ char* jackc_read_file_content(const char* file_path) {
         return NULL;
     }
 
-    LOG_DEBUG("Saved the content to a buffer.");
+    LOG_DEBUG("Saved the content to a buffer.\n");
     return content;
 }

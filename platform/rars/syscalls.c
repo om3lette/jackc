@@ -105,3 +105,63 @@ void rars_exit2(int code) {
     );
     return;
 }
+
+void rars_print_char(char c) {
+    register char a0_c asm("a0") = c;
+    register int a7_syscall_num asm("a7") = 11;
+
+    __asm__ volatile (
+        "ecall"
+        :
+        : "r"(a0_c), "r"(a7_syscall_num)
+        : "memory"
+    );
+}
+
+void rars_print_int(int n) {
+    register int a0_n asm("a0") = n;
+    register int a7_syscall_num asm("a7") = 1;
+
+    __asm__ volatile (
+        "ecall"
+        :
+        : "r"(a0_n), "r"(a7_syscall_num)
+        : "memory"
+    );
+}
+
+void rars_print_uint(unsigned int n) {
+    register unsigned int a0_n asm("a0") = n;
+    register int a7_syscall_num asm("a7") = 36;
+
+    __asm__ volatile (
+        "ecall"
+        :
+        : "r"(a0_n), "r"(a7_syscall_num)
+        : "memory"
+    );
+}
+
+void rars_print_float(float f) {
+    register float a0_f asm("a0") = f;
+    register int a7_syscall_num asm("a7") = 2;
+
+    __asm__ volatile (
+        "ecall"
+        :
+        : "r"(a0_f), "r"(a7_syscall_num)
+        : "memory"
+    );
+}
+
+void rars_print_string(const char* str) {
+    register const char* a0_str asm("a0") = str;
+    register int a7_syscall_num asm("a7") = 4;
+
+    __asm__ volatile (
+        "ecall"
+        :
+        : "r"(a0_str), "r"(a7_syscall_num)
+        : "memory"
+    );
+}

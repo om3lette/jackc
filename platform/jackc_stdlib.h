@@ -2,6 +2,7 @@
 #define JACKC_STDLIB_H
 
 #include <stddef.h>
+#include <stdarg.h>
 
 /**
  * Opens a file by given path, reads file content, returns a pointer to a buffer.
@@ -13,20 +14,21 @@
 char* jackc_read_file_content(const char* path);
 
 /**
- * Mirrors printf behavior.
+ * Tries to mirror printf behavior.
+ *
+ * Currently supports (RARS):
+ * - %d: integer
+ * - %u: unsigned integer
+ * - %c: char
+ * - %s: string
+ * - %f: float
+ * - %p: pointer
  *
  * @param format Format string.
  */
+void jackc_printf(const char* format, ...);
 
-void jackc_print_newline();
-
-void jackc_print_int(int n);
-
-void jackc_print_float(float f);
-
-void jackc_print_string(const char* str);
-
-void jackc_print_char(char c);
+void jackc_vprintf(const char* format, va_list args);
 
 /**
  * Allocates `size` bytes. Exits on allocation failure.

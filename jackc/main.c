@@ -9,14 +9,12 @@ int main() {
     const char* file_path = "/tmp/StaticTest2.vm";
     const char* file_content = jackc_read_file_content(file_path);
     if (!file_content) {
-        LOG_ERROR("Failed to read file content.");
-        LOG_ERROR(file_path);
+        LOG_ERROR("Failed to read file content.\n");
         return 1;
     }
     jackc_parser* parser = jackc_parser_init(file_content);
     (void) parser;
-    LOG_DEBUG("Buffer content:");
-    LOG_DEBUG(parser->buffer);
+    LOG_DEBUG("Buffer content:\n%s\n", parser->buffer);
     jackc_parser_free(parser);
     jackc_exit(JACKC_EXIT_SUCCESS);
 }
