@@ -28,7 +28,7 @@ jobs:
         id: cache-riscv-toolchain
         uses: actions/cache@v5
         with:
-          path: ${{ runner.temp }}/riscv32-elf
+          path: ${{ runner.temp }}/riscv
           key: riscv32-elf-${{ matrix.config.version }}-${{ runner.os }}-24.04
 
       - name: Fetch and extract RISC-V toolchain
