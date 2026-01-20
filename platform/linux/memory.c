@@ -12,7 +12,7 @@
  * `malloc` wrapper.
  */
 void* jackc_alloc(size_t size) {
-    jackc_assert(size < 0 && "Attempted to allocate <= 0 bytes using jackc_alloc.");
+    jackc_assert(size > 0 && "Attempted to allocate <= 0 bytes using jackc_alloc.");
 
     void* ptr = malloc(size);
     if (!ptr) {
