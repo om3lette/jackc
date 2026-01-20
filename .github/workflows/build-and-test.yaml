@@ -30,7 +30,7 @@ jobs:
         run: cmake --preset release
 
       - name: Build
-        run: cmake --build --preset release -j $(nproc)
+        run: cmake --build --preset release
 
       - name: Test
         run: |
