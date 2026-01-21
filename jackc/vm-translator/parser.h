@@ -32,15 +32,6 @@ typedef struct {
 } jackc_parser;
 
 /**
- * Frees the memory allocated for a jackc_parser instance.
- *
- * Invalidates the pointer.
- *
- * @param parser The parser instance to free.
- */
-void jackc_parser_free(jackc_parser* parser);
-
-/**
  * Allocates memory for a new jackc_parser instance.
  *
  * Initializes the parser with the given buffer and default values
@@ -49,6 +40,15 @@ void jackc_parser_free(jackc_parser* parser);
  * @return A pointer to the newly allocated jackc_parser instance.
  */
 [[ nodiscard ]] jackc_parser* jackc_parser_init(const char* buffer);
+
+/**
+ * Frees the memory allocated for a jackc_parser instance.
+ *
+ * Invalidates the pointer.
+ *
+ * @param parser The parser instance to free.
+ */
+void jackc_parser_free(jackc_parser* parser);
 
 /**
  * Checks if there are more lines to parse.
