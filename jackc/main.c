@@ -7,7 +7,7 @@
 int main() {
     // TODO: Unhardcode file_path
 
-    const char* file_path = "/tmp/StaticTest.vm";
+    const char* file_path = "/tmp/FibonacciSeries.vm";
     const char* file_content = jackc_read_file_content(file_path);
     if (!file_content) {
         LOG_ERROR("Failed to read file content.\n");

@@ -4,10 +4,25 @@
 #include <stdarg.h>
 #include "common/logger.h"
 
+void jackc_putchar(char c) {
+    rars_print_char(c);
+}
+
 void jackc_vprintf(const char* format, va_list args) {
     while (*format) {
         if (*format == '%') {
             ++format;
+            int max_len = -1;
+
+            if (*format == '.') {
+                ++format;
+            }
+
+            if (*format == '*') {
+                max_len = va_arg(args, int);
+                ++format;
+            }
+
             switch (*format) {
                 case 'd':
                     rars_print_int(va_arg(args, int));
@@ -16,23 +31,34 @@ void jackc_vprintf(const char* format, va_list args) {
                     rars_print_uint(va_arg(args, unsigned int));
                     break;
                 case 'c':
-                    // 'char' is promoted to 'int' when passed through
                     rars_print_char((char)va_arg(args, int));
                     break;
-                case 's':
+                case 's': {
                     const char* str = va_arg(args, const char*);
-                    if (!str) rars_print_string("(null)");
-                    else      rars_print_string(str);
+                    if (!str) str = "(null)";
+
+                    if (max_len < 0) {
+                        // No limit found, print the whole string normally
+                        rars_print_string(str);
+                    } else {
+                        // Limit found, print char-by-char up to max_len
+                        int count = 0;
+                        while (*str && count < max_len) {
+                            rars_print_char(*str++);
+                            count++;
+                        }
+                    }
                     break;
+                }
                 case 'f':
-                    // 'float' is promoted to 'double' when passed through
                     rars_print_float((float)va_arg(args, double));
                     break;
                 case 'p':
                     rars_print_int((int)va_arg(args, void*));
                     break;
                 default:
-                    LOG_ERROR("Invalid format specifier: %c.\n", *format);
+                    rars_print_char('%');
+                    rars_print_char(*format);
                     break;
             }
         } else {

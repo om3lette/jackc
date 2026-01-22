@@ -28,6 +28,8 @@ char* jackc_read_file_content(const char* path);
  */
 void jackc_printf(const char* format, ...);
 
+void jackc_putchar(char c);
+
 void jackc_vprintf(const char* format, va_list args);
 
 /**

@@ -13,9 +13,11 @@ bool jackc_should_log(jackc_log_level_t log_level);
 
 void jackc_log(const char* fmt, jackc_log_level_t log_level, const char* msg, ...);
 
+#define LOG_DEBUG_NO_BANNER(msg, ...) jackc_log(msg, LOG_LEVEL_DEBUG, "", ##__VA_ARGS__)
+
 #define LOG_DEBUG(msg, ...) jackc_log(msg, LOG_LEVEL_DEBUG, __func__, ##__VA_ARGS__)
 
-#define LOG_INFO(msg, ...) jackc_log(msg LOG_LEVEL_INFO, __func__, ##__VA_ARGS__)
+#define LOG_INFO(msg, ...) jackc_log(msg, LOG_LEVEL_INFO, __func__, ##__VA_ARGS__)
 
 #define LOG_WARNING(msg, ...) jackc_log(msg, LOG_LEVEL_WARNING, __func__, ##__VA_ARGS__)
 

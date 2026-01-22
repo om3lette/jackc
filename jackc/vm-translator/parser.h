@@ -30,27 +30,6 @@ typedef enum {
 
 } jackc_vm_cmd_type;
 
-static const uint8_t vm_cmd_to_args[] = {
-    [C_ADD] = 0,
-    [C_SUB] = 0,
-    [C_NEG] = 0,
-    [C_AND] = 0,
-    [C_OR] = 0,
-    [C_NOT] = 0,
-    [C_EQ] = 0,
-    [C_GT] = 0,
-    [C_LT] = 0,
-    [C_PUSH] = 2,
-    [C_POP] = 2,
-    [C_LABEL] = 1,
-    [C_GOTO] = 1,
-    [C_IF_GOTO] = 1,
-    [C_FUNCTION] = 2,
-    [C_RETURN] = 0,
-    [C_CALL] = 2,
-    [C_UNKNOWN] = 0
-};
-
 /**
  * Parser struct for jackc.
  *
@@ -58,21 +37,21 @@ static const uint8_t vm_cmd_to_args[] = {
  * 0. Indicates if an error occurred during parsing of the current line.
  * 1. Indicates if at least one error [][]occurred during parsing of the entire buffer.
  *
- * Fields are ordered in a way to minimize memory footprint.
  * @todo Consider writing a `string_view`
  */
  typedef struct {
      size_t position; /**< Current position in the buffer. */
+     const char* line_start; /**< Pointer to the current line start. */
+
      jackc_string buffer; /**< Input file buffer to parse. */
      jackc_string arg1;
 
-     unsigned int line_idx; /**< Pointer to the current line start. */
+     uint32_t line_idx;
      jackc_vm_cmd_type cmd;
      int32_t arg2;
 
      bool is_arg1_set;
      bool is_arg2_set;
-     // 2 bytes padding
  } jackc_parser;
 
 /**

@@ -1,3 +1,4 @@
+#include "jackc_stdlib.h"
 #include "jackc_string.h"
 #include <stdint.h>
 
@@ -14,8 +15,8 @@ bool jackc_strcmp(const jackc_string* str1, const char* str2) {
 
 int32_t jackc_atoi(const jackc_string* str) {
     int32_t result = 0;
-    const char* str_ptr = str->data + str->length;
-    const char* str_end = str->data;
+    const char* str_ptr = str->data;
+    const char* str_end = str->data + str->length;
 
     bool is_negative = false;
     if (*str_ptr == '-') {
@@ -37,4 +38,17 @@ int32_t jackc_atoi(const jackc_string* str) {
 
 char jackc_tolower(char c) {
     return (c >= 'A' && c <= 'Z') ? c + 32 : c;
+}
+
+void jackc_string_print(const jackc_string* str) {
+    const char* str_ptr = str->data;
+    const char* str_end = str->data + str->length;
+
+    while (str_ptr < str_end) {
+        jackc_putchar(*str_ptr);
+        ++str_ptr;
+    }
+    jackc_putchar('\n');
+
+    return;
 }

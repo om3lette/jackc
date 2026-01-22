@@ -13,6 +13,8 @@ typedef struct {
 
 #define jackc_string_create(str, len) (jackc_string){.data=str, .length=(len)}
 
+void jackc_string_print(const jackc_string* str);
+
 [[ nodiscard ]] bool jackc_strcmp(const jackc_string* str1, const char* str2);
 
 [[ nodiscard ]] size_t jackc_strlen(const char* str);
