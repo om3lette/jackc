@@ -1,52 +1,210 @@
 #include "parser.h"
+#include "common/exit_code.h"
+#include "common/logger.h"
+#include "common/jackc_assert.h"
 #include "jackc_stdlib.h"
+#include "jackc_string.h"
+#include "vm-translator/utils.h"
 #include <inttypes.h>
+#include <stdio.h>
 
 /**
  * Implementation of jackc_parser_init function.
  */
 jackc_parser* jackc_parser_init(const char *buffer) {
     jackc_parser* parser = jackc_alloc(sizeof(jackc_parser));
-    parser->buffer = buffer;
-    parser->line_start = buffer;
+    parser->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
+    parser->line_idx = 1;
     parser->position = 0;
+
+    parser->arg1 = jackc_string_empty();
+    parser->arg2 = 0;
+
+    parser->is_arg1_set = false;
+    parser->is_arg2_set = false;
+
     return parser;
+}
+
+const char* get_current_position(const jackc_parser* parser) {
+    return parser->buffer.data + parser->position;
+}
+
+char peek(const jackc_parser* parser) {
+    jackc_assert(parser && "Parser is null");
+    jackc_assert(parser->position < parser->buffer.length && "Buffer index out of range");
+
+    return parser->buffer.data[parser->position];
 }
 
 /**
  * Implementation of jackc_parser_free function.
  */
 void jackc_parser_free(jackc_parser* parser) {
-    jackc_free((void*)parser->buffer);
+    jackc_free((void*)parser->buffer.data);
     jackc_free(parser);
 }
 
-[[ nodiscard ]] bool jackc_parser_has_more_lines(const jackc_parser* parser) {
-    (void)parser;
-    return false;
+/**
+ * Skips whitespaces and tabs.
+ */
+void jackc_vm_parser_skip_blank(jackc_parser* parser) {
+    char c = peek(parser);
+    while (c == ' ' || c == '\t') {
+        ++parser->position;
+        c = peek(parser);
+    }
 }
 
-void jackc_parser_advance(jackc_parser* parser) {
-    (void)parser;
+bool jackc_parser_has_more_lines(jackc_parser* parser) {
+    jackc_vm_parser_skip_blank(parser);
+
+    char c = peek(parser);
+    JACKC_VM_PARSER_ASSERT(parser, parser->line_idx == 1 || c == EOF || c == '\n', "Unexpected character");
+
+    return c != EOF;
+}
+
+jackc_vm_cmd_type jackc_vm_cmd_type_from_string(const jackc_string str) {
+    if (jackc_strcmp(&str, "add")) return C_ADD;
+    if (jackc_strcmp(&str, "sub")) return C_SUB;
+    if (jackc_strcmp(&str, "neg")) return C_NEG;
+    if (jackc_strcmp(&str, "eq")) return C_EQ;
+    if (jackc_strcmp(&str, "gt")) return C_GT;
+    if (jackc_strcmp(&str, "lt")) return C_LT;
+    if (jackc_strcmp(&str, "and")) return C_AND;
+    if (jackc_strcmp(&str, "or")) return C_OR;
+    if (jackc_strcmp(&str, "not")) return C_NOT;
+    if (jackc_strcmp(&str, "push")) return C_PUSH;
+    if (jackc_strcmp(&str, "pop")) return C_POP;
+    if (jackc_strcmp(&str, "label")) return C_LABEL;
+    if (jackc_strcmp(&str, "goto")) return C_GOTO;
+    if (jackc_strcmp(&str, "if-goto")) return C_IF_GOTO;
+    if (jackc_strcmp(&str, "function")) return C_FUNCTION;
+    if (jackc_strcmp(&str, "return")) return C_RETURN;
+    if (jackc_strcmp(&str, "call")) return C_CALL;
+    return C_UNKNOWN;
+}
+
+/**
+ * @todo Support comments?
+ * @todo Remove unknown command from jackc_vm_cmd_type?
+ */
+jackc_vm_cmd_type jackc_vm_parse_command(jackc_parser* parser) {
+    jackc_assert(parser && "Parser is null");
+
+    const char* token_start = get_current_position(parser);
+    size_t token_size = 0;
+
+    char c = jackc_tolower(peek(parser));
+    while ((c >= 'a' && c <= 'z') || c == '_') {
+        ++parser->position;
+        ++token_size;
+        c = jackc_tolower(peek(parser));
+    }
+
+    jackc_vm_cmd_type cmd = jackc_vm_cmd_type_from_string(
+        jackc_string_create(token_start, token_size)
+    );
+    JACKC_VM_PARSER_ASSERT(parser, parser->cmd != C_UNKNOWN, "Unknown command");
+    parser->cmd = cmd;
+    LOG_DEBUG("command - %s\n", jackc_cmd_type_to_string(parser->cmd));
+
+    return cmd;
+}
+
+void jackc_vm_parse_arg1(jackc_parser* parser) {
+    jackc_assert(parser && "Parser is null.");
+    LOG_DEBUG("arg1 - %s\n", jackc_cmd_type_to_string(parser->cmd));
+
+    // TODO: Make a separate function
+    bool is_invalid_cmd_type = parser->cmd == C_RETURN || parser->cmd == jackc_vm_cmd_is_arithmetic(parser->cmd);
+    jackc_assert(!is_invalid_cmd_type && "Invalid command type");
+
+    jackc_vm_parser_skip_blank(parser);
+
+    const char* token_start = get_current_position(parser);
+    size_t token_size = 0;
+
+    char c = jackc_tolower(peek(parser));
+    while ((c >= 'a' && c <= 'z') || c == '_' || c == '.') {
+        ++parser->position;
+        ++token_size;
+        c = jackc_tolower(peek(parser));
+    }
+    JACKC_VM_PARSER_ASSERT(parser, token_size, "Token size is zero");
+
+    parser->arg1 = jackc_string_create(token_start, token_size);
+    parser->is_arg1_set = true;
+
     return;
 }
 
-[[ nodiscard ]] jackc_vm_cmd_type jackc_parser_command_type(const jackc_parser* parser) {
-    (void)parser;
-    return 0;
+void jackc_vm_parse_arg2(jackc_parser* parser) {
+    jackc_assert(parser && "Parser is null.");
+
+    // TODO: Make a separate function
+    bool is_valid_cmd_type =
+        parser->cmd == C_PUSH
+        || parser->cmd == C_POP
+        || parser->cmd == C_FUNCTION
+        || parser->cmd == C_CALL;
+    jackc_assert(is_valid_cmd_type && "Invalid command type");
+
+    jackc_vm_parser_skip_blank(parser);
+
+    const char* token_start = get_current_position(parser);
+    size_t token_size = 0;
+
+    char c = peek(parser);
+    while ((c >= '0' && c <= '9')) {
+        ++parser->position;
+        ++token_size;
+        c = peek(parser);
+    }
+    JACKC_VM_PARSER_ASSERT(parser, token_size, "Token size is zero");
+
+    parser->arg2 = jackc_atoi(&jackc_string_create(token_start, token_size));
+    parser->is_arg2_set = true;
+    LOG_DEBUG("arg2 - %d\n", parser->arg2);
+
+    return;
 }
 
-[[ nodiscard ]] const char* jackc_parser_arg1(const jackc_parser* parser) {
-    (void)parser;
-    return 0;
+void jackc_vm_parse_line(jackc_parser* parser) {
+    jackc_assert(parser && "Parser is null.");
+    LOG_DEBUG("Parse line %u\n", parser->line_idx);
+
+    jackc_vm_cmd_type cmd = jackc_vm_parse_command(parser);
+    uint8_t cmd_argc = vm_cmd_to_args[cmd];
+
+    if (cmd_argc > 0)  jackc_vm_parse_arg1(parser);
+    if (cmd_argc == 2) jackc_vm_parse_arg2(parser);
+
+    return;
 }
 
-[[ nodiscard ]] const char* jackc_parser_arg2(const jackc_parser* parser) {
-    (void)parser;
-    return 0;
+void jackc_vm_parser_advance(jackc_parser* parser) {
+    JACKC_VM_PARSER_ASSERT(parser, peek(parser) != EOF, "Unexpected EOF");
+    if (parser->line_idx == 1) {
+        parser->line_idx = 2;
+        jackc_vm_parse_line(parser);
+        return;
+    }
+
+    jackc_vm_parser_skip_blank(parser);
+    JACKC_VM_PARSER_ASSERT(parser, parser->line_idx == 1 || peek(parser) == '\n', "Failed to reach end of line");
+
+    ++parser->line_idx;
+    ++parser->position;
+
+    jackc_vm_parse_line(parser);
+    return;
 }
 
-[[ nodiscard ]] int32_t jackc_parser_arg2_int(const jackc_parser* parser) {
-    (void)parser;
-    return 0;
+void jackc_vm_parser_panic(const jackc_parser* parser, const char* msg, const char* c_file, unsigned int c_line) {
+    LOG_FATAL("Invalid VM syntax at line %d\n", parser->line_idx);
+    LOG_FATAL("%s at %s:%d\n", msg, c_file, c_line);
+
+    jackc_exit(JACKC_ASSERTION_ERROR);
 }

@@ -14,6 +14,7 @@ add_library(platform_impl STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/io.c
     ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/memory.c
     ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/process.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/string.c
 )
 
 # RARS specific files
