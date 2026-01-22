@@ -23,7 +23,7 @@
  *	    .base64	"AAAAAAAAAAAAAAICAQEBAgAC"
  *	    .align	2
  */
-static const uint16_t vm_cmd_to_args[18] = {
+static const uint16_t vm_cmd_to_args[] = {
     [C_ADD] = 0,
     [C_SUB] = 0,
     [C_NEG] = 0,
