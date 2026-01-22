@@ -1,9 +1,7 @@
 #include "jackc_string.h"
 
 size_t jackc_strlen(const char* str) {
-    size_t len = 0;
-    while (*str++) {
-        ++len;
-    }
-    return len;
+    const char* str_end = str;
+    while (*str_end++) {}
+    return (size_t)(str_end - str - 1);
 }
