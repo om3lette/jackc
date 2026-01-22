@@ -8,7 +8,22 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-static const uint8_t vm_cmd_to_args[18] = {
+/**
+ * VM commands mapping to arguments count.
+ *
+ * Data type used must be at least 16 bits.
+ * Otherwise it can compile to a base64 string in RISC-V.
+ * RARS is unable to interpret it correctly.
+ *
+ * Example riscv32-unknown-elf-gcc output:
+ *
+ * 	    .type	vm_cmd_to_args, @object
+ *	    .size	vm_cmd_to_args, 18
+ *	vm_cmd_to_args:
+ *	    .base64	"AAAAAAAAAAAAAAICAQEBAgAC"
+ *	    .align	2
+ */
+static const uint16_t vm_cmd_to_args[18] = {
     [C_ADD] = 0,
     [C_SUB] = 0,
     [C_NEG] = 0,
@@ -128,10 +143,10 @@ jackc_vm_cmd_type jackc_vm_parse_command(jackc_parser* parser) {
     jackc_vm_cmd_type cmd = jackc_vm_cmd_type_from_string(
         jackc_string_create(token_start, token_size)
     );
-    JACKC_VM_PARSER_ASSERT(parser, parser->cmd != C_UNKNOWN, "Unknown command");
-    parser->cmd = cmd;
-    LOG_DEBUG("%s\n", jackc_cmd_type_to_string(parser->cmd));
+    LOG_DEBUG("%s\n", jackc_cmd_type_to_string(cmd));
+    JACKC_VM_PARSER_ASSERT(parser, cmd != C_UNKNOWN, "Unknown command");
 
+    parser->cmd = cmd;
     return cmd;
 }
 
@@ -186,7 +201,6 @@ void jackc_vm_parse_arg2(jackc_parser* parser) {
         c = peek(parser);
     }
 
-
     JACKC_VM_PARSER_ASSERT(parser, token_size, "Token size is zero");
     jackc_string token = jackc_string_create(token_start, token_size);
 
@@ -202,7 +216,7 @@ void jackc_vm_parse_line(jackc_parser* parser) {
     LOG_DEBUG("Line %u\n", parser->line_idx);
 
     jackc_vm_cmd_type cmd = jackc_vm_parse_command(parser);
-    uint8_t cmd_argc = vm_cmd_to_args[cmd];
+    uint16_t cmd_argc = vm_cmd_to_args[cmd];
 
     if (cmd_argc > 0)  jackc_vm_parse_arg1(parser);
     if (cmd_argc == 2) jackc_vm_parse_arg2(parser);
