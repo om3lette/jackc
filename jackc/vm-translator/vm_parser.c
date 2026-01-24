@@ -118,7 +118,7 @@ jackc_vm_cmd_type jackc_vm_cmd_type_from_string(const jackc_string str) {
 jackc_vm_cmd_type jackc_vm_parse_command(jackc_parser* parser) {
     jackc_assert(parser && "Parser is null");
 
-    const char* token_start = get_current_position(parser);
+    const char* token_start = vm_get_current_position(parser);
     size_t token_size = 0;
 
     char c = jackc_tolower(vm_parser_peek(parser));
@@ -131,7 +131,7 @@ jackc_vm_cmd_type jackc_vm_parse_command(jackc_parser* parser) {
     jackc_vm_cmd_type cmd = jackc_vm_cmd_type_from_string(
         jackc_string_create(token_start, token_size)
     );
-    LOG_DEBUG("%s\n", jackc_cmd_type_to_string(cmd));
+    LOG_DEBUG("%s\n", vm_cmd_type_to_string(cmd));
     JACKC_VM_PARSER_ASSERT(parser, cmd != C_UNKNOWN, "Unknown command");
 
     parser->cmd = cmd;
@@ -142,12 +142,12 @@ void jackc_vm_parse_arg1(jackc_parser* parser) {
     jackc_assert(parser && "Parser is null.");
 
     // TODO: Make a separate function
-    bool is_invalid_cmd_type = parser->cmd == C_RETURN || parser->cmd == jackc_vm_cmd_is_arithmetic(parser->cmd);
+    bool is_invalid_cmd_type = parser->cmd == C_RETURN || parser->cmd == vm_cmd_is_arithmetic(parser->cmd);
     jackc_assert(!is_invalid_cmd_type && "Invalid command type");
 
     vm_parser_skip_blank(parser);
 
-    const char* token_start = get_current_position(parser);
+    const char* token_start = vm_get_current_position(parser);
     size_t token_size = 0;
 
     char c = jackc_tolower(vm_parser_peek(parser));
@@ -179,7 +179,7 @@ void jackc_vm_parse_arg2(jackc_parser* parser) {
 
     vm_parser_skip_blank(parser);
 
-    const char* token_start = get_current_position(parser);
+    const char* token_start = vm_get_current_position(parser);
     size_t token_size = 0;
 
     char c = vm_parser_peek(parser);

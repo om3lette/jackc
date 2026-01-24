@@ -1,7 +1,7 @@
 #include "common/jackc_assert.h"
 #include "vm-translator/utils.h"
 
-const char* get_current_position(const jackc_parser* parser) {
+const char* vm_get_current_position(const jackc_parser* parser) {
     return parser->buffer.data + parser->position;
 }
 
@@ -22,12 +22,9 @@ char vm_parser_peek_next(const jackc_parser* parser, size_t offset) {
 void vm_parser_skip_new_line(jackc_parser* parser) {
     vm_parser_skip_crlf(parser);
     vm_parser_skip_lf(parser);
-    parser->line_start = get_current_position(parser);
+    parser->line_start = vm_get_current_position(parser);
 }
 
-/**
- * Skips whitespaces and tabs.
- */
 void vm_parser_skip_blank(jackc_parser* parser) {
     char c = vm_parser_peek(parser);
     while (c == ' ' || c == '\t') {
@@ -56,7 +53,7 @@ bool is_line_ending(char c) {
     return c == '\n' || c == '\r' || c == '\0';
 }
 
-bool jackc_vm_cmd_is_arithmetic(jackc_vm_cmd_type cmd_type) {
+bool vm_cmd_is_arithmetic(jackc_vm_cmd_type cmd_type) {
     switch (cmd_type) {
         case C_ADD:
         case C_SUB:
@@ -73,7 +70,7 @@ bool jackc_vm_cmd_is_arithmetic(jackc_vm_cmd_type cmd_type) {
     }
 }
 
-char* jackc_cmd_type_to_string(jackc_vm_cmd_type cmd_type) {
+char* vm_cmd_type_to_string(jackc_vm_cmd_type cmd_type) {
     switch (cmd_type) {
         case C_ADD:
             return "add";

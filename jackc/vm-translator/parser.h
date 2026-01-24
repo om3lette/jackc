@@ -32,26 +32,20 @@ typedef enum {
 
 /**
  * Parser struct for jackc.
- *
- * flags:
- * 0. Indicates if an error occurred during parsing of the current line.
- * 1. Indicates if at least one error [][]occurred during parsing of the entire buffer.
- *
- * @todo Consider writing a `string_view`
  */
  typedef struct {
      size_t position; /**< Current position in the buffer. */
      const char* line_start; /**< Pointer to the current line start. */
 
      jackc_string buffer; /**< Input file buffer to parse. */
-     jackc_string arg1;
+     jackc_string arg1; /**< First argument of the current command. */
 
-     uint32_t line_idx;
-     jackc_vm_cmd_type cmd;
-     int32_t arg2;
+     uint32_t line_idx; /**< Line index of the current command. Starting from 1. */
+     jackc_vm_cmd_type cmd; /**< Type of the current command. */
+     int32_t arg2; /**< Second argument of the current command. */
 
-     bool is_arg1_set;
-     bool is_arg2_set;
+     bool is_arg1_set; /**< Indicates if the first argument is set. */
+     bool is_arg2_set; /**< Indicates if the second argument is set. */
  } jackc_parser;
 
 /**
@@ -60,7 +54,6 @@ typedef enum {
  * Initializes the parser with the given buffer and default values
  *
  * @param buffer The input file buffer to parse.
- * @return A pointer to the newly allocated jackc_parser instance.
  */
 [[ nodiscard ]] jackc_parser* jackc_parser_init(const char* buffer);
 
@@ -77,7 +70,6 @@ void jackc_parser_free(jackc_parser* parser);
  * Checks if there are more lines to parse.
  *
  * @param parser The parser instance.
- * @return True if there are more lines, false otherwise.
  */
 [[ nodiscard ]] bool jackc_parser_has_more_lines(jackc_parser* parser);
 
@@ -92,7 +84,6 @@ void jackc_vm_parser_advance(jackc_parser* parser);
  * Returns the type of the current command.
  *
  * @param parser The parser instance.
- * @return The type of the current command.
  */
 [[ nodiscard ]] jackc_vm_cmd_type jackc_parser_command_type(const jackc_parser* parser);
 
@@ -100,7 +91,6 @@ void jackc_vm_parser_advance(jackc_parser* parser);
  * Returns the first argument of the current command.
  *
  * @param parser The parser instance.
- * @return The first argument of the current command.
  */
 [[ nodiscard ]] const char* jackc_parser_arg1(const jackc_parser* parser);
 
@@ -108,18 +98,17 @@ void jackc_vm_parser_advance(jackc_parser* parser);
  * Returns the second argument of the current command.
  *
  * @param parser The parser instance.
- * @return The second argument of the current command.
  */
 [[ nodiscard ]] const char* jackc_parser_arg2(const jackc_parser* parser);
 
 /**
- * Returns the second argument of the current command as an integer.
+ * Prints debug information and the current parser state.
  *
  * @param parser The parser instance.
- * @return The second argument of the current command.
+ * @param msg The message to print.
+ * @param c_file The file name where the error occurred.
+ * @param c_line The line number where the error occurred.
  */
-[[ nodiscard ]] int32_t jackc_parser_arg2_int(const jackc_parser* parser);
-
 void jackc_vm_parser_panic(const jackc_parser* parser, const char* msg, const char* c_file, unsigned int c_line);
 
 #define JACKC_VM_PARSER_ASSERT(parser, condition, message) \
