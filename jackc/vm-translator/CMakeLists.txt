@@ -1,6 +1,6 @@
 add_library(vm-translator STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/parser.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/vm_parser.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/vm_utils.c
 )
 
 target_link_libraries(vm-translator PUBLIC
