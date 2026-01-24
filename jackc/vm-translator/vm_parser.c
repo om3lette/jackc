@@ -71,7 +71,7 @@ void jackc_parser_free(jackc_parser* parser) {
     jackc_free(parser);
 }
 
-bool jackc_vm_parser_skip_one_line_comment(jackc_parser* parser) {
+bool vm_parser_skip_one_line_comment(jackc_parser* parser) {
     jackc_assert(parser && "Parser is null");
     bool reached_eol = false;
     vm_parser_skip_blank(parser);
@@ -222,7 +222,7 @@ void jackc_vm_parser_advance(jackc_parser* parser) {
     vm_parser_skip_new_line(parser);
     while (true) {
         vm_parser_skip_blank(parser);
-        bool reached_eol = jackc_vm_parser_skip_one_line_comment(parser);
+        bool reached_eol = vm_parser_skip_one_line_comment(parser);
         if (!reached_eol) break;
 
         vm_parser_skip_new_line(parser);
@@ -235,7 +235,7 @@ void jackc_vm_parser_advance(jackc_parser* parser) {
     jackc_vm_parse_line(parser);
     // Allow comments after the line.
     vm_parser_skip_blank(parser);
-    jackc_vm_parser_skip_one_line_comment(parser);
+    vm_parser_skip_one_line_comment(parser);
     return;
 }
 
