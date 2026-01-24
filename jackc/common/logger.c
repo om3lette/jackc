@@ -9,27 +9,29 @@ void jackc_log(const char* fmt, jackc_log_level_t level, const char* caller, ...
     if (!jackc_should_log(level)) return;
 
     // TODO: Improve if strcat is introduced
-    switch (level) {
-        case LOG_LEVEL_DEBUG:
-            jackc_printf("[DEBUG] ");
-            break;
-        case LOG_LEVEL_INFO:
-            jackc_printf("[INFO] ");
-            break;
-        case LOG_LEVEL_WARNING:
-            jackc_printf("[WARNING] ");
-            break;
-        case LOG_LEVEL_ERROR:
-            jackc_printf("[ERROR] ");
-            break;
-        case LOG_LEVEL_FATAL:
-            jackc_printf("[FATAL] ");
-            break;
-        default:
-            jackc_printf("[UNKNOWN] ");
-            break;
+    if (caller[0] != '\0') {
+        switch (level) {
+            case LOG_LEVEL_DEBUG:
+                jackc_printf("[DEBUG] ");
+                break;
+            case LOG_LEVEL_INFO:
+                jackc_printf("[INFO] ");
+                break;
+            case LOG_LEVEL_WARNING:
+                jackc_printf("[WARNING] ");
+                break;
+            case LOG_LEVEL_ERROR:
+                jackc_printf("[ERROR] ");
+                break;
+            case LOG_LEVEL_FATAL:
+                jackc_printf("[FATAL] ");
+                break;
+            default:
+                jackc_printf("[UNKNOWN] ");
+                break;
+        }
+        jackc_printf("%s: ", caller);
     }
-    jackc_printf("%s: ", caller);
 
     va_list args;
     va_start(args, caller);

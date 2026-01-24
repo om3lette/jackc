@@ -3,6 +3,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+void jackc_putchar(char c) {
+    putchar(c);
+}
+
 void jackc_printf(const char* format, ...) {
     va_list args;
     va_start(args, format);
