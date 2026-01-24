@@ -74,7 +74,8 @@ void jackc_parser_free(jackc_parser* parser);
 [[ nodiscard ]] bool jackc_parser_has_more_lines(jackc_parser* parser);
 
 /**
- * Advances the parser to the next line.
+ * Advances the parser to the next valid instruction.
+ * Skips comments and blank lines.
  *
  * @param parser The parser instance.
  */
