@@ -1,7 +1,11 @@
+#include "jackc_stdio.h"
 #include "jackc_stdlib.h"
 #include "common/logger.h"
+#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 void jackc_putchar(char c) {
     putchar(c);
@@ -44,4 +48,38 @@ char* jackc_read_file_content(const char* file_path) {
 
     LOG_DEBUG("Saved the content to a buffer.\n");
     return content;
+}
+
+void jackc_vfprintf(int fd, const char* format, va_list args) {
+    vdprintf(fd, format, args);
+}
+
+void jackc_fprintf(int fd, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    jackc_vfprintf(fd, format, args);
+    va_end(args);
+}
+
+int jackc_open(const char* path, int flags) {
+    return open(path, flags, 0644);
+}
+
+ssize_t jackc_write(int fd, const void* buf, size_t n) {
+    return write(fd, buf, n);
+}
+
+void jackc_strcpy(char* dest, const char* src) {
+    strcpy(dest, src);
+}
+
+void jackc_vsprintf(char* buffer, const char* format, va_list args) {
+    vsprintf(buffer, format, args);
+}
+
+void jackc_sprintf(char* buffer, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    jackc_vsprintf(buffer, format, args);
+    va_end(args);
 }

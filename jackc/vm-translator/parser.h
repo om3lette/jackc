@@ -27,8 +27,18 @@ typedef enum {
     C_FUNCTION,
     C_RETURN,
     C_CALL
-
 } jackc_vm_cmd_type;
+
+typedef enum {
+    SEGMENT_THIS,
+    SEGMENT_THAT,
+    SEGMENT_ARG,
+    SEGMENT_LOCAL,
+    SEGMENT_CONSTANT,
+    SEGMENT_STATIC,
+    SEGMENT_TEMP,
+    SEGMENT_POINTER
+} jackc_vm_segment_type;
 
 /**
  * Parser struct for jackc.
@@ -42,6 +52,7 @@ typedef enum {
 
      uint32_t line_idx; /**< Line index of the current command. Starting from 1. */
      jackc_vm_cmd_type cmd; /**< Type of the current command. */
+     jackc_vm_segment_type segment; /**< Segment type. Valid if cmd is C_PUSH or C_POP. Parser version of arg1 */
      int32_t arg2; /**< Second argument of the current command. */
 
      bool is_arg1_set; /**< Indicates if the first argument is set. */

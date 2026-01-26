@@ -4,44 +4,20 @@
 #include "vm-translator/parser.h"
 
 typedef struct {
-    char* output_file;
+    const char* output_file;
     int fd;
-    size_t static_idx;
+    long static_idx;
+    size_t label_idx;
+    size_t temp_idx;
     size_t file_idx;
 } vm_code_generator;
 
-void vm_line_code_emit(const vm_code_generator* generator, const jackc_parser* parser);
+vm_code_generator* jackc_vm_code_gen_init(const char* output_file, int fd);
 
-// typedef enum {
-//     C_UNKNOWN = 0,
-//     C_ADD,
-//     C_SUB,
-//     C_NEG,
-//     C_AND,
-//     C_OR,
-//     C_NOT,
-//     C_EQ,
-//     C_GT,
-//     C_LT,typedef enum {
-//     C_UNKNOWN = 0,
-//     C_ADD,
-//     C_SUB,
-//     C_NEG,
-//     C_AND,
-//     C_OR,
-//     C_NOT,
-//     C_EQ,
-//     C_GT,
-//     C_LT,
-//     C_PUSH,
-//     C_POP,
-//     C_LABEL,
-//     C_GOTO,
-//     C_IF_GOTO,
-//     C_FUNCTION,
-//     C_RETURN,
-//     C_CALL
-// } jackc_vm_cmd_type;
+void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* parser);
 
+void jackc_vm_code_gen_finalize(vm_code_generator* generator);
+
+void jackc_vm_code_gen_free(vm_code_generator* generator);
 
 #endif

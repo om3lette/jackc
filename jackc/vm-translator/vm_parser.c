@@ -163,6 +163,31 @@ void jackc_vm_parse_arg1(jackc_parser* parser) {
 
     LOG_DEBUG("%.*s\n", token_size, parser->arg1.data);
 
+    if (parser->cmd == C_PUSH || parser->cmd == C_POP) {
+        if (jackc_strcmp(&parser->arg1, "this")) {
+            parser->segment = SEGMENT_THIS;
+        } else if (jackc_strcmp(&parser->arg1, "that")) {
+            parser->segment = SEGMENT_THAT;
+        } else if (jackc_strcmp(&parser->arg1, "local")) {
+            parser->segment = SEGMENT_LOCAL;
+        } else if (jackc_strcmp(&parser->arg1, "argument")) {
+            parser->segment = SEGMENT_ARG;
+        } else if (jackc_strcmp(&parser->arg1, "static")) {
+            parser->segment = SEGMENT_STATIC;
+        } else if (jackc_strcmp(&parser->arg1, "constant")) {
+            parser->segment = SEGMENT_CONSTANT;
+        } else if (jackc_strcmp(&parser->arg1, "temp")) {
+            parser->segment = SEGMENT_TEMP;
+        } else if (jackc_strcmp(&parser->arg1, "pointer")) {
+            parser->segment = SEGMENT_POINTER;
+        } else {
+            JACKC_VM_PARSER_ASSERT(parser, false, "Invalid segment");
+        }
+    }
+    if (parser->cmd == C_POP && parser->segment == SEGMENT_CONSTANT) {
+        JACKC_VM_PARSER_ASSERT(parser, false, "Cannot pop with constant segment");
+    }
+
     return;
 }
 
@@ -192,9 +217,18 @@ void jackc_vm_parse_arg2(jackc_parser* parser) {
     JACKC_VM_PARSER_ASSERT(parser, token_size, "Token size is zero");
     jackc_string token = jackc_string_create(token_start, token_size);
 
-    parser->arg2 = jackc_atoi(&token);
+    int32_t arg2 = jackc_atoi(&token);
+    parser->arg2 = arg2;
     parser->is_arg2_set = true;
     LOG_DEBUG("%d\n", parser->arg2);
+
+    JACKC_VM_PARSER_ASSERT(
+        parser,
+        (parser->cmd != C_PUSH && parser->cmd != C_POP)
+        || parser->segment != SEGMENT_POINTER
+        || (arg2 == 0 || arg2 == 1),
+        "Invalid arg2 for push/pop pointer segment. Available values are 0 and 1"
+    );
 
     return;
 }

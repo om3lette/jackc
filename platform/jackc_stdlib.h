@@ -4,6 +4,12 @@
 #include <stddef.h>
 #include <stdarg.h>
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+#define STRINGIFY(x) #x
+#define TO_STRING(x) STRINGIFY(x)
+
 /**
  * Opens a file by given path, reads file content, returns a pointer to a buffer.
  *
