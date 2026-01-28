@@ -22,4 +22,6 @@ void jackc_vm_code_gen_finalize(vm_code_generator* generator);
 
 void jackc_vm_code_gen_free(vm_code_generator* generator);
 
+void vm_code_gen_update_static_idx(vm_code_generator* generator, size_t idx);
+
 #endif

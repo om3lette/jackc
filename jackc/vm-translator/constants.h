@@ -19,6 +19,12 @@
 #define RET_REG "a0"
 
 /**
+ * Register used to store base address of static variables.
+ */
+#define SEGMENT_STATIC_REG "gp"
+#define STATIC_BASE_LABEL "STATIC_BASE"
+
+/**
  * Source pointer register.
  */
 #define JACK_SP_REG "sp"

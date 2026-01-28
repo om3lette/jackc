@@ -1,4 +1,13 @@
 #include "jackc_string.h"
+#include <stdint.h>
+
+int jackc_strcmp(const char* str1, const char* str2) {
+    while (*str1 && *str2 && *str1 == *str2) {
+        str1++;
+        str2++;
+    }
+    return (int)(*str1 - *str2);
+}
 
 size_t jackc_strlen(const char* str) {
     const char* str_end = str;

@@ -103,23 +103,23 @@ bool jackc_parser_has_more_lines(jackc_parser* parser) {
 }
 
 jackc_vm_cmd_type jackc_vm_cmd_type_from_string(const jackc_string str) {
-    if (jackc_strcmp(&str, "add")) return C_ADD;
-    if (jackc_strcmp(&str, "sub")) return C_SUB;
-    if (jackc_strcmp(&str, "neg")) return C_NEG;
-    if (jackc_strcmp(&str, "eq")) return C_EQ;
-    if (jackc_strcmp(&str, "gt")) return C_GT;
-    if (jackc_strcmp(&str, "lt")) return C_LT;
-    if (jackc_strcmp(&str, "and")) return C_AND;
-    if (jackc_strcmp(&str, "or")) return C_OR;
-    if (jackc_strcmp(&str, "not")) return C_NOT;
-    if (jackc_strcmp(&str, "push")) return C_PUSH;
-    if (jackc_strcmp(&str, "pop")) return C_POP;
-    if (jackc_strcmp(&str, "label")) return C_LABEL;
-    if (jackc_strcmp(&str, "goto")) return C_GOTO;
-    if (jackc_strcmp(&str, "if-goto")) return C_IF_GOTO;
-    if (jackc_strcmp(&str, "function")) return C_FUNCTION;
-    if (jackc_strcmp(&str, "return")) return C_RETURN;
-    if (jackc_strcmp(&str, "call")) return C_CALL;
+    if (jackc_streq(&str, "add")) return C_ADD;
+    if (jackc_streq(&str, "sub")) return C_SUB;
+    if (jackc_streq(&str, "neg")) return C_NEG;
+    if (jackc_streq(&str, "eq")) return C_EQ;
+    if (jackc_streq(&str, "gt")) return C_GT;
+    if (jackc_streq(&str, "lt")) return C_LT;
+    if (jackc_streq(&str, "and")) return C_AND;
+    if (jackc_streq(&str, "or")) return C_OR;
+    if (jackc_streq(&str, "not")) return C_NOT;
+    if (jackc_streq(&str, "push")) return C_PUSH;
+    if (jackc_streq(&str, "pop")) return C_POP;
+    if (jackc_streq(&str, "label")) return C_LABEL;
+    if (jackc_streq(&str, "goto")) return C_GOTO;
+    if (jackc_streq(&str, "if-goto")) return C_IF_GOTO;
+    if (jackc_streq(&str, "function")) return C_FUNCTION;
+    if (jackc_streq(&str, "return")) return C_RETURN;
+    if (jackc_streq(&str, "call")) return C_CALL;
     return C_UNKNOWN;
 }
 
@@ -175,21 +175,21 @@ void jackc_vm_parse_arg1(jackc_parser* parser) {
     LOG_DEBUG("%.*s\n", token_size, parser->arg1.data);
 
     if (parser->cmd == C_PUSH || parser->cmd == C_POP) {
-        if (jackc_strcmp(&parser->arg1, "this")) {
+        if (jackc_streq(&parser->arg1, "this")) {
             parser->segment = SEGMENT_THIS;
-        } else if (jackc_strcmp(&parser->arg1, "that")) {
+        } else if (jackc_streq(&parser->arg1, "that")) {
             parser->segment = SEGMENT_THAT;
-        } else if (jackc_strcmp(&parser->arg1, "local")) {
+        } else if (jackc_streq(&parser->arg1, "local")) {
             parser->segment = SEGMENT_LOCAL;
-        } else if (jackc_strcmp(&parser->arg1, "argument")) {
+        } else if (jackc_streq(&parser->arg1, "argument")) {
             parser->segment = SEGMENT_ARG;
-        } else if (jackc_strcmp(&parser->arg1, "static")) {
+        } else if (jackc_streq(&parser->arg1, "static")) {
             parser->segment = SEGMENT_STATIC;
-        } else if (jackc_strcmp(&parser->arg1, "constant")) {
+        } else if (jackc_streq(&parser->arg1, "constant")) {
             parser->segment = SEGMENT_CONSTANT;
-        } else if (jackc_strcmp(&parser->arg1, "temp")) {
+        } else if (jackc_streq(&parser->arg1, "temp")) {
             parser->segment = SEGMENT_TEMP;
-        } else if (jackc_strcmp(&parser->arg1, "pointer")) {
+        } else if (jackc_streq(&parser->arg1, "pointer")) {
             parser->segment = SEGMENT_POINTER;
         } else {
             JACKC_VM_PARSER_ASSERT(parser, false, "Invalid segment");
