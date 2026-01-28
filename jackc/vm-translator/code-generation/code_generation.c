@@ -104,76 +104,68 @@ void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
             jackc_fprintf(fd, "\tsw t%d, 0(%s)\n", idx, JACK_SP_REG);
             break;
         default:
-            jackc_assert(0 && "Unhandled segment type in push operation.");
+            jackc_assert(false && "Unhandled segment type in push operation.");
     }
 }
 
 void vm_code_gen_pop(int fd, jackc_vm_segment_type type, int idx) {
-    // TODO: Turn off debug mode
+    jackc_assert(type != SEGMENT_CONSTANT && "pop with constant segment is not allowed");
+
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "pop %s %d\n", vm_segment_type_to_string(type), idx);
 
+    long byte_offset = word_to_bytes(idx);
+    char* reg = NULL;
+
+    // Handle segments that use base-pointer + offset logic
     switch (type) {
         case SEGMENT_THIS:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, 0(%s)\n"
-                "\tsw %s, -%d(%s)\n",
-                LOAD_REG, JACK_SP_REG,
-                LOAD_REG, word_to_bytes(idx), SEGMENT_THIS_REG
-            );
+            reg = SEGMENT_THIS_REG;
             break;
         case SEGMENT_THAT:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, 0(%s)\n"
-                "\tsw %s, -%d(%s)\n",
-                LOAD_REG, JACK_SP_REG,
-                LOAD_REG, word_to_bytes(idx), SEGMENT_THAT_REG
-            );
+            reg = SEGMENT_THAT_REG;
             break;
         case SEGMENT_ARG:
-            // TODO: Add support for > 8 arguments
-            jackc_assert(idx >= 0 && idx < 8 && "Invalid argument index.");
-            jackc_fprintf(fd, "\tlw a%d, 0(%s)\n", idx, JACK_SP_REG);
+            reg = SEGMENT_ARG_REG;
             break;
         case SEGMENT_LOCAL:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, 0(%s)\n"
-                "\tsw %s, -%d(%s)\n",
-                LOAD_REG, JACK_SP_REG,
-                LOAD_REG, word_to_bytes(idx + 1), SEGMENT_LCL_REG
-            );
-            break;
-        case SEGMENT_CONSTANT:
-            jackc_assert(false && "pop with constant segment is not allowed");
+            reg = SEGMENT_LCL_REG;
             break;
         case SEGMENT_STATIC:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, 0(%s)\n"
-                "\tsw %s, -%d(%s)\n",
-                LOAD_REG, JACK_SP_REG,
-                LOAD_REG, word_to_bytes(idx), SEGMENT_STATIC_REG
-            );
+            reg = SEGMENT_STATIC_REG;
             break;
+        default:
+            reg = NULL;
+    }
+    if (reg) {
+        jackc_fprintf(
+            fd,
+            "\tsw %s, 0(%s)\n"
+            "\tlw %s, -%d(%s)\n",
+            LOAD_REG, byte_offset, reg,
+            LOAD_REG, JACK_SP_REG
+        );
+        vm_code_gen_stack_dealloc(fd, 1);
+        return;
+    }
+
+    switch (type) {
         case SEGMENT_TEMP:
             jackc_assert(idx >= 0 && idx < 7 && "Invalid temp index.");
             jackc_fprintf(fd, "\tlw t%d, 0(%s)\n", idx, JACK_SP_REG);
             break;
-        case SEGMENT_POINTER:
+        case SEGMENT_POINTER: {
             char* selected_register = (idx == POINTER_THIS) ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
             jackc_fprintf(
                 fd,
-                "\tsw %s, 0(%s)\n"
-                "\tmv %s, %s\n",
-                LOAD_REG, JACK_SP_REG,
-                selected_register, LOAD_REG
+                "\tsw %s, 0(%s)\n",
+                selected_register, JACK_SP_REG
             );
             break;
+        }
+        default:
+            jackc_assert(false && "Unhandled segment type in pop operation.");
     }
 
-    // Deallocate space on the stack.
     vm_code_gen_stack_dealloc(fd, 1);
 }
 
@@ -426,17 +418,14 @@ void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* pa
 }
 
 void jackc_vm_code_gen_finalize(vm_code_generator* generator) {
-    // Generate static variables
-    if (generator->static_idx >= 0) {
-        // 0 indexed, therefore +1
-        int static_var_cnt = (int)generator->static_idx + 1;
-        jackc_fprintf(
-            generator->fd,
-            "\n.data\n"
-            "%s: .space %d\n",
-            STATIC_BASE_LABEL, word_to_bytes(static_var_cnt)
-        );
-    }
+    // 0 indexed, therefore +1
+    int static_var_cnt = (int)generator->static_idx + 1;
+    jackc_fprintf(
+        generator->fd,
+        "\n.data\n"
+        "%s: .space %d\n",
+        STATIC_BASE_LABEL, word_to_bytes(static_var_cnt)
+    );
 
     // Add an empty line
     jackc_fprintf(generator->fd, "\n");
