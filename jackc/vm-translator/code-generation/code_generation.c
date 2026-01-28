@@ -100,7 +100,7 @@ void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "pop %s %d\n", vm_segment_type_to_string(type), idx);
 
-    long byte_offset = word_to_bytes(idx);
+    int byte_offset = word_to_bytes(idx);
     char* reg = NULL;
 
     // Handle segments that use base-pointer + offset logic
@@ -124,12 +124,11 @@ void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
             reg = NULL;
     }
     if (reg) {
+        vm_code_gen_pop(fd, LOAD_REG, true);
         jackc_fprintf(
             fd,
-            "\tsw %s, 0(%s)\n"
-            "\tlw %s, -%d(%s)\n",
-            LOAD_REG, reg,
-            LOAD_REG, byte_offset, JACK_SP_REG
+            "\tsw %s, -%d(%s)\n",
+            LOAD_REG, byte_offset, reg
         );
         vm_code_gen_stack_dealloc(fd, 1);
         return;
@@ -142,9 +141,10 @@ void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
             break;
         case SEGMENT_POINTER: {
             char* selected_register = (idx == POINTER_THIS) ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
+            vm_code_gen_pop(fd, selected_register, false);
             jackc_fprintf(
                 fd,
-                "\tsw %s, 0(%s)\n",
+                "\tlw %s, 0(%s)\n",
                 selected_register, JACK_SP_REG
             );
             break;

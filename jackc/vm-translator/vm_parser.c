@@ -98,7 +98,7 @@ bool vm_parser_skip_one_line_comment(jackc_parser* parser) {
 
 bool jackc_parser_has_more_lines(jackc_parser* parser) {
     char c = vm_parser_peek(parser);
-    jackc_assert(c != ' ' && c != '\t' && "Unexpected end of input");
+    vm_parser_skip_blank(parser);
     return c != '\0';
 }
 
