@@ -25,9 +25,6 @@ char* vm_segment_type_to_string(jackc_vm_segment_type segment_type) {
     return "unknown";
 }
 
-/**
- * @todo: add filename/index to a label
- */
 char* vm_code_gen_generate_static_name(uint32_t index) {
     static char static_label_buffer[32];
     jackc_sprintf(static_label_buffer, "STATIC_%d", index);

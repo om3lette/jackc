@@ -19,45 +19,6 @@ void jackc_vm_code_bootstrap(vm_code_generator* generator) {
     );
 }
 
-/**
- * @todo inline?
- */
-void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* dest_reg, int offset) {
-    jackc_assert(offset >= 0 && "Offset must be >= 0");
-
-    long byte_offset = word_to_bytes(offset);
-    switch (segment) {
-        case SEGMENT_THIS:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, -%d(%s)\n"
-                "\tlw %s, 0(%s)\n",
-                LOAD_REG, byte_offset, SEGMENT_THIS_REG,
-                dest_reg, LOAD_REG
-            );
-            break;
-        case SEGMENT_THAT:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, -%d(%s)\n"
-                "\tlw %s, 0(%s)\n",
-                LOAD_REG, byte_offset, SEGMENT_THAT_REG,
-                dest_reg, LOAD_REG
-            );
-            break;
-        case SEGMENT_POINTER:
-            char* segment_reg = offset == POINTER_THIS ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
-            jackc_fprintf(fd, "\tlw %s, -%d(%s)\n", dest_reg, byte_offset, segment_reg);
-            break;
-        case SEGMENT_STATIC:
-            jackc_fprintf(fd, "\tla %s, %s\n", dest_reg, vm_code_gen_generate_static_name((uint32_t)offset));
-            break;
-        default:
-            jackc_assert(false && "Provided segment type cannot be loaded");
-            break;
-    }
-}
-
 void vm_code_gen_stack_alloc(int fd, int words) {
     jackc_fprintf(fd, "\taddi %s, %s, -%d\n", JACK_SP_REG, JACK_SP_REG, word_to_bytes(words));
 }
@@ -70,33 +31,39 @@ void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "push %s %d\n", vm_segment_type_to_string(type), idx);
     vm_code_gen_stack_alloc(fd, 1);
 
+    long byte_offset = word_to_bytes(idx);
+    char* reg = NULL;
+
+    // Handle segments that use base-pointer + offset logic
     switch (type) {
         case SEGMENT_THIS:
-            vm_code_gen_load_value_from(fd, SEGMENT_THIS, LOAD_REG, idx);
-            jackc_fprintf(fd, "\tsw %s, 0(%s)\n", LOAD_REG, JACK_SP_REG);
+            reg = SEGMENT_THIS_REG;
             break;
         case SEGMENT_THAT:
-            vm_code_gen_load_value_from(fd, SEGMENT_THAT, LOAD_REG, idx);
-            jackc_fprintf(fd, "\tsw %s, 0(%s)\n", LOAD_REG, JACK_SP_REG);
+            reg = SEGMENT_THAT_REG;
             break;
         case SEGMENT_ARG:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, -%d(%s)\n"
-                "\tsw %s, 0(%s)\n",
-                LOAD_REG, word_to_bytes(idx), SEGMENT_ARG_REG,
-                LOAD_REG, JACK_SP_REG
-            );
+            reg = SEGMENT_ARG_REG;
             break;
         case SEGMENT_LOCAL:
-            jackc_fprintf(
-                fd,
-                "\tlw %s, -%d(%s)\n"
-                "\tsw %s, 0(%s)\n",
-                LOAD_REG, word_to_bytes(idx), SEGMENT_LCL_REG,
-                LOAD_REG, JACK_SP_REG
-            );
+            reg = SEGMENT_LCL_REG;
             break;
+        default:
+            reg = NULL;
+    }
+    if (reg) {
+        jackc_fprintf(
+            fd,
+            "\tlw %s, -%ld(%s)\n"
+            "\tsw %s, 0(%s)\n",
+            LOAD_REG, byte_offset, reg,
+            LOAD_REG, JACK_SP_REG
+        );
+        return;
+    }
+
+    // Handle segments that don't use base-pointer + offset logic
+    switch (type) {
         case SEGMENT_CONSTANT:
             jackc_fprintf(
                 fd,
@@ -107,17 +74,33 @@ void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
             );
             break;
         case SEGMENT_STATIC:
-            vm_code_gen_load_value_from(fd, SEGMENT_STATIC, LOAD_REG, idx);
-            jackc_fprintf(fd, "\tsw %s, 0(%s)\n", LOAD_REG, JACK_SP_REG);
+            jackc_fprintf(
+                fd,
+                "\tla %s, %s\n"
+                "\tsw %s, 0(%s)\n",
+                LOAD_REG, vm_code_gen_generate_static_name((uint32_t)idx),
+                LOAD_REG, JACK_SP_REG
+            );
             break;
+        case SEGMENT_POINTER: {
+            jackc_assert(idx == POINTER_THIS || idx == POINTER_THAT && "Invalid pointer argument");
+
+            char* segment_reg = idx == POINTER_THIS ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
+            jackc_fprintf(
+                fd,
+                "\tlw %s, -%d(%s)\n"
+                "\tsw %s, 0(%s)\n",
+                LOAD_REG, byte_offset, segment_reg,
+                LOAD_REG, JACK_SP_REG
+            );
+            break;
+        }
         case SEGMENT_TEMP:
-            jackc_assert(idx >= 0 && idx < 7 && "Invalid temp index.");
+            jackc_assert(idx >= 0 && idx < 8 && "Invalid temp index (must be 0–7).");
             jackc_fprintf(fd, "\tsw t%d, 0(%s)\n", idx, JACK_SP_REG);
             break;
-        case SEGMENT_POINTER:
-            vm_code_gen_load_value_from(fd, SEGMENT_POINTER, LOAD_REG, idx);
-            jackc_fprintf(fd, "\tsw %s, 0(%s)\n", LOAD_REG, JACK_SP_REG);
-            break;
+        default:
+            jackc_assert(0 && "Unhandled segment type in push operation.");
     }
 }
 
