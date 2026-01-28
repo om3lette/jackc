@@ -11,7 +11,7 @@
 
 #define RET_REG "a0"
 
-#define JACK_SP_REG "s4"
+#define JACK_SP_REG "sp"
 #define SEGMENT_THIS_REG "s1"
 #define SEGMENT_THAT_REG "s2"
 #define SEGMENT_ARG_REG "s3"

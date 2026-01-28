@@ -7,18 +7,6 @@
 #include "vm-translator/parser.h"
 #include <stdint.h>
 
-void jackc_vm_code_bootstrap(vm_code_generator* generator) {
-    jackc_fprintf(
-        generator->fd,
-        "mv %s, sp\n"
-        "li %s, %d\n"
-        "add %s, %s, %s\n",
-        JACK_SP_REG,
-        LOAD_REG, -(1024 * 256), // todo: unhardcode
-        JACK_SP_REG, JACK_SP_REG, LOAD_REG
-    );
-}
-
 /**
  * @todo: add filename/index to a label
  * @todo: genererate static vars definitions at the end if the file
@@ -48,6 +36,18 @@ int word_to_bytes(int word) {
     return word * 4;
 }
 
+void jackc_vm_code_bootstrap(vm_code_generator* generator) {
+    // TODO: Replace with strcmp
+    if (JACK_SP_REG[0] == 's' && JACK_SP_REG[1] == 'p') return;
+    VM_CODE_GEN_HELP_COMMENT_TAB(generator->fd, "Bootstrap code", 0);
+    jackc_fprintf(
+        generator->fd,
+        "mv %s, sp\n",
+        "\n"
+        JACK_SP_REG
+    );
+}
+
 /**
  * @todo Unhardcode offset * 4 everywhere
  * @todo inline?
@@ -60,7 +60,7 @@ void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* de
         case SEGMENT_THIS:
             jackc_fprintf(
                 fd,
-                "\tlw %s, %d(%s)\n"
+                "\tlw %s, -%d(%s)\n"
                 "\tlw %s, 0(%s)\n",
                 LOAD_REG, byte_offset, SEGMENT_THIS_REG,
                 dest_reg, LOAD_REG
@@ -69,7 +69,7 @@ void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* de
         case SEGMENT_THAT:
             jackc_fprintf(
                 fd,
-                "\tlw %s, %d(%s)\n"
+                "\tlw %s, -%d(%s)\n"
                 "\tlw %s, 0(%s)\n",
                 LOAD_REG, byte_offset, SEGMENT_THAT_REG,
                 dest_reg, LOAD_REG
@@ -77,7 +77,7 @@ void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* de
             break;
         case SEGMENT_POINTER:
             char* segment_reg = offset == POINTER_THIS ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
-            jackc_fprintf(fd, "\tlw %s, %d(%s)\n", dest_reg, byte_offset, segment_reg);
+            jackc_fprintf(fd, "\tlw %s, -%d(%s)\n", dest_reg, byte_offset, segment_reg);
             break;
         case SEGMENT_STATIC:
             jackc_fprintf(fd, "\tla %s, %s\n", dest_reg, vm_code_gen_generate_static_name((uint32_t)offset));
@@ -89,18 +89,17 @@ void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* de
 }
 
 void vm_code_gen_stack_alloc(int fd, int words) {
-    jackc_fprintf(fd, "\taddi %s, %s, %d\n", JACK_SP_REG, JACK_SP_REG, word_to_bytes(words));
+    jackc_fprintf(fd, "\taddi %s, %s, -%d\n", JACK_SP_REG, JACK_SP_REG, word_to_bytes(words));
 }
 
 void vm_code_gen_stack_dealloc(int fd, int words) {
-    jackc_fprintf(fd, "\taddi %s, %s, -%d\n", JACK_SP_REG, JACK_SP_REG, word_to_bytes(words));
+    jackc_fprintf(fd, "\taddi %s, %s, %d\n", JACK_SP_REG, JACK_SP_REG, word_to_bytes(words));
 }
 
 void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "push %s %d\n", vm_segment_type_to_string(type), idx);
-
-    // Allocate space on the stack for the value to be pushed
     vm_code_gen_stack_alloc(fd, 1);
+
     switch (type) {
         case SEGMENT_THIS:
             vm_code_gen_load_value_from(fd, SEGMENT_THIS, LOAD_REG, idx);
@@ -111,11 +110,9 @@ void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
             jackc_fprintf(fd, "\tsw %s, 0(%s)\n", LOAD_REG, JACK_SP_REG);
             break;
         case SEGMENT_ARG:
-            // TODO: Add support for > 8 arguments
-            jackc_assert(idx >= 0 && idx < 8 && "Invalid argument index.");
             jackc_fprintf(
                 fd,
-                "\tlw %s, %d(%s)\n"
+                "\tlw %s, -%d(%s)\n"
                 "\tsw %s, 0(%s)\n",
                 LOAD_REG, word_to_bytes(idx), SEGMENT_ARG_REG,
                 LOAD_REG, JACK_SP_REG
@@ -124,9 +121,9 @@ void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
         case SEGMENT_LOCAL:
             jackc_fprintf(
                 fd,
-                "\tlw %s, %d(%s)\n"
+                "\tlw %s, -%d(%s)\n"
                 "\tsw %s, 0(%s)\n",
-                LOAD_REG, word_to_bytes(idx + 1), SEGMENT_LCL_REG,
+                LOAD_REG, word_to_bytes(idx), SEGMENT_LCL_REG,
                 LOAD_REG, JACK_SP_REG
             );
             break;
@@ -278,10 +275,9 @@ void vm_code_gen_return(int fd) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n", 0);
     jackc_fprintf(
         fd,
-        "\tmv %s, %s\n"
+        "\taddi %s, %s, %d\n"
         "\tret\n",
-        JACK_SP_REG,
-        SEGMENT_LCL_REG
+        JACK_SP_REG, SEGMENT_LCL_REG, -word_to_bytes(1)
     );
 }
 
@@ -328,10 +324,22 @@ char* vm_code_gen_function_label(const jackc_string* name) {
 void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt) {
     jackc_fprintf(fd, "%s:\n", vm_code_gen_function_label(name));
 
+    /**
+     * Example stack layout with local_cnt = 2:
+     * [sp+32] argument 0     | <- ARG ptr
+     * [sp+28] argument 1     |
+     * [sp+24] OLD_LCL        |
+     * [sp+20] OLD_ARG        |
+     * [sp+16] OLD_THAT       |
+     * [sp+12] OLD_THIS       |
+     * [sp+ 8] return address |
+     * [sp+ 4] local arg 0    | <- LCL ptr
+     * [sp+ 0] local arg 1    |
+    */
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n", 0);
     jackc_fprintf(
         fd,
-        "\tmv %s, %s\n",
+        "\taddi %s, %s, 4\n",
         SEGMENT_LCL_REG, JACK_SP_REG
     );
     if (local_cnt > 0) {
@@ -339,29 +347,20 @@ void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt) {
     }
 }
 
-
-// todo: support more than 8 arguments
+/**
+ * Stack layout:
+ * [sp+24] argument 0
+ * [sp+20] argument 1
+ * [sp+16] LCL
+ * [sp+12] ARG
+ * [sp+ 8] THAT
+ * [sp+ 4] THIS
+ * [sp+ 0] return address
+*/
 void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) {
-    /**
-     * [sp+0] argument 0
-     * [sp-4] argument 1
-     * [sp-8] ...
-    */
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Save registers\n", 0);
     const int SAVED_REGISTERS = 5;
     vm_code_gen_stack_alloc(fd, SAVED_REGISTERS);
-
-    /**
-     * Save registers
-     * [sp+0 ] return address
-     * [sp-4 ] THIS
-     * [sp-8 ] THAT
-     * [sp-12] ARG
-     * [sp-16] LCL
-     * [sp-20] argument 2
-     * [sp-24] argument 1
-     * [sp-28] ...
-    */
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Save registers\n", 0);
     jackc_fprintf(
         fd,
         "\tsw ra, 0(%s)\n"
@@ -370,19 +369,17 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) 
         "\tsw %s, %d(%s)\n"
         "\tsw %s, %d(%s)\n",
         JACK_SP_REG,
-        SEGMENT_THIS_REG, -word_to_bytes(1), JACK_SP_REG,
-        SEGMENT_THAT_REG, -word_to_bytes(2), JACK_SP_REG,
-        SEGMENT_ARG_REG, -word_to_bytes(3), JACK_SP_REG,
-        SEGMENT_LCL_REG, -word_to_bytes(4), JACK_SP_REG
+        SEGMENT_THIS_REG, word_to_bytes(1), JACK_SP_REG,
+        SEGMENT_THAT_REG, word_to_bytes(2), JACK_SP_REG,
+        SEGMENT_ARG_REG, word_to_bytes(3), JACK_SP_REG,
+        SEGMENT_LCL_REG, word_to_bytes(4), JACK_SP_REG
     );
     if (arg_count > 0) {
         VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Set the ARG ptr\n", 0);
         jackc_fprintf(
             fd,
-            "\tmv %s, %s\n"
             "\taddi %s, %s, %d\n",
-            SEGMENT_ARG_REG, JACK_SP_REG,
-            SEGMENT_ARG_REG, SEGMENT_ARG_REG, -word_to_bytes(SAVED_REGISTERS + arg_count - 1)
+            SEGMENT_ARG_REG, JACK_SP_REG, word_to_bytes(SAVED_REGISTERS + arg_count - 1)
         );
     }
 
@@ -398,10 +395,10 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) 
         "\tlw %s, %d(%s)\n"
         "\tlw %s, %d(%s)\n",
         JACK_SP_REG,
-        SEGMENT_THIS_REG, -word_to_bytes(1), JACK_SP_REG,
-        SEGMENT_THAT_REG, -word_to_bytes(2), JACK_SP_REG,
-        SEGMENT_ARG_REG, -word_to_bytes(3), JACK_SP_REG,
-        SEGMENT_LCL_REG, -word_to_bytes(4), JACK_SP_REG
+        SEGMENT_THIS_REG, word_to_bytes(1), JACK_SP_REG,
+        SEGMENT_THAT_REG, word_to_bytes(2), JACK_SP_REG,
+        SEGMENT_ARG_REG, word_to_bytes(3), JACK_SP_REG,
+        SEGMENT_LCL_REG, word_to_bytes(4), JACK_SP_REG
    );
 
    vm_code_gen_stack_dealloc(fd, SAVED_REGISTERS + arg_count - 1);
