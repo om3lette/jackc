@@ -7,35 +7,6 @@
 #include "vm-translator/parser.h"
 #include <stdint.h>
 
-/**
- * @todo: add filename/index to a label
- * @todo: genererate static vars definitions at the end if the file
- */
-char* vm_code_gen_generate_static_name(uint32_t index) {
-    static char static_label_buffer[32];
-    jackc_sprintf(static_label_buffer, "STATIC_%d", index);
-    return static_label_buffer;
-}
-
-/**
- * @todo: add ifndef
- */
-#define VM_CODE_GEN_HELP_COMMENT(fd, fmt, ...) \
-    do { \
-        jackc_fprintf(fd, "# "); \
-        jackc_fprintf(fd, fmt, __VA_ARGS__); \
-    } while(0)
-
-#define VM_CODE_GEN_HELP_COMMENT_TAB(fd, fmt, ...) \
-    do { \
-        jackc_fprintf(fd, "\t# "); \
-        jackc_fprintf(fd, fmt, __VA_ARGS__); \
-    } while(0)
-
-int word_to_bytes(int word) {
-    return word * 4;
-}
-
 void jackc_vm_code_bootstrap(vm_code_generator* generator) {
     // TODO: Replace with strcmp
     if (JACK_SP_REG[0] == 's' && JACK_SP_REG[1] == 'p') return;
@@ -49,7 +20,6 @@ void jackc_vm_code_bootstrap(vm_code_generator* generator) {
 }
 
 /**
- * @todo Unhardcode offset * 4 everywhere
  * @todo inline?
  */
 void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* dest_reg, int offset) {
