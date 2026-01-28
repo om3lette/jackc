@@ -12,8 +12,8 @@ int main() {
     // vm parser initialization
     int files_cnt = 2;
     const char* file_path[] = {
-        "tests/vm-translator/vm-code/FibonacciSys.vm",
-        "tests/vm-translator/vm-code/FibonacciSeries.vm"
+        "tests/vm-translator/vm-code/FibonacciSeries.vm",
+        "tests/vm-translator/vm-code/FibonacciSys.vm"
     };
     // vm code generator initialization
     const char save_path[] = "gen/res.asm";
