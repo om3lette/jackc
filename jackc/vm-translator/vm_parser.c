@@ -63,11 +63,22 @@ jackc_parser* jackc_parser_init(const char *buffer) {
     return parser;
 }
 
+void jackc_parser_update_source(jackc_parser* parser, const char* buffer) {
+    jackc_assert(parser && "Parser is null");
+
+    parser->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
+    parser->line_start = parser->buffer.data;
+    parser->line_idx = 1;
+    parser->position = 0;
+
+    parser->is_arg1_set = false;
+    parser->is_arg2_set = false;
+}
+
 /**
  * Implementation of jackc_parser_free function.
  */
 void jackc_parser_free(jackc_parser* parser) {
-    jackc_free((void*)parser->buffer.data);
     jackc_free(parser);
 }
 
@@ -250,10 +261,9 @@ void jackc_vm_parse_line(jackc_parser* parser) {
 
 void jackc_vm_parser_advance(jackc_parser* parser) {
     JACKC_VM_PARSER_ASSERT(parser, vm_parser_peek(parser) != '\0', "Unexpected EOF");
-    JACKC_VM_PARSER_ASSERT(parser, parser->line_idx == 1 || is_line_ending(vm_parser_peek(parser)), "Failed to reach end of line");
 
     // Skip any number of comment lines before next instruction.
-    vm_parser_skip_new_line(parser);
+    vm_parser_skip_new_line(parser); // todo: move to init? This is only needed for the first line.
     while (true) {
         vm_parser_skip_blank(parser);
         bool reached_eol = vm_parser_skip_one_line_comment(parser);
@@ -270,6 +280,7 @@ void jackc_vm_parser_advance(jackc_parser* parser) {
     // Allow comments after the line.
     vm_parser_skip_blank(parser);
     vm_parser_skip_one_line_comment(parser);
+    vm_parser_skip_new_line(parser);
     return;
 }
 

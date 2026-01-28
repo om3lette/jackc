@@ -7,6 +7,18 @@
 #include "vm-translator/parser.h"
 #include <stdint.h>
 
+void jackc_vm_code_bootstrap(vm_code_generator* generator) {
+    jackc_fprintf(
+        generator->fd,
+        "mv %s, sp\n"
+        "li %s, %d\n"
+        "add %s, %s, %s\n",
+        JACK_SP_REG,
+        LOAD_REG, -(1024 * 256), // todo: unhardcode
+        JACK_SP_REG, JACK_SP_REG, LOAD_REG
+    );
+}
+
 /**
  * @todo: add filename/index to a label
  * @todo: genererate static vars definitions at the end if the file
@@ -48,7 +60,7 @@ void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* de
         case SEGMENT_THIS:
             jackc_fprintf(
                 fd,
-                "\tla %s, %d(%s)\n"
+                "\tlw %s, %d(%s)\n"
                 "\tlw %s, 0(%s)\n",
                 LOAD_REG, byte_offset, SEGMENT_THIS_REG,
                 dest_reg, LOAD_REG
@@ -57,7 +69,7 @@ void vm_code_gen_load_value_from(int fd, jackc_vm_segment_type segment, char* de
         case SEGMENT_THAT:
             jackc_fprintf(
                 fd,
-                "\tla %s, %d(%s)\n"
+                "\tlw %s, %d(%s)\n"
                 "\tlw %s, 0(%s)\n",
                 LOAD_REG, byte_offset, SEGMENT_THAT_REG,
                 dest_reg, LOAD_REG
@@ -112,7 +124,7 @@ void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
         case SEGMENT_LOCAL:
             jackc_fprintf(
                 fd,
-                "lw %s, %d(%s)\n"
+                "\tlw %s, %d(%s)\n"
                 "\tsw %s, 0(%s)\n",
                 LOAD_REG, word_to_bytes(idx + 1), SEGMENT_LCL_REG,
                 LOAD_REG, JACK_SP_REG
@@ -199,8 +211,8 @@ void vm_code_gen_pop(int fd, jackc_vm_segment_type type, int idx) {
             char* selected_register = (idx == POINTER_THIS) ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
             jackc_fprintf(
                 fd,
-                "\tsw %s, 0(%s)\n",
-                "\tmv %s, %s\n"
+                "\tsw %s, 0(%s)\n"
+                "\tmv %s, %s\n",
                 LOAD_REG, JACK_SP_REG,
                 selected_register, LOAD_REG
             );
@@ -262,7 +274,7 @@ void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd) {
 
 void vm_code_gen_return(int fd) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n", 0);
-    jackc_fprintf(fd, "\tsw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
+    jackc_fprintf(fd, "\tlw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n", 0);
     jackc_fprintf(
         fd,
@@ -274,10 +286,9 @@ void vm_code_gen_return(int fd) {
 }
 
 void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label) {
-    vm_code_gen_pop(fd, SEGMENT_TEMP, LOAD_IDX);
-
     switch (cmd) {
         case C_IF_GOTO:
+            vm_code_gen_pop(fd, SEGMENT_TEMP, LOAD_IDX);
             jackc_fprintf(
                 fd,
                 "\tbne %s, x0, %.*s\n",

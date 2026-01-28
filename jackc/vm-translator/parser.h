@@ -68,6 +68,8 @@ typedef enum {
  */
 [[ nodiscard ]] jackc_parser* jackc_parser_init(const char* buffer);
 
+void jackc_parser_update_source(jackc_parser* parser, const char* buffer);
+
 /**
  * Frees the memory allocated for a jackc_parser instance.
  *
