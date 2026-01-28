@@ -83,7 +83,7 @@ void vm_code_gen_push(int fd, jackc_vm_segment_type type, int idx) {
             );
             break;
         case SEGMENT_POINTER: {
-            jackc_assert(idx == POINTER_THIS || idx == POINTER_THAT && "Invalid pointer argument");
+            jackc_assert((idx == POINTER_THIS || idx == POINTER_THAT) && "Invalid pointer argument");
 
             char* segment_reg = idx == POINTER_THIS ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
             jackc_fprintf(
