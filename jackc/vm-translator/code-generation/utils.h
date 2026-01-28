@@ -15,8 +15,6 @@
         jackc_fprintf(fd, fmt, __VA_ARGS__); \
     } while(0)
 
-char* vm_code_gen_generate_static_name(uint32_t index);
-
 char* vm_code_gen_function_label(const jackc_string* name);
 
 char* vm_segment_type_to_string(jackc_vm_segment_type segment_type);

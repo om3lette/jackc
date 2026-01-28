@@ -25,12 +25,6 @@ char* vm_segment_type_to_string(jackc_vm_segment_type segment_type) {
     return "unknown";
 }
 
-char* vm_code_gen_generate_static_name(uint32_t index) {
-    static char static_label_buffer[32];
-    jackc_sprintf(static_label_buffer, "STATIC_%d", index);
-    return static_label_buffer;
-}
-
 char* vm_code_gen_function_label(const jackc_string* name) {
     // It is assumed that the parser has already validated the function name
     jackc_assert(

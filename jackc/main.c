@@ -10,10 +10,11 @@ int main() {
     // TODO: Unhardcode file_path
 
     // vm parser initialization
-    int files_cnt = 2;
+    int files_cnt = 1;
     const char* file_path[] = {
-        "tests/vm-translator/vm-code/FibonacciSys.vm",
-        "tests/vm-translator/vm-code/FibonacciSeries.vm"
+        "tests/vm-translator/vm-code/StaticTest.vm"
+        // "tests/vm-translator/vm-code/FibonacciSys.vm",
+        // "tests/vm-translator/vm-code/FibonacciSeries.vm"
     };
     // vm code generator initialization
     const char save_path[] = "gen/res.asm";
