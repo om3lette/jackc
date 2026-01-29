@@ -251,7 +251,7 @@ void vm_code_gen_label(int fd, const jackc_string* label) {
  * [sp+ 0] local arg 1    |
 */
 void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt) {
-    jackc_fprintf(fd, "%s:\n", vm_code_gen_function_label(name));
+    jackc_fprintf(fd, "%.*s:\n", name->length, name->data);
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n", 0);
     jackc_fprintf(
@@ -301,7 +301,7 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) 
     }
 
     // Make a function call
-    jackc_fprintf(fd, "\tcall %s\n", vm_code_gen_function_label(function_name));
+    jackc_fprintf(fd, "\tcall %.*s\n", function_name->length, function_name->data);
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore registers\n", 0);
     jackc_fprintf(

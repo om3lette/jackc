@@ -14,3 +14,10 @@ size_t jackc_strlen(const char* str) {
     while (*str_end++) {}
     return (size_t)(str_end - str - 1);
 }
+
+void jackc_strcpy(char* dest, const char* src) {
+    while (*src) {
+        *dest++ = *src++;
+    }
+    *dest = '\0';
+}

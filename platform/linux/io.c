@@ -22,6 +22,7 @@ void jackc_vprintf(const char* format, va_list args) {
     vprintf(format, args);
 }
 
+// TODO: Move to common, use jackc_* instead of syscalls and libc functions
 char* jackc_read_file_content(const char* file_path) {
     FILE* file = fopen(file_path, "rb");
     if (!file) {
@@ -67,6 +68,10 @@ int jackc_open(const char* path, int flags) {
 
 ssize_t jackc_write(int fd, const void* buf, size_t n) {
     return write(fd, buf, n);
+}
+
+int jackc_close(int fd) {
+    return close(fd);
 }
 
 void jackc_vsprintf(char* buffer, const char* format, va_list args) {
