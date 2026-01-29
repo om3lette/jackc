@@ -26,11 +26,11 @@ jobs:
           cmake: 3.31.6
           ninja: true
 
-      - name: Configure
+      - name: Configure and install dependencies and
         run: cmake --preset release
 
       - name: Build
-        run: cmake --build --preset release
+        run: cmake --build --preset release -j $(nproc)
 
       - name: Test
         run: |
