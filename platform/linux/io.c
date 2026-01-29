@@ -69,10 +69,6 @@ ssize_t jackc_write(int fd, const void* buf, size_t n) {
     return write(fd, buf, n);
 }
 
-void jackc_strcpy(char* dest, const char* src) {
-    strcpy(dest, src);
-}
-
 void jackc_vsprintf(char* buffer, const char* format, va_list args) {
     vsprintf(buffer, format, args);
 }

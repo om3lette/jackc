@@ -22,6 +22,4 @@ int jackc_open(const char* path, int flags);
 
 long jackc_write(int fd, const void* buf, size_t n);
 
-void jackc_strcpy(char* dest, const char* src);
-
 #endif

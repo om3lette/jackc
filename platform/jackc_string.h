@@ -25,4 +25,6 @@ void jackc_string_print(const jackc_string* str);
 
 [[ nodiscard ]] char jackc_tolower(char c);
 
+void jackc_strcpy(char* dest, const char* src);
+
 #endif
