@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 project(jackc)
 
-# TODO: Support Clang
-if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    message(FATAL_ERROR "This project currently can only be built with GCC")
-endif()
-
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     message(FATAL_ERROR "MSVC is not supported")
 endif()

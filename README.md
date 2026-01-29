@@ -7,7 +7,7 @@
 #### Native
 
 - `cmake` >= 3.31
-- `C` compiler with support for `C23` (currently only `gcc` is supported)
+- `C` compiler with support for `C23` (`MSVC` is not currently supported)
 - [OPTIONAL] doxygen for generating documentation
 
 #### Cross compilation

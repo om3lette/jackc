@@ -204,9 +204,9 @@ void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd) {
 }
 
 void vm_code_gen_return(int fd) {
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n", 0);
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n");
     jackc_fprintf(fd, "\tlw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n", 0);
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n");
     jackc_fprintf(
         fd,
         "\taddi %s, %s, %d\n"
@@ -253,7 +253,7 @@ void vm_code_gen_label(int fd, const jackc_string* label) {
 void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt) {
     jackc_fprintf(fd, "%.*s:\n", name->length, name->data);
 
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n", 0);
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n");
     jackc_fprintf(
         fd,
         "\taddi %s, %s, 4\n",
@@ -275,7 +275,7 @@ void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt) {
  * [sp+ 0] return address
 */
 void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) {
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Save registers\n", 0);
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Save registers\n");
     const int SAVED_REGISTERS = 5;
     vm_code_gen_stack_alloc(fd, SAVED_REGISTERS);
     jackc_fprintf(
@@ -292,7 +292,7 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) 
         SEGMENT_LCL_REG, word_to_bytes(4), JACK_SP_REG
     );
     if (arg_count > 0) {
-        VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Set the ARG ptr\n", 0);
+        VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Set the ARG ptr\n");
         jackc_fprintf(
             fd,
             "\taddi %s, %s, %d\n",

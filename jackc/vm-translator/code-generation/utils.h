@@ -6,13 +6,13 @@
 #define VM_CODE_GEN_HELP_COMMENT(fd, fmt, ...) \
     do { \
         jackc_fprintf(fd, "# "); \
-        jackc_fprintf(fd, fmt, __VA_ARGS__); \
+        jackc_fprintf(fd, fmt __VA_OPT__(,) __VA_ARGS__); \
     } while(0)
 
 #define VM_CODE_GEN_HELP_COMMENT_TAB(fd, fmt, ...) \
     do { \
         jackc_fprintf(fd, "\t# "); \
-        jackc_fprintf(fd, fmt, __VA_ARGS__); \
+        jackc_fprintf(fd, fmt __VA_OPT__(,) __VA_ARGS__); \
     } while(0)
 
 char* vm_segment_type_to_string(jackc_vm_segment_type segment_type);
