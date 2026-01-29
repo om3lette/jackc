@@ -5,5 +5,9 @@
 
 /*build*
 *.out
+docs
 
 third-party
+gen
+
+jackc/vm-translator/README.md

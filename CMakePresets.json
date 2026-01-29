@@ -22,6 +22,19 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
+    },
+    {
+      "name": "rars",
+      "displayName": "RARS build",
+      "description": "Release build crosscompiled for RISC-V and RARS",
+      "binaryDir": "${sourceDir}/build-riscv",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv.toolchain.cmake",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "PLATFORM": "rars",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -32,6 +45,10 @@
     {
       "name": "release",
       "configurePreset": "release"
+    },
+    {
+      "name": "rars",
+      "configurePreset": "rars"
     }
   ],
   "testPresets": [
