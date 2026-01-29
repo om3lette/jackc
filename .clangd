@@ -2,6 +2,11 @@ CompileFlags:
   Add: [-xc, -std=c23]
 ---
 If:
+  PathMatch: "platform/linux/.*"
+CompileFlags:
+  Add: [-std=gnu23]
+---
+If:
   PathMatch: "platform/rars/.*"
 CompileFlags:
   Add: [--target=riscv32]

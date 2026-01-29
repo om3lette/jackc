@@ -21,8 +21,6 @@ void rars_close_file(int fd) {
     register int a7_syscall_num asm("a7") = 57;
 
     __asm__ volatile (
-        "mv a0, %0\n\t"
-        "li a7, 57\n\t"
         "ecall"
         :
         : "r"(a0_fd), "r"(a7_syscall_num)
@@ -73,6 +71,23 @@ long rars_read(int fd, void* buf, size_t nbytes) {
         "ecall"
         : "=r"(a0_ret)
         : "r"(a0_fd), "r"(a1_buf), "r"(a2_nbytes), "r"(a7_syscall_num)
+        : "memory"
+    );
+    return a0_ret;
+}
+
+long rars_write(int fd, const void* buf, size_t nbytes) {
+    register int a0_fd asm("a0") = fd;
+    register const void* a1_buf asm("a1") = buf;
+    register size_t a2_buf asm("a2") = nbytes;
+    register int a7_syscall_num asm("a7") = 64;
+
+    register long a0_ret asm("a0");
+
+    __asm__ volatile (
+        "ecall"
+        : "=r"(a0_ret)
+        : "r"(a0_fd), "r"(a1_buf), "r"(a2_buf), "r"(a7_syscall_num)
         : "memory"
     );
     return a0_ret;

@@ -2,7 +2,7 @@
 #include "jackc_string.h"
 #include <stdint.h>
 
-bool jackc_strcmp(const jackc_string* str1, const char* str2) {
+bool jackc_streq(const jackc_string* str1, const char* str2) {
     const char* str1_ptr = str1->data;
     const char* str1_end = str1->data + str1->length;
 

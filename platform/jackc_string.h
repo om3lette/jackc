@@ -15,12 +15,16 @@ typedef struct {
 
 void jackc_string_print(const jackc_string* str);
 
-[[ nodiscard ]] bool jackc_strcmp(const jackc_string* str1, const char* str2);
+[[ nodiscard ]] int jackc_strcmp(const char* str1, const char* str2);
+
+[[ nodiscard ]] bool jackc_streq(const jackc_string* str1, const char* str2);
 
 [[ nodiscard ]] size_t jackc_strlen(const char* str);
 
 [[ nodiscard ]] int32_t jackc_atoi(const jackc_string* str);
 
 [[ nodiscard ]] char jackc_tolower(char c);
+
+void jackc_strcpy(char* dest, const char* src);
 
 #endif
