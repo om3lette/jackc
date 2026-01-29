@@ -4,6 +4,10 @@
 #include <stddef.h>
 #include <stdarg.h>
 
+#define JACKC_SEEK_SET	0	/* Seek from beginning of file.  */
+#define JACKC_SEEK_CUR	1	/* Seek from current position.  */
+#define JACKC_SEEK_END	2	/* Seek from end of file.  */
+
 #define O_CREAT 0100
 #define O_RDONLY 00
 #define O_WRONLY 01
@@ -19,6 +23,10 @@ void jackc_vsprintf(char* buffer, const char* format, va_list args);
 void jackc_sprintf(char* buffer, const char* format, ...);
 
 int jackc_open(const char* path, int flags);
+
+long jackc_read(int fd, void* buf, size_t n);
+
+long jackc_lseek(int fd, long offset, int whence);
 
 long jackc_write(int fd, const void* buf, size_t n);
 

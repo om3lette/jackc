@@ -3,11 +3,6 @@
 
 #include <stddef.h>
 
-
-#define RARS_SEEK_SET	0	/* Seek from beginning of file.  */
-#define RARS_SEEK_CUR	1	/* Seek from current position.  */
-#define RARS_SEEK_END	2	/* Seek from end of file.  */
-
 typedef enum {
     READ_ONLY_MODE = 0,
     WRITE_CREATE_MODE = 1,
