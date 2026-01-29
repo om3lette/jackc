@@ -1,7 +1,7 @@
 #ifndef JACKC_VM_CODE_GENERATOR_H
 #define JACKC_VM_CODE_GENERATOR_H
 
-#include "vm-translator/parser.h"
+#include "vm-translator/parser/vm_parser.h"
 
 typedef struct {
     const char* output_file;

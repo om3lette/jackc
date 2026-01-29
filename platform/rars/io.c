@@ -13,7 +13,6 @@ int jackc_open(const char *path, int flags) {
 
     if (flags & O_WRONLY) mode = WRITE_CREATE_MODE;
     else if (flags & O_APPEND) mode = WRITE_APPEND_MODE;
-    jackc_printf("mode: %d\n", mode);
 
     return rars_open_file(path, mode);
 }

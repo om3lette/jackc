@@ -1,4 +1,4 @@
-#include "code_gen.h"
+#include "vm_code_generator.h"
 #include "jackc_stdlib.h"
 
 void jackc_vm_code_gen_free(vm_code_generator* generator) {

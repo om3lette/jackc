@@ -2,8 +2,8 @@
 #include "common/exit_code.h"
 #include "common/logger.h"
 #include "jackc_stdio.h"
-#include "vm-translator/code-generation/code_gen.h"
-#include "vm-translator/parser.h"
+#include "vm-translator/code-generation/vm_code_generator.h"
+#include "vm-translator/parser/vm_parser.h"
 #include "jackc_stdlib.h"
 
 int main() {

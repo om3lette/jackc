@@ -1,5 +1,5 @@
 #include "jackc_stdio.h"
-#include "utils.h"
+#include "vm_code_gen_utils.h"
 #include "vm-translator/constants.h"
 #include <stdint.h>
 

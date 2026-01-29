@@ -1,10 +1,10 @@
-#include "code_gen.h"
+#include "vm_code_generator.h"
 #include "common/jackc_assert.h"
 #include "jackc_stdio.h"
 #include "jackc_string.h"
-#include "vm-translator/code-generation/utils.h"
+#include "vm-translator/code-generation/vm_code_gen_utils.h"
 #include "vm-translator/constants.h"
-#include "vm-translator/parser.h"
+#include "vm-translator/parser/vm_parser.h"
 #include <stdint.h>
 
 void jackc_vm_code_bootstrap(vm_code_generator* generator) {
@@ -24,7 +24,7 @@ void jackc_vm_code_bootstrap(vm_code_generator* generator) {
     jackc_fprintf(fd, "\n");
 }
 
-void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx) {
+static void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "push %s %d\n", vm_segment_type_to_string(type), idx);
     vm_code_gen_stack_alloc(fd, 1);
 
@@ -95,7 +95,7 @@ void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx) {
     }
 }
 
-void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
+static void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
     jackc_assert(type != SEGMENT_CONSTANT && "pop with constant segment is not allowed");
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "pop %s %d\n", vm_segment_type_to_string(type), idx);
@@ -156,7 +156,7 @@ void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
     vm_code_gen_stack_dealloc(fd, 1);
 }
 
-void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd) {
+static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd) {
     // Do not deallocate. Let it be overridden by the OP result
     vm_code_gen_pop(fd, OP_ARG_1_REG, false);
 
@@ -176,7 +176,7 @@ void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd) {
     vm_code_gen_push(fd, OP_RES_REG, false);
 }
 
-void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd) {
+static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd) {
     // Do not deallocate both. Let it be overridden by the OP result
     vm_code_gen_pop(fd, OP_ARG_2_REG, false);
     vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true);
@@ -203,7 +203,7 @@ void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd) {
     vm_code_gen_push(fd, OP_RES_REG, false);
 }
 
-void vm_code_gen_return(int fd) {
+static void vm_code_gen_return(int fd) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n");
     jackc_fprintf(fd, "\tlw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n");
@@ -215,7 +215,7 @@ void vm_code_gen_return(int fd) {
     );
 }
 
-void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label) {
+static void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label) {
     switch (cmd) {
         case C_IF_GOTO:
             vm_code_gen_pop(fd, LOAD_REG, true);
@@ -234,7 +234,7 @@ void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* la
     }
 }
 
-void vm_code_gen_label(int fd, const jackc_string* label) {
+static void vm_code_gen_label(int fd, const jackc_string* label) {
     jackc_fprintf(fd, "%.*s:\n", label->length, label->data);
 }
 
