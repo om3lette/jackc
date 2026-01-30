@@ -12,7 +12,8 @@ int main() {
     // vm parser initialization
     int files_cnt = 1;
     const char* file_path[] = {
-        "tests/vm-translator/vm-code/LinkedList.vm"
+        "tests/vm-translator/vm-code/FibonacciSeries2.vm",
+        "tests/vm-translator/vm-code/FibonacciSys.vm"
     };
     // vm code generator initialization
     const char save_path[] = "gen/res.asm";
@@ -21,13 +22,18 @@ int main() {
         LOG_ERROR("Failed to open file %s.\n", save_path);
         return 1;
     }
+
+    // TODO: Unhardcode config variables
+    const jackc_config_t* const jackc_config = jackc_config_create(true, 256 * 1024);
+
     jackc_parser* parser = jackc_parser_init("");
-    vm_code_generator* generator = jackc_vm_code_gen_init(save_path, fd);
+    vm_code_generator* generator = jackc_vm_code_gen_init(save_path, fd, jackc_config);
 
     jackc_vm_code_bootstrap(generator);
     for (int i = 0; i < files_cnt; i++) {
         const char* file_content = jackc_read_file_content(file_path[i]);
         if (!file_content) {
+            jackc_free((void*)jackc_config);
             jackc_parser_free(parser); // TODO: Might not be neccesary as a separate method
             jackc_vm_code_gen_free(generator); // TODO: Might not be neccesary as a separate method
             LOG_ERROR("Failed to read file content.\n");
@@ -44,6 +50,7 @@ int main() {
     }
     jackc_vm_code_gen_finalize(generator);
 
+    jackc_free((void*)jackc_config);
     jackc_parser_free(parser);
     jackc_vm_code_gen_free(generator);
     jackc_exit(JACKC_EXIT_SUCCESS);
