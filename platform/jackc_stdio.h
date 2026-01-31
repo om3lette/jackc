@@ -14,6 +14,8 @@
 #define O_APPEND 0200
 #define O_TRUNC 01000
 
+const char* jackc_next_source_file(const char* base_path, const char* extension);
+
 void jackc_vfprintf(int fd, const char* format, va_list args);
 
 void jackc_fprintf(int fd, const char* format, ...);
