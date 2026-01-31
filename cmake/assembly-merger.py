@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# This script merges assembly files from a binary directory into a single file.
+
 import re
 import shutil
 import sys
@@ -15,7 +17,8 @@ asm_dir.mkdir(exist_ok=True)
 
 PROGRAM_NAME: str = Path(__file__).stem.replace("-", " ").capitalize()
 print(f"\n{PROGRAM_NAME.center(80, '=')}")
-print(f"Moving asm files to {asm_dir.absolute()}")
+
+print(f"Moving assembly files to {asm_dir.absolute()}")
 for file_path in bin_dir.iterdir():
     if (
         not file_path.is_file()

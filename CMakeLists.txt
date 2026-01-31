@@ -63,10 +63,14 @@ if (CMAKE_CROSSCOMPILING)
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc,SOURCES>
         COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-postprocessing.py
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-merger.py
                 ${CMAKE_CURRENT_BINARY_DIR}
                 ${ASM_DIR}
-                "jackc.s"
+                jackc-merged.s
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
+                jackc-merged.s
+                jackc.s
         DEPENDS
             common
             vm-translator
