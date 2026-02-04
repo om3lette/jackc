@@ -5,5 +5,11 @@
 
 /*build*
 *.out
+docs
+__cmake_systeminformation
 
-third-party
+gen
+jack-vm-sources.txt
+*.S
+*.s
+*.asm
