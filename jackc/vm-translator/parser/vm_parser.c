@@ -219,7 +219,7 @@ void jackc_vm_parse_arg2(jackc_parser* parser) {
     size_t token_size = 0;
 
     char c = vm_parser_peek(parser);
-    while ((c >= '0' && c <= '9')) {
+    while ((c >= '0' && c <= '9') || c == '-') {
         ++parser->position;
         ++token_size;
         c = vm_parser_peek(parser);
