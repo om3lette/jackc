@@ -6,8 +6,10 @@
 /*build*
 *.out
 docs
+__cmake_systeminformation
 
-third-party
 gen
-
-jackc/vm-translator/README.md
+jack-vm-sources.txt
+*.S
+*.s
+*.asm

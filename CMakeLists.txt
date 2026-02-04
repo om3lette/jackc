@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 project(jackc)
 
-# TODO: Support Clang
-if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    message(FATAL_ERROR "This project currently can only be built with GCC")
-endif()
-
 if(CMAKE_C_COMPILER_ID STREQUAL "MSVC")
     message(FATAL_ERROR "MSVC is not supported")
 endif()
@@ -61,6 +56,7 @@ if (CMAKE_CROSSCOMPILING)
                 -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
                 -I${CMAKE_CURRENT_SOURCE_DIR}/platform
                 -DNDEBUG
+                -D__rars__
                 -S
                 $<TARGET_PROPERTY:common,SOURCES>
                 $<TARGET_PROPERTY:vm-translator,SOURCES>
@@ -68,10 +64,17 @@ if (CMAKE_CROSSCOMPILING)
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc,SOURCES>
         COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-postprocessing.py
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-merger.py
                 ${CMAKE_CURRENT_BINARY_DIR}
                 ${ASM_DIR}
-                "jackc.s"
+                jackc-merged.s
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
+                jackc-merged.s
+                jackc.s
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/error-fixer.py
+                jackc.s
         DEPENDS
             common
             vm-translator

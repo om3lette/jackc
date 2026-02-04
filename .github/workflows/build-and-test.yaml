@@ -13,6 +13,7 @@ jobs:
       matrix:
         config:
           - { compiler: gcc, version: 14, std: 23, build_type: Release }
+          - { compiler: clang, version: 20, std: 23, build_type: Release }
 
     name: "${{matrix.config.compiler}} ${{matrix.config.version}} (C${{matrix.config.std}}, ${{matrix.config.build_type}})"
     steps:

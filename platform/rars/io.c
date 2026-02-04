@@ -1,31 +1,60 @@
 #include "jackc_stdio.h"
+#include "jackc_stdio.h"
 #include "jackc_stdlib.h"
-#include "common/logger.h"
 #include "jackc_string.h"
 #include "rars/rars_syscalls.h"
 #include <stdarg.h>
-#include "common/logger.h"
+
+char* file_content = NULL;
+
+const char* jackc_next_source_file(const char* base_path, const char* extension) {
+    (void)extension;
+
+    // RARS does not support directory traversal so this has to be done manually
+    // This function will only parse the file located at base_path
+    if (!file_content) file_content = jackc_read_file_content(base_path);
+    if (!file_content) return NULL;
+
+    const char* const line_start = file_content;
+    while (*file_content != '\0' && *file_content != '\n') {
+        ++file_content;
+    }
+
+    // Reached EOF
+    if (*file_content == '\0') return NULL;
+    *file_content++ = '\0';
+
+    return line_start;
+}
 
 void jackc_putchar(char c) {
     rars_print_char(c);
 }
 
 int jackc_open(const char *path, int flags) {
-    file_mode mode = WRITE_CREATE_MODE;
+    file_mode mode = O_RDONLY;
 
-    if (flags & O_RDONLY) mode = READ_ONLY_MODE;
+    if (flags & O_WRONLY) mode = WRITE_CREATE_MODE;
     else if (flags & O_APPEND) mode = WRITE_APPEND_MODE;
 
     return rars_open_file(path, mode);
 }
 
-long jackc_write(int fd, const void *buf, size_t count) {
-    return rars_write(fd, buf, count);
+long jackc_read(int fd, void* buf, size_t n) {
+    return rars_read(fd, buf, n);
+}
+
+long jackc_write(int fd, const void *buf, size_t n) {
+    return rars_write(fd, buf, n);
 }
 
 int jackc_close(int fd) {
     rars_close_file(fd);
     return 0;
+}
+
+long jackc_lseek(int fd, long offset, int whence) {
+    return rars_lseek(fd, offset, whence);
 }
 
 static void str_reverse(char* begin, char* end) {
@@ -269,40 +298,4 @@ void jackc_printf(const char* format, ...) {
     va_start(args, format);
     jackc_vprintf(format, args);
     va_end(args);
-}
-
-/**
- * @todo: Normalize variable names accross platforms
- */
-char* jackc_read_file_content(const char* file_path) {
-    int fd = rars_open_file(file_path, READ_ONLY_MODE);
-    if (fd < 0) {
-        return NULL;
-    }
-    LOG_DEBUG("Opened source file.\n");
-
-    long file_size = rars_lseek(fd, 0L, RARS_SEEK_END);
-    if (file_size < 0) {
-        rars_close_file(fd);
-        return NULL;
-    }
-    if (rars_lseek(fd, 0L, RARS_SEEK_SET) < 0) {
-        rars_close_file(fd);
-        return NULL;
-    }
-    LOG_DEBUG("Calculated file content length.\n");
-
-    char* content_buffer = jackc_alloc((size_t)(file_size + 1));
-
-    long bytes_read = rars_read(fd, content_buffer, (size_t)file_size);
-    content_buffer[bytes_read] = '\0';
-    rars_close_file(fd);
-
-    if (bytes_read != file_size) {
-        LOG_ERROR("Invalid size.\n");
-        return NULL;
-    }
-
-    LOG_DEBUG("Saved the content to a buffer.\n");
-    return content_buffer;
 }

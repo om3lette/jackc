@@ -1,10 +1,10 @@
-#include "parser.h"
+#include "vm_parser.h"
 #include "common/exit_code.h"
 #include "common/logger.h"
 #include "common/jackc_assert.h"
 #include "jackc_stdlib.h"
 #include "jackc_string.h"
-#include "vm-translator/utils.h"
+#include "vm-translator/parser/vm_parser_utils.h"
 #include <inttypes.h>
 #include <stdio.h>
 
@@ -219,7 +219,7 @@ void jackc_vm_parse_arg2(jackc_parser* parser) {
     size_t token_size = 0;
 
     char c = vm_parser_peek(parser);
-    while ((c >= '0' && c <= '9')) {
+    while ((c >= '0' && c <= '9') || c == '-') {
         ++parser->position;
         ++token_size;
         c = vm_parser_peek(parser);

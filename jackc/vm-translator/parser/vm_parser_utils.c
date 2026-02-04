@@ -1,5 +1,5 @@
 #include "common/jackc_assert.h"
-#include "vm-translator/utils.h"
+#include "vm-translator/parser/vm_parser_utils.h"
 
 const char* vm_get_current_position(const jackc_parser* parser) {
     return parser->buffer.data + parser->position;

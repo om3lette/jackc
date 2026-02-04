@@ -1,10 +1,12 @@
-#include "code_gen.h"
+#include "jackc_stdlib.h"
+#include "vm_code_generator.h"
 #include "common/jackc_assert.h"
+#include "common/config.h"
 #include "jackc_stdio.h"
 #include "jackc_string.h"
-#include "vm-translator/code-generation/utils.h"
+#include "vm-translator/code-generation/vm_code_gen_utils.h"
 #include "vm-translator/constants.h"
-#include "vm-translator/parser.h"
+#include "vm-translator/parser/vm_parser.h"
 #include <stdint.h>
 
 void jackc_vm_code_bootstrap(vm_code_generator* generator) {
@@ -20,18 +22,27 @@ void jackc_vm_code_bootstrap(vm_code_generator* generator) {
     if (jackc_strcmp(JACK_SP_REG, "sp") != 0) {
         jackc_fprintf(fd, "mv %s, sp\n", JACK_SP_REG);
     };
+
+    if (generator->config->is_stack_growing_upwards) {
+        jackc_fprintf(
+            fd,
+            "\tli %s, %d\n"
+            "\tadd %s, %s, %s\n",
+            LOAD_REG, -generator->config->upward_stack_size,
+            JACK_SP_REG, JACK_SP_REG, LOAD_REG
+        );
+    }
+
     jackc_fprintf(fd, "\tj Sys.init\n");
     jackc_fprintf(fd, "\n");
 }
 
-void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx) {
+static void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config_t* cfg) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "push %s %d\n", vm_segment_type_to_string(type), idx);
-    vm_code_gen_stack_alloc(fd, 1);
-
-    long byte_offset = word_to_bytes(idx);
-    char* reg = NULL;
+    vm_code_gen_stack_alloc(fd, 1, cfg);
 
     // Handle segments that use base-pointer + offset logic
+    char* reg = NULL;
     switch (type) {
         case SEGMENT_THIS:
             reg = SEGMENT_THIS_REG;
@@ -54,9 +65,9 @@ void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx) {
     if (reg) {
         jackc_fprintf(
             fd,
-            "\tlw %s, -%d(%s)\n"
+            "\tlw %s, %d(%s)\n"
             "\tsw %s, 0(%s)\n",
-            LOAD_REG, byte_offset, reg,
+            LOAD_REG, config_offset_by_idx(cfg, idx), reg,
             LOAD_REG, JACK_SP_REG
         );
         return;
@@ -77,13 +88,7 @@ void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx) {
             jackc_assert((idx == POINTER_THIS || idx == POINTER_THAT) && "Invalid pointer argument");
 
             char* segment_reg = idx == POINTER_THIS ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
-            jackc_fprintf(
-                fd,
-                "\tlw %s, -%d(%s)\n"
-                "\tsw %s, 0(%s)\n",
-                LOAD_REG, byte_offset, segment_reg,
-                LOAD_REG, JACK_SP_REG
-            );
+            vm_code_gen_push(fd, segment_reg, false, cfg);
             break;
         }
         case SEGMENT_TEMP:
@@ -95,12 +100,10 @@ void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx) {
     }
 }
 
-void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
+static void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config_t* cfg) {
     jackc_assert(type != SEGMENT_CONSTANT && "pop with constant segment is not allowed");
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "pop %s %d\n", vm_segment_type_to_string(type), idx);
-
-    int byte_offset = word_to_bytes(idx);
     char* reg = NULL;
 
     // Handle segments that use base-pointer + offset logic
@@ -124,13 +127,12 @@ void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
             reg = NULL;
     }
     if (reg) {
-        vm_code_gen_pop(fd, LOAD_REG, true);
+        vm_code_gen_pop(fd, LOAD_REG, true, cfg);
         jackc_fprintf(
             fd,
-            "\tsw %s, -%d(%s)\n",
-            LOAD_REG, byte_offset, reg
+            "\tsw %s, %d(%s)\n",
+            LOAD_REG, config_offset_by_idx(cfg, idx), reg
         );
-        vm_code_gen_stack_dealloc(fd, 1);
         return;
     }
 
@@ -140,25 +142,22 @@ void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx) {
             jackc_fprintf(fd, "\tlw t%d, 0(%s)\n", idx, JACK_SP_REG);
             break;
         case SEGMENT_POINTER: {
+            jackc_assert((idx == POINTER_THIS || idx == POINTER_THAT) && "Invalid pointer argument");
+
             char* selected_register = (idx == POINTER_THIS) ? SEGMENT_THIS_REG : SEGMENT_THAT_REG;
-            vm_code_gen_pop(fd, selected_register, false);
-            jackc_fprintf(
-                fd,
-                "\tlw %s, 0(%s)\n",
-                selected_register, JACK_SP_REG
-            );
+            vm_code_gen_pop(fd, selected_register, false, cfg);
             break;
         }
         default:
             jackc_assert(false && "Unhandled segment type in pop operation.");
     }
 
-    vm_code_gen_stack_dealloc(fd, 1);
+    vm_code_gen_stack_dealloc(fd, 1, cfg);
 }
 
-void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd) {
+static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd, const jackc_config_t* cfg) {
     // Do not deallocate. Let it be overridden by the OP result
-    vm_code_gen_pop(fd, OP_ARG_1_REG, false);
+    vm_code_gen_pop(fd, OP_ARG_1_REG, false, cfg);
 
     char op[4];
     switch (cmd) {
@@ -173,13 +172,13 @@ void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd) {
             break;
     }
     jackc_fprintf(fd, "\t%s %s, %s\n", op, OP_RES_REG, OP_ARG_1_REG);
-    vm_code_gen_push(fd, OP_RES_REG, false);
+    vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
-void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd) {
+static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const jackc_config_t* cfg) {
     // Do not deallocate both. Let it be overridden by the OP result
-    vm_code_gen_pop(fd, OP_ARG_2_REG, false);
-    vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true);
+    vm_code_gen_pop(fd, OP_ARG_2_REG, false, cfg);
+    vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true, cfg);
 
     char op[4];
     switch (cmd) {
@@ -200,25 +199,33 @@ void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd) {
             break;
     }
     jackc_fprintf(fd, "\t%s %s, %s, %s\n", op, OP_RES_REG, OP_ARG_1_REG, OP_ARG_2_REG);
-    vm_code_gen_push(fd, OP_RES_REG, false);
+    vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
-void vm_code_gen_return(int fd) {
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n", 0);
+static void vm_code_gen_return(int fd, const jackc_config_t* cfg) {
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n");
     jackc_fprintf(fd, "\tlw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n", 0);
+
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n");
+    vm_code_gen_stack_dealloc(fd, 1, cfg);
+
+    // jackc_fprintf(
+    //     fd,
+    //     "\taddi %s, %s, %d\n"
+    //     "\tret\n",
+    //     JACK_SP_REG, SEGMENT_LCL_REG, gene-word_to_bytes(1)
+    // );
+
     jackc_fprintf(
         fd,
-        "\taddi %s, %s, %d\n"
-        "\tret\n",
-        JACK_SP_REG, SEGMENT_LCL_REG, -word_to_bytes(1)
+        "\tret\n"
     );
 }
 
-void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label) {
+static void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label, const jackc_config_t* cfg) {
     switch (cmd) {
         case C_IF_GOTO:
-            vm_code_gen_pop(fd, LOAD_REG, true);
+            vm_code_gen_pop(fd, LOAD_REG, true, cfg);
             jackc_fprintf(
                 fd,
                 "\tbne %s, x0, %.*s\n",
@@ -234,7 +241,7 @@ void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* la
     }
 }
 
-void vm_code_gen_label(int fd, const jackc_string* label) {
+static void vm_code_gen_label(int fd, const jackc_string* label) {
     jackc_fprintf(fd, "%.*s:\n", label->length, label->data);
 }
 
@@ -250,17 +257,17 @@ void vm_code_gen_label(int fd, const jackc_string* label) {
  * [sp+ 4] local arg 0    | <- LCL ptr
  * [sp+ 0] local arg 1    |
 */
-void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt) {
+void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt, const jackc_config_t* cfg) {
     jackc_fprintf(fd, "%.*s:\n", name->length, name->data);
 
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n", 0);
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n");
     jackc_fprintf(
         fd,
         "\taddi %s, %s, 4\n",
         SEGMENT_LCL_REG, JACK_SP_REG
     );
     if (local_cnt > 0) {
-        vm_code_gen_stack_alloc(fd, word_to_bytes(local_cnt));
+        vm_code_gen_stack_alloc(fd, local_cnt, cfg);
     }
 }
 
@@ -274,10 +281,10 @@ void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt) {
  * [sp+ 4] THIS
  * [sp+ 0] return address
 */
-void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) {
-    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Save registers\n", 0);
+void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count, const jackc_config_t* cfg) {
+    VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Save registers\n");
     const int SAVED_REGISTERS = 5;
-    vm_code_gen_stack_alloc(fd, SAVED_REGISTERS);
+    vm_code_gen_stack_alloc(fd, SAVED_REGISTERS, cfg);
     jackc_fprintf(
         fd,
         "\tsw ra, 0(%s)\n"
@@ -286,17 +293,17 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) 
         "\tsw %s, %d(%s)\n"
         "\tsw %s, %d(%s)\n",
         JACK_SP_REG,
-        SEGMENT_THIS_REG, word_to_bytes(1), JACK_SP_REG,
-        SEGMENT_THAT_REG, word_to_bytes(2), JACK_SP_REG,
-        SEGMENT_ARG_REG, word_to_bytes(3), JACK_SP_REG,
-        SEGMENT_LCL_REG, word_to_bytes(4), JACK_SP_REG
+        SEGMENT_THIS_REG, -config_offset_by_idx(cfg, 1), JACK_SP_REG,
+        SEGMENT_THAT_REG, -config_offset_by_idx(cfg, 2), JACK_SP_REG,
+        SEGMENT_ARG_REG, -config_offset_by_idx(cfg, 3), JACK_SP_REG,
+        SEGMENT_LCL_REG, -config_offset_by_idx(cfg, 4), JACK_SP_REG
     );
     if (arg_count > 0) {
-        VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Set the ARG ptr\n", 0);
+        VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Set the ARG ptr\n");
         jackc_fprintf(
             fd,
             "\taddi %s, %s, %d\n",
-            SEGMENT_ARG_REG, JACK_SP_REG, word_to_bytes(SAVED_REGISTERS + arg_count - 1)
+            SEGMENT_ARG_REG, JACK_SP_REG, -config_offset_by_idx(cfg, SAVED_REGISTERS + arg_count - 1)
         );
     }
 
@@ -312,20 +319,20 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count) 
         "\tlw %s, %d(%s)\n"
         "\tlw %s, %d(%s)\n",
         JACK_SP_REG,
-        SEGMENT_THIS_REG, word_to_bytes(1), JACK_SP_REG,
-        SEGMENT_THAT_REG, word_to_bytes(2), JACK_SP_REG,
-        SEGMENT_ARG_REG, word_to_bytes(3), JACK_SP_REG,
-        SEGMENT_LCL_REG, word_to_bytes(4), JACK_SP_REG
+        SEGMENT_THIS_REG, -config_offset_by_idx(cfg, 1), JACK_SP_REG,
+        SEGMENT_THAT_REG, -config_offset_by_idx(cfg, 2), JACK_SP_REG,
+        SEGMENT_ARG_REG, -config_offset_by_idx(cfg, 3), JACK_SP_REG,
+        SEGMENT_LCL_REG, -config_offset_by_idx(cfg, 4), JACK_SP_REG
    );
 
-   vm_code_gen_stack_dealloc(fd, SAVED_REGISTERS + arg_count - 1);
+   vm_code_gen_stack_dealloc(fd, SAVED_REGISTERS + arg_count - 1, cfg);
    // push the return value
    jackc_fprintf(fd, "\tsw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
 }
 
-void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd) {
-    vm_code_gen_pop(fd, OP_ARG_2_REG, false);
-    vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true);
+void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd, const jackc_config_t* cfg) {
+    vm_code_gen_pop(fd, OP_ARG_2_REG, false, cfg);
+    vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true, cfg);
 
     switch (cmd) {
         case C_EQ:
@@ -346,52 +353,54 @@ void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd) {
             jackc_assert(false && "Invalid comparison command");
             break;
     }
-    vm_code_gen_push(fd, OP_RES_REG, false);
+    vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
 void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* parser) {
     int fd = generator->fd;
+    const jackc_config_t* cfg = generator->config;
+
     switch (parser->cmd) {
         case C_ADD:
         case C_SUB:
         case C_AND:
         case C_OR:
-            vm_code_gen_arithmetic_3_args(fd, parser->cmd);
+            vm_code_gen_arithmetic_3_args(fd, parser->cmd, cfg);
             break;
         case C_NEG:
         case C_NOT:
-            vm_code_gen_arithmetic_2_args(fd, parser->cmd);
+            vm_code_gen_arithmetic_2_args(fd, parser->cmd, cfg);
             break;
         case C_EQ:
         case C_GT:
         case C_LT:
-            vm_code_gen_comparisons(fd, parser->cmd);
+            vm_code_gen_comparisons(fd, parser->cmd, generator->config);
             break;
         case C_PUSH:
             if (parser->segment == SEGMENT_STATIC)
                 vm_code_gen_update_static_idx(generator, (size_t)parser->arg2);
-            vm_code_gen_push_segment(fd, parser->segment, parser->arg2);
+            vm_code_gen_push_segment(fd, parser->segment, parser->arg2, cfg);
             break;
         case C_POP:
             if (parser->segment == SEGMENT_STATIC)
                 vm_code_gen_update_static_idx(generator, (size_t)parser->arg2);
-            vm_code_gen_pop_segment(fd, parser->segment, parser->arg2);
+            vm_code_gen_pop_segment(fd, parser->segment, parser->arg2, cfg);
             break;
         case C_FUNCTION:
-            vm_code_gen_function(fd, &parser->arg1, parser->arg2);
+            vm_code_gen_function(fd, &parser->arg1, parser->arg2, cfg);
             break;
         case C_LABEL:
             vm_code_gen_label(fd, &parser->arg1);
             break;
         case C_GOTO:
         case C_IF_GOTO:
-            vm_code_gen_branching(fd, parser->cmd, &parser->arg1);
+            vm_code_gen_branching(fd, parser->cmd, &parser->arg1, cfg);
             break;
         case C_RETURN:
-            vm_code_gen_return(fd);
+            vm_code_gen_return(fd, cfg);
             break;
         case C_CALL:
-            vm_code_gen_call(fd, &parser->arg1, parser->arg2);
+            vm_code_gen_call(fd, &parser->arg1, parser->arg2, cfg);
             break;
         case C_UNKNOWN:
             jackc_assert(false && "Unknown command found while generating code");
@@ -406,7 +415,7 @@ void jackc_vm_code_gen_finalize(vm_code_generator* generator) {
         generator->fd,
         "\n.data\n"
         "%s: .space %d\n",
-        STATIC_BASE_LABEL, word_to_bytes(static_var_cnt)
+        STATIC_BASE_LABEL, config_word_to_bytes(generator->config, static_var_cnt)
     );
 
     // Add an empty line
