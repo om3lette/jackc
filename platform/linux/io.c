@@ -135,10 +135,6 @@ long jackc_write(int fd, const void* buf, size_t n) {
     return write(fd, buf, n);
 }
 
-int jackc_close(int fd) {
-    return close(fd);
-}
-
 long jackc_lseek(int fd, long offset, int whence) {
     return lseek(fd, offset, whence);
 }
@@ -152,4 +148,8 @@ void jackc_sprintf(char* buffer, const char* format, ...) {
     va_start(args, format);
     jackc_vsprintf(buffer, format, args);
     va_end(args);
+}
+
+int jackc_close(int fd) {
+    return close(fd);
 }
