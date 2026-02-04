@@ -9,3 +9,7 @@ docs
 __cmake_systeminformation
 
 gen
+jack-vm-sources.txt
+*.S
+*.s
+*.asm

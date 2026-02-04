@@ -6,10 +6,14 @@
 #include "vm-translator/parser/vm_parser.h"
 #include "jackc_stdlib.h"
 
-int main() {
-    // TODO: Unhardcode file_path
+int main(int argc, char** argv) {
+    if (argc != EXPECTED_ARGUMENTS) {
+        jackc_printf("Usage: jackc <base-dir> <save-path>\n");
+        jackc_exit(JACKC_EXIT_INVALID_ARGUMENT);
+    }
+    const char* base_dir_path = argv[FIRST_ARG_IDX];
+    const char* save_path = argv[FIRST_ARG_IDX + 1];
 
-    const char save_path[] = "gen/res.asm";
     int fd = jackc_open(save_path, O_CREAT | O_WRONLY | O_TRUNC);
     if (fd == -1) {
         LOG_ERROR("Failed to open file %s.\n", save_path);
@@ -17,7 +21,7 @@ int main() {
     }
 
     // TODO: Unhardcode config variables
-    const jackc_config_t* const jackc_config = jackc_config_create(true, 256 * 1024);
+    const jackc_config_t* const jackc_config = jackc_config_create(false, 256 * 1024);
 
     jackc_parser* parser = jackc_parser_init("");
     vm_code_generator* generator = jackc_vm_code_gen_init(save_path, fd, jackc_config);
@@ -26,7 +30,8 @@ int main() {
 
     size_t vm_files_cnt = 0;
     const char* source_file_path = NULL;
-    while ((source_file_path = jackc_next_source_file("tests/vm-translator/vm-code/fibonacci-2", ".vm")) != NULL) {
+    while ((source_file_path = jackc_next_source_file(base_dir_path, ".vm")) != NULL) {
+        LOG_INFO("Processing %s...\n", source_file_path);
         ++vm_files_cnt;
 
         const char* file_content = jackc_read_file_content(source_file_path);

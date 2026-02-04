@@ -56,6 +56,7 @@ if (CMAKE_CROSSCOMPILING)
                 -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
                 -I${CMAKE_CURRENT_SOURCE_DIR}/platform
                 -DNDEBUG
+                -D__rars__
                 -S
                 $<TARGET_PROPERTY:common,SOURCES>
                 $<TARGET_PROPERTY:vm-translator,SOURCES>
@@ -70,6 +71,9 @@ if (CMAKE_CROSSCOMPILING)
         COMMAND
             python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
                 jackc-merged.s
+                jackc.s
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/error-fixer.py
                 jackc.s
         DEPENDS
             common

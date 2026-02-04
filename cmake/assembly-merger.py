@@ -24,6 +24,7 @@ for file_path in bin_dir.iterdir():
         not file_path.is_file()
         or file_path.suffix != ".s"
         or file_path.name == merged_path.name
+        or file_path.name == "jackc.s"
     ):
         continue
 
@@ -65,12 +66,6 @@ for file_path in asm_dir.iterdir():
     if file_path == asm_main:
         continue
     merged_file_content += process_file(file_path)
-
-# ".srodata" is not supported by RARS.
-# Replace ".srodata" with supported ".rodata"
-merged_file_content = merged_file_content = re.sub(
-    r".srodata", ".rodata", merged_file_content, flags=re.MULTILINE
-)
 
 print(f"Saving the result to {merged_path.absolute()}...")
 with open(merged_path, "w") as jackc_asm:

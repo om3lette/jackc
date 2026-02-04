@@ -42,8 +42,14 @@ Run an executable
 <BUILD_DIR>/jackc/jackc
 ```
 
-Or if you used `rars` preset and want to run the compiler under RARS load the source file `jackc.s` from
+### RARS
 
-```bash
-build-riscv/jackc.s
-```
+1. Get [RARS](https://github.com/TheThirdOne/rars)
+2. Build the project using the `rars` preset
+3. Run `scripts/locate-vm-files.sh` to generate a list of VM files
+4. Run `java -jar rars.jar <YOUR_PATH>/jackc.s pa <YOUR_PATH>/jack-vm-sources.txt <YOUR_PATH>/out.s` to produce assembly from the `.vm` files
+5. Run `java -jar rars.jar <YOUR_PATH>/out.s` to launch the compiled program
+
+`locate-vm-files.sh` is needed because RARS is unable to read directories. Only open or write to files. This way the heavy lifting is done by the script and the compiler running in RARS just needs to parse the output.
+
+Steps 4 and 5 assume that `rars.jar` is located in the current working directory.

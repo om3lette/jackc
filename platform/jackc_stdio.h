@@ -14,6 +14,14 @@
 #define O_APPEND 0200
 #define O_TRUNC 01000
 
+#ifdef __rars__
+    #define EXPECTED_ARGUMENTS 2
+    #define FIRST_ARG_IDX 0
+#else
+    #define EXPECTED_ARGUMENTS 3
+    #define FIRST_ARG_IDX 1
+#endif
+
 const char* jackc_next_source_file(const char* base_path, const char* extension);
 
 void jackc_vfprintf(int fd, const char* format, va_list args);
