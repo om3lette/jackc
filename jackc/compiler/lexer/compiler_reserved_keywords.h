@@ -9,6 +9,8 @@ typedef struct {
     jack_token_type type;
 } jack_keyword;
 
-jack_token_type jack_lexer_lookup_keyword(const char* str, size_t length);
+[[ nodiscard ]] jack_token_type jack_lexer_lookup_keyword(const char* str, size_t length);
+
+[[ nodiscard ]] const char* jack_lexer_get_keyword(jack_token_type keyword);
 
 #endif

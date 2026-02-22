@@ -7,6 +7,12 @@
 typedef int32_t jack_int;
 
 #define LEXER_DEFAULT_CHAR ' '
+// Has similar semantics to lexer->pos
+// Will display index of current char to CONSUME (which is + 1 from the current char)
+// Therefore 0 means 1 indexed (i -> i + 1 indexed)
+#define LEXER_DEFAULT_COL 0
+#define LEXER_FIRST_COL (LEXER_DEFAULT_COL + 1)
+#define LEXER_DEFAULT_LINE 1
 
 typedef enum {
     OK = 0

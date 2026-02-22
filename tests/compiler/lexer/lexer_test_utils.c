@@ -22,7 +22,7 @@ void test_jack_lexer_new_buffer(jackc_lexer* lexer, const char* buffer) {
 
     lexer->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
     lexer->c = ' ';
-    lexer->line = 1;
-    lexer->col = 1;
+    lexer->line = LEXER_DEFAULT_LINE;
+    lexer->col = LEXER_DEFAULT_COL;
     lexer->pos = 0;
 }

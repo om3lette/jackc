@@ -2,6 +2,12 @@
 #define JACKC_TESTS_COMPILER_LEXER_TEST_UTILS_H
 
 #include "compiler/lexer/compiler_lexer.h"
+#include "compiler/lexer/compiler_reserved_keywords.h" // IWYU pragma: keep
+
+struct lexer_fixture {
+    jackc_lexer* lexer;
+    jack_token token;
+};
 
 #define NEXT_TOKEN() do { \
     tau->token = jack_lexer_next_token(tau->lexer); \
@@ -12,17 +18,22 @@
     REQUIRE(is_token_match(&tau->token, '\0')); \
 } while(0)
 
-#define REQUIRE_NEXT_TOKEN(token_chr) do { \
+#define REQUIRE_CHAR_TOKEN(token_chr) do { \
     NEXT_TOKEN(); \
     REQUIRE(is_token_match(&tau->token, token_chr)); \
 } while(0)
 
-#define REQUIRE_NEXT_TOKEN_STR(token_type, token_str) do { \
+#define REQUIRE_ID_TOKEN(token_str) do { \
     NEXT_TOKEN(); \
-    REQUIRE(is_token_equal_str(&tau->token, token_type, token_str)); \
+    REQUIRE(is_token_equal_str(&tau->token, TOKEN_IDENTIFIER, token_str)); \
 } while(0)
 
-#define REQUIRE_NEXT_TOKEN_INT(token_value) do { \
+#define REQUIRE_KEYWORD_TOKEN(keyword_type) do { \
+    NEXT_TOKEN(); \
+    REQUIRE(is_token_equal_str(&tau->token, keyword_type, jack_lexer_get_keyword(keyword_type))); \
+} while(0)
+
+#define REQUIRE_INT_TOKEN(token_value) do { \
     NEXT_TOKEN(); \
     REQUIRE(is_token_equal_int(&tau->token, token_value)); \
 } while(0)

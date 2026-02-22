@@ -12,8 +12,8 @@ jackc_lexer* jack_lexer_init(const char* buffer) {
     lexer->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
 
     lexer->c = LEXER_DEFAULT_CHAR;
-    lexer->line = 1;
-    lexer->col = 1;
+    lexer->line = LEXER_DEFAULT_LINE;
+    lexer->col = LEXER_DEFAULT_COL;
     lexer->pos = 0;
     return lexer;
 }
@@ -22,32 +22,6 @@ jack_token jack_lexer_next_token(jackc_lexer* lexer) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
     jack_lexer_skip_blank_and_comments(lexer);
-
-    // Operators
-    switch (lexer->c) {
-        case '{':
-        case '}':
-        case '(':
-        case ')':
-        case '[':
-        case ']':
-        case '.':
-        case ',':
-        case ';':
-        case '+':
-        case '-':
-        case '*':
-        case '/':
-        case '&':
-        case '|':
-        case '<':
-        case '>':
-        case '=':
-        case '~':
-            char c = lexer->c;
-            jack_lexer_read_char(lexer);
-            return jack_lexer_new_str_token(lexer, (int32_t)c, jack_lexer_cur_pos(lexer) - 1);
-    }
 
     // Numbers
     if (lexer->c >= '0' && lexer->c <= '9') {
@@ -79,8 +53,8 @@ jack_token jack_lexer_next_token(jackc_lexer* lexer) {
         // '\0' does not follow common logic as there is no char after it
         return jack_lexer_new_str_token(lexer, c, jack_lexer_cur_pos(lexer));
     }
+    jackc_assert(c != '\n' && c != '\r' && c != '\0' && "These chars are not meant to be processed by this code block");
 
-    // Unknown symbol
     c = lexer->c;
     jack_lexer_read_char(lexer);
     return jack_lexer_new_str_token(lexer, c, jack_lexer_cur_pos(lexer) - 1);

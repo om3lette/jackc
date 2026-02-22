@@ -29,6 +29,16 @@ static const jack_keyword keywords[] = {
 };
 static const size_t KEYWORD_CNT = sizeof(keywords) / sizeof(keywords[0]);
 
+const char* jack_lexer_get_keyword(jack_token_type keyword) {
+    for (size_t i = 0; i < KEYWORD_CNT; i++) {
+        if (keywords[i].type == keyword) {
+            return keywords[i].keyword;
+        }
+    }
+
+    return NULL;
+}
+
 /**
  * Lookup a keyword and return its token type.
  *
