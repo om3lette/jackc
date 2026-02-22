@@ -56,7 +56,7 @@ jack_token jack_lexer_next_token(jackc_lexer* lexer) {
         do {
             value = value * 10 + lexer->c - '0';
             jack_lexer_read_char(lexer);
-        } while(lexer->c >= 0 && lexer->c <= '9');
+        } while((int8_t)lexer->c >= 0 && lexer->c <= '9');
         return jack_lexer_new_int_token(lexer, num_start, value);
     }
 
