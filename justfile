@@ -14,8 +14,9 @@ rars:
     cmake --build --preset rars
 
 # Run tests
-test: build
-    ./build/tests/tests
+[arg("preset", long="preset", short="p")]
+test preset="debug": build
+    ctest --preset {{preset}}
 
 # Remove all build directories
 clear:

@@ -6,7 +6,7 @@ add_library(vm-translator STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/code-generation/vm_code_gen_utils.c
 )
 
-target_link_libraries(vm-translator PUBLIC
-    common
-    platform_impl
+target_link_libraries(vm-translator
+    PUBLIC
+        common
 )
