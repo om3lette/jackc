@@ -19,5 +19,5 @@ test preset="debug": build
     ctest --preset {{preset}}
 
 # Remove all build directories
-clear:
+clean:
     rm -rf build build-riscv cmake-build-release
