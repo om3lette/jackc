@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Debug tests binary",
+    "build": {
+      "command": "just configure && just build",
+      "cwd": "$ZED_WORKTREE_ROOT"
+    },
+    "program": "$ZED_WORKTREE_ROOT/build/tests/tests",
+    "request": "launch",
+    "adapter": "CodeLLDB"
+  }
+]

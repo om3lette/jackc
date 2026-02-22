@@ -1,5 +1,7 @@
 add_executable(tests
     main.c
+    compiler/lexer/internal.c
+    compiler/lexer/lexer_test_utils.c
 )
 
 target_link_libraries(tests
@@ -7,4 +9,5 @@ target_link_libraries(tests
         vm-translator
         compiler
         Tau
+        common
 )
