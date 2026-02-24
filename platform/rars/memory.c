@@ -26,9 +26,9 @@ void jackc_free(void* ptr) {
 }
 
 // GCC can add implicit calls to memcpy. Not meant to be used directly.
-__attribute__((weak)) void *memcpy(void *dest, const void *src, size_t n) {
-    char *d = dest;
-    const char *s = src;
+__attribute__((weak)) void *memcpy(void* dest, const void* src, size_t n) {
+    char* d = dest;
+    const char* s = src;
     while (n--) {
         *d++ = *s++;
     }

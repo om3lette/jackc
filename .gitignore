@@ -10,6 +10,9 @@ __cmake_systeminformation
 
 gen
 jack-vm-sources.txt
+notes.md
 *.S
 *.s
 *.asm
+
+tests/compiler/jack-code
