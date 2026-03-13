@@ -19,6 +19,7 @@ add_executable(compiler_symtab_tests
     main.c
     compiler/symtab/push_pop.c
     compiler/symtab/find.c
+    compiler/symtab/insert.c
 )
 target_link_libraries(compiler_symtab_tests
     PRIVATE

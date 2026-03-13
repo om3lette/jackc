@@ -1,8 +1,8 @@
-#include "compiler/lexer/compiler_lexer.h"
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "jackc_string.h"
-#include "tau.h"
+#include "utils.h"
+#include <tau.h>
 #include <string.h> // memcmp
 
 struct symtab_fixture {
@@ -17,20 +17,10 @@ TEST_F_TEARDOWN(symtab_fixture) {
     sym_table_free(&tau->symtab);
 }
 
-#define REQUIRE_SYMTAB_OK(result) do { \
-    REQUIRE(result == SYMTAB_OK); \
-} while(0)
-
 #define REQUIRE_SYMTAB_TOKEN_EQ(name, expected) do { \
     REQUIRE(found); \
     REQUIRE(memcmp(&found, expected, sizeof(sym_table_token)) == 0); \
 } while(0)
-
-static inline sym_table_token create_token(jack_type type, jack_variable_type var_type, char* name, char* str_type) {
-    jackc_string name_str = jackc_string_from_str(name);
-    jackc_string str_type_str = jackc_string_from_str(str_type);
-    return sym_table_token_init(type, var_type, &name_str, &str_type_str);
-}
 
 void require_symtab_token_eq(const sym_table* symtab, const jackc_string* name, const sym_table_token* expected) {
     sym_table_token found;
