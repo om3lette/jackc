@@ -1,4 +1,5 @@
 #include "hashmap.h"
+#include "common/data-structures/allocator.h"
 #include "common/jackc_assert.h"
 #include "jackc_stdlib.h"
 
@@ -75,19 +76,25 @@ double fixed_hashmap_load_factor(const fixed_hash_map* map) {
     return (double)map->inserted / FIXED_HASH_MAP_BUCKETS;
 }
 
-void fixed_hashmap_free(fixed_hash_map** map_ptr) {
+void fixed_hashmap_free(fixed_hash_map** map_ptr, bool free_allocator) {
+    if (!map_ptr || !*map_ptr) return;
     fixed_hash_map* map = *map_ptr;
+
+    Allocator* allocator = map->allocator;
     size_t sizeof_node = _sizeof_node(map);
 
     for (size_t i = 0; i < FIXED_HASH_MAP_BUCKETS; ++i) {
         hash_map_node* node = map->buckets[i];
         while (node) {
             hash_map_node* next = node->next;
-            map->allocator->free(node, sizeof_node, map->allocator->context);
+            allocator->free(node, sizeof_node, allocator->context);
             node = next;
         }
         map->buckets[i] = NULL;
     }
-    map->allocator->free(map, sizeof(fixed_hash_map), map->allocator->context);
+    allocator->free(map, sizeof(fixed_hash_map), allocator->context);
+    if (free_allocator) {
+        allocator->free(allocator, sizeof(Allocator), allocator->context);
+    }
     *map_ptr = NULL;
 }

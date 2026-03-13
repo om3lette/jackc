@@ -56,6 +56,6 @@ int fixed_hashmap_find(fixed_hash_map* map, const void* key, void* out);
 
 double fixed_hashmap_load_factor(const fixed_hash_map* map);
 
-void fixed_hashmap_free(fixed_hash_map** map);
+void fixed_hashmap_free(fixed_hash_map** map, bool free_allocator);
 
 #endif

@@ -46,10 +46,10 @@ typedef enum {
 } jack_token_type;
 
 typedef enum {
-    VAR_VAR = 0,
+    VAR_STATIC = 0,
+    VAR_FIELD,
+    VAR_LOCAL,
     VAR_ARGUMENT,
-    VAR_STATIC,
-    VAR_FIELD
 } jack_variable_type;
 
 typedef union {

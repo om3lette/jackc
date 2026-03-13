@@ -27,7 +27,6 @@ void test_free(void *ptr, size_t bytes, void *context) {
 
 struct hashmap_fixture {
     fixed_hash_map* hashmap;
-    Allocator* allocator;
 };
 
 TEST_F_SETUP(hashmap_fixture) {
@@ -35,13 +34,11 @@ TEST_F_SETUP(hashmap_fixture) {
     allocator->alloc = test_alloc;
     allocator->free = test_free;
     allocator->context = NULL;
-    tau->allocator = allocator;
     tau->hashmap = fixed_hashmap_init(uint32_t, uint32_t, hasher, comparator, allocator);
 }
 
 TEST_F_TEARDOWN(hashmap_fixture) {
-    fixed_hashmap_free(&tau->hashmap);
-    jackc_free(tau->allocator);
+    fixed_hashmap_free(&tau->hashmap, true);
 }
 
 TEST_F(hashmap_fixture, insert_one) {

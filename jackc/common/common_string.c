@@ -2,6 +2,26 @@
 #include "jackc_string.h"
 #include <stdint.h>
 
+int jackc_string_cmp(const jackc_string* str1, const jackc_string* str2) {
+    const char* str1_ptr = str1->data;
+    const char* str1_end = str1->data + str1->length;
+    const char* str2_ptr = str2->data;
+    const char* str2_end = str2->data + str2->length;
+
+    while (str1_ptr < str1_end && str2_ptr < str2_end && *str1_ptr == *str2_ptr) {
+        ++str1_ptr;
+        ++str2_ptr;
+    }
+
+    if (str1_ptr == str1_end) {
+        return (*str2_ptr == '\0') ? 0 : -1;
+    }
+    if (str2_ptr == str2_end) {
+        return (*str1_ptr == '\0') ? 0 : 1;
+    }
+    return *str1_ptr - *str2_ptr;
+}
+
 bool jackc_streq(const jackc_string* str1, const char* str2) {
     const char* str1_ptr = str1->data;
     const char* str1_end = str1->data + str1->length;
