@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * `jackc_alloc` implementation for linux
@@ -24,4 +25,8 @@ void* jackc_alloc(size_t size) {
 
 void jackc_free(void* ptr) {
     free(ptr);
+}
+
+void* jackc_memcpy(void* dest, const void* src, size_t n) {
+    return memcpy(dest, src, n);
 }

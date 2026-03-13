@@ -13,9 +13,13 @@ typedef struct {
 
 #define jackc_string_create(str, len) (jackc_string){.data=str, .length=(len)}
 
+#define jackc_string_from_str(str) (jackc_string){.data=str, .length=jackc_strlen(str)}
+
 void jackc_string_print(const jackc_string* str);
 
 [[ nodiscard ]] int jackc_strcmp(const char* str1, const char* str2);
+
+[[ nodiscard ]] int jackc_string_cmp(const jackc_string* str1, const jackc_string* str2);
 
 [[ nodiscard ]] bool jackc_streq(const jackc_string* str1, const char* str2);
 

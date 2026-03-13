@@ -14,4 +14,30 @@ target_link_libraries(compiler_lexer_tests
         Tau
         common
 )
+
+add_executable(compiler_symtab_tests
+    main.c
+    compiler/symtab/push_pop.c
+    compiler/symtab/find.c
+    compiler/symtab/insert.c
+)
+target_link_libraries(compiler_symtab_tests
+    PRIVATE
+        Tau
+        compiler
+        common
+)
+
+add_executable(data_structure_tests
+    main.c
+    data-structures/fixed_hashmap.c
+)
+target_link_libraries(data_structure_tests
+    PRIVATE
+        Tau
+        common
+)
+
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
+add_test(NAME compiler_symtab_tests COMMAND compiler_symtab_tests)
+add_test(NAME data_structure_tests COMMAND data_structure_tests)
