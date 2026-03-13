@@ -25,8 +25,14 @@ typedef struct {
 } sym_table_token;
 
 /**
- * Creates a new sym_table_token with the given type, variable type, name, and string type.
+ * Creates a new `sym_table_token`. Will shallow copy provided strings.
  * Initializes the variable index to 0. It is expected that a symbol table will assign a unique index to each variable.
+ *
+ * @param type The type of the token.
+ * @param var_type The variable type of the token.
+ * @param name The name of the token.
+ * @param str_type The string type of the token.
+ * @return A new sym_table_token.
  */
 static inline sym_table_token sym_table_token_init(
     jack_type type,
