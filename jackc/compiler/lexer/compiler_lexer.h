@@ -49,8 +49,8 @@ typedef enum {
     VAR_STATIC = 0,
     VAR_FIELD,
     VAR_LOCAL,
-    VAR_ARGUMENT,
-} jack_variable_type;
+    VAR_ARG,
+} jack_variable_kind;
 
 typedef union {
     jack_int integer;
