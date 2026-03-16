@@ -1,0 +1,11 @@
+add_library(core STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/allocators/allocators.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/asserts/jackc_assert.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/data-structures/hashmap.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/logging/logger.c
+)
+
+target_link_libraries(core
+    PUBLIC
+        platform_impl
+)

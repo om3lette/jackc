@@ -1,5 +1,5 @@
 #include "compiler_reserved_keywords.h"
-#include "common/jackc_assert.h"
+#include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "jackc_string.h"
 #include <stddef.h>

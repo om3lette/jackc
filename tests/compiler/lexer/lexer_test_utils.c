@@ -1,5 +1,5 @@
 #include "lexer_test_utils.h"
-#include "common/jackc_assert.h"
+#include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "jackc_string.h"
 

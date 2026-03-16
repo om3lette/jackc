@@ -1,7 +1,7 @@
 #ifndef DATA_STRUCTURES_HASHTABLE_H
 #define DATA_STRUCTURES_HASHTABLE_H
 
-#include "common/data-structures/allocator.h"
+#include "core/allocators/allocators.h"
 #include <stdint.h>
 
 #ifndef FIXED_HASH_MAP_BUCKETS

@@ -1,7 +1,5 @@
-#include "common/jackc_assert.h"
 #include "jackc_stdlib.h"
-#include "common/exit_code.h"
-#include "common/logger.h"
+#include "core/exit_code.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,11 +11,12 @@
  * `malloc` wrapper.
  */
 void* jackc_alloc(size_t size) {
-    jackc_assert(size > 0 && "Attempted to allocate <= 0 bytes using jackc_alloc.");
+    if (size == 0) {
+        jackc_exit(JACKC_EXIT_MEMORY_ERROR);
+    }
 
     void* ptr = malloc(size);
     if (!ptr) {
-        LOG_ERROR("Failed to allocate memory.\n");
         jackc_exit(JACKC_EXIT_MEMORY_ERROR);
     }
     return ptr;

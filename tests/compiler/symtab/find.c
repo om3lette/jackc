@@ -29,14 +29,14 @@ void require_symtab_token_eq(const sym_table* symtab, const jackc_string* name, 
 }
 
 TEST_F(symtab_fixture, find_local) {
-    sym_table_token token = create_token(JACK_INT, VAR_ARGUMENT, "x", "");
+    sym_table_token token = create_token(JACK_INT, VAR_ARG, "x", "");
     REQUIRE_SYMTAB_OK(sym_table_insert(tau->symtab, &token));
     require_symtab_token_eq(tau->symtab, &token.name, &token);
 }
 
 TEST_F(symtab_fixture, find_multiple_scopes) {
     // Create token "x" in a parent scope
-    sym_table_token token = create_token(JACK_INT, VAR_ARGUMENT, "x", "");
+    sym_table_token token = create_token(JACK_INT, VAR_ARG, "x", "");
     REQUIRE_SYMTAB_OK(sym_table_insert(tau->symtab, &token));
 
     // Create token "x" in the child scope
@@ -52,7 +52,7 @@ TEST_F(symtab_fixture, find_multiple_scopes) {
 }
 
 TEST_F(symtab_fixture, exists_local) {
-    sym_table_token token = create_token(JACK_INT, VAR_ARGUMENT, "x", "");
+    sym_table_token token = create_token(JACK_INT, VAR_ARG, "x", "");
     REQUIRE_SYMTAB_OK(sym_table_insert(tau->symtab, &token));
 
     sym_table* top_symtab = sym_table_push(tau->symtab);

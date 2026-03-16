@@ -10,8 +10,8 @@ add_executable(compiler_lexer_tests
 )
 target_link_libraries(compiler_lexer_tests
     PRIVATE
-        compiler
         Tau
+        compiler
         common
 )
 
@@ -38,6 +38,17 @@ target_link_libraries(data_structure_tests
         common
 )
 
+add_executable(allocators_tests
+    main.c
+    allocators/arena_allocator.c
+)
+target_link_libraries(allocators_tests
+    PRIVATE
+        Tau
+        common
+)
+
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
 add_test(NAME compiler_symtab_tests COMMAND compiler_symtab_tests)
 add_test(NAME data_structure_tests COMMAND data_structure_tests)
+add_test(NAME allocators_tests COMMAND allocators_tests)

@@ -1,6 +1,6 @@
 #include "main.h"
-#include "common/exit_code.h"
-#include "common/logger.h"
+#include "core/exit_code.h"
+#include "core/logging/logger.h"
 #include "jackc_stdio.h"
 #include "vm-translator/code-generation/vm_code_generator.h"
 #include "vm-translator/parser/vm_parser.h"

@@ -1,7 +1,7 @@
 #include "jackc_assert.h"
-#include "common/exit_code.h"
+#include "core/exit_code.h"
 #include "jackc_stdlib.h"
-#include <common/logger.h>
+#include "core/logging/logger.h"
 
 void jackc_assert_fail(const char* expr, const char* file, int line) {
     LOG_FATAL("%s\n", expr);

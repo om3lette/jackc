@@ -1,4 +1,3 @@
-#include "common/logger.h"
 #include "jackc_stdio.h"
 #include "jackc_stdlib.h"
 #include <fcntl.h>
@@ -34,11 +33,12 @@ static char* join_path(const char* dir, const char* file) {
     return full_path;
 }
 
+// TODO: Return a proper error code on failure to replace logging
 const char* jackc_next_source_file(const char* base_path, const char* extension) {
     if (stack_top == -1) {
         DIR* d = opendir(base_path);
         if (!d) {
-            LOG_ERROR("Failed to open base directory %s\n", base_path);
+            // LOG_ERROR("Failed to open base directory %s\n", base_path);
             return NULL;
         }
 
@@ -67,7 +67,7 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
 
         struct stat s;
         if (stat(full_path, &s) == -1) {
-            LOG_ERROR("Failed to stat %s\n", full_path);
+            // LOG_ERROR("Failed to stat %s\n", full_path);
             jackc_free(full_path);
             continue;
         }
@@ -82,7 +82,7 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
                     continue;
                 }
             } else {
-                LOG_ERROR("Max directory depth reached\n");
+                // LOG_ERROR("Max directory depth reached\n");
             }
             jackc_free(full_path);
         } else if (S_ISREG(s.st_mode)) {

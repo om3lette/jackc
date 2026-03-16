@@ -1,7 +1,7 @@
 #include "jackc_stdlib.h"
 #include "tau.h"
-#include "common/data-structures/hashmap.h"
-#include "common/data-structures/allocator.h"
+#include "core/data-structures/hashmap.h"
+#include "core/allocators/allocators.h"
 #include <stdint.h>
 #include <stdlib.h>
 
