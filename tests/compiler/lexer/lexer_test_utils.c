@@ -16,7 +16,7 @@ bool is_token_match(const jack_token* token, char chr) {
     return token->type == chr && token->str.length == 1 && token->str.data[0] == chr;
 }
 
-void test_jack_lexer_new_buffer(jackc_lexer* lexer, const char* buffer) {
+void test_jack_lexer_new_buffer(jack_lexer* lexer, const char* buffer) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
     jackc_assert(buffer != NULL && "Buffer is NULL");
 

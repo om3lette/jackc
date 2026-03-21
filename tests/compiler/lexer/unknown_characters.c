@@ -11,7 +11,7 @@ TEST_F_TEARDOWN(lexer_fixture) {
     jackc_free(tau->lexer);
 }
 
-static bool is_multibyte_char(jackc_lexer* lexer, jack_token* token, const char* c) {
+static bool is_multibyte_char(jack_lexer* lexer, jack_token* token, const char* c) {
     for (;*c; ++c) {
         *token = jack_lexer_next_token(lexer);
         if (!is_token_match(token, *c)) {

@@ -5,7 +5,7 @@
 #include "compiler/lexer/compiler_reserved_keywords.h" // IWYU pragma: keep
 
 struct lexer_fixture {
-    jackc_lexer* lexer;
+    jack_lexer* lexer;
     jack_token token;
 };
 
@@ -45,6 +45,6 @@ struct lexer_fixture {
 
 [[nodiscard]] bool is_token_match(const jack_token* token, char chr);
 
-void test_jack_lexer_new_buffer(jackc_lexer* lexer, const char* buffer);
+void test_jack_lexer_new_buffer(jack_lexer* lexer, const char* buffer);
 
 #endif

@@ -71,11 +71,11 @@ typedef struct {
     jackc_string buffer;
     uint32_t pos, line, col;
     char c;
-} jackc_lexer;
+} jack_lexer;
 
-[[nodiscard]] jackc_lexer* jack_lexer_init(const char* buffer);
+[[nodiscard]] jack_lexer* jack_lexer_init(const char* buffer);
 
-[[nodiscard]] jack_token jack_lexer_next_token(jackc_lexer* lexer);
+[[nodiscard]] jack_token jack_lexer_next_token(jack_lexer* lexer);
 
 // [[nodiscard]] jackc_lexer_return_code jack_lexer_peek();
 

@@ -5,10 +5,10 @@
 #include "jackc_stdlib.h"
 #include "jackc_string.h"
 
-jackc_lexer* jack_lexer_init(const char* buffer) {
+jack_lexer* jack_lexer_init(const char* buffer) {
     jackc_assert(buffer != NULL && "Lexer's buffer cannot be NULL");
 
-    jackc_lexer* lexer = jackc_alloc(sizeof(jackc_lexer));
+    jack_lexer* lexer = jackc_alloc(sizeof(jack_lexer));
     lexer->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
 
     lexer->c = LEXER_DEFAULT_CHAR;
@@ -18,7 +18,7 @@ jackc_lexer* jack_lexer_init(const char* buffer) {
     return lexer;
 }
 
-jack_token jack_lexer_next_token(jackc_lexer* lexer) {
+jack_token jack_lexer_next_token(jack_lexer* lexer) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
     jack_lexer_skip_blank_and_comments(lexer);
