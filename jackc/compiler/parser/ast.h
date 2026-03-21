@@ -2,8 +2,10 @@
 #define JACK_COMPILER_AST_H
 
 #include "compiler/lexer/compiler_lexer.h"
+#include "core/allocators/allocators.h"
 #include "jackc_string.h"
 #include <stddef.h>
+#include <stdint.h>
 
 // ==================
 // Helper types
@@ -46,7 +48,7 @@ typedef struct ast_expr_list {
 } ast_expr_list;
 
 typedef struct {
-    jack_location loc;
+    jack_location* loc;
 } ast_base;
 
 // ==================
@@ -66,8 +68,8 @@ typedef enum {
 
 // Subroutine calls happen in expressions and 'do' statements
 typedef struct {
-    ast_base base;
-    jackc_string* receiver; // Class name or Var name. null if implicit 'this'
+    bool implicit_this_receiver;
+    jackc_string receiver;
     jackc_string subroutine_name;
     ast_expr_list* args;
 } ast_call;
@@ -77,7 +79,7 @@ struct ast_expr {
     ast_expr_kind kind;
 
     union {
-        int int_val;
+        int32_t int_val;
         jackc_string string_val;
         ast_keyword_const keyword_val;
         jackc_string var_name;
@@ -102,6 +104,54 @@ struct ast_expr {
     };
 };
 
+ast_expr* ast_expr_int(
+    Allocator* allocator,
+    jack_location* loc,
+    int32_t value
+);
+
+ast_expr* ast_expr_string(
+    Allocator* allocator,
+    jack_location* loc,
+    const jackc_string* value
+);
+
+ast_expr* ast_expr_var(
+    Allocator* allocator,
+    jack_location* loc,
+    const jackc_string* name
+);
+
+ast_expr* ast_expr_binary(
+    Allocator* allocator,
+    jack_location* loc,
+    ast_expr* left,
+    ast_binary_op op,
+    ast_expr* right
+);
+
+ast_expr* ast_expr_unary(
+    Allocator* allocator,
+    jack_location* loc,
+    ast_unary_op op,
+    ast_expr* operand
+);
+
+ast_expr* ast_expr_call(
+    Allocator* allocator,
+    jack_location* loc,
+    const jackc_string* receiver,
+    const jackc_string* subroutine_name,
+    ast_expr_list* args
+);
+
+ast_expr* ast_expr_array_access(
+    Allocator* allocator,
+    jack_location* loc,
+    const jackc_string* var_name,
+    ast_expr* index
+);
+
 // ==================
 // Statements
 // ==================
@@ -117,7 +167,7 @@ typedef enum {
 struct ast_stmt {
     ast_base base;
     ast_stmt_kind kind;
-    struct ast_stmt* next; // For lists of statements
+    ast_stmt* next; // For lists of statements
 
     union {
         // let varName[index?] = value;
@@ -148,13 +198,62 @@ struct ast_stmt {
     };
 };
 
-typedef struct ast_var_dec {
+ast_stmt* ast_stmt_let(
+    Allocator* a,
+    jack_location* loc,
+    const jackc_string* var_name,
+    ast_expr* index,
+    ast_expr* value
+);
+
+ast_stmt* ast_stmt_if(
+    Allocator* a,
+    jack_location* loc,
+    ast_expr* cond,
+    ast_stmt* true_branch,
+    ast_stmt* false_branch
+);
+
+ast_stmt* ast_stmt_while(
+    Allocator* a,
+    jack_location* loc,
+    ast_expr* cond,
+    ast_stmt* body
+);
+
+ast_stmt* ast_stmt_do(
+    Allocator* a,
+    jack_location* loc,
+    const jackc_string* receiver,
+    const jackc_string* subroutine_name,
+    ast_expr_list* args
+);
+
+ast_stmt* ast_stmt_return(
+    Allocator* a,
+    jack_location* loc,
+    ast_expr* value
+);
+
+typedef struct ast_var_dec ast_var_dec;
+
+struct ast_var_dec {
     ast_base base;
     jack_variable_kind kind;
     ast_type type;
     jackc_string name;
     struct ast_var_dec* next; // Linked list of declarations
-} ast_var_dec;
+};
+
+ast_var_dec* ast_variable_declaration(
+    Allocator* allocator,
+    jack_location* loc,
+    const jackc_string* name,
+    jack_variable_kind kind,
+    ast_type type,
+    ast_var_dec* next
+);
+
 
 typedef enum {
     SUB_CONSTRUCTOR,
@@ -162,7 +261,9 @@ typedef enum {
     SUB_METHOD
 } ast_sub_kind;
 
-typedef struct ast_subroutine {
+typedef struct ast_subroutine ast_subroutine;
+
+struct ast_subroutine {
     ast_base base;
     ast_sub_kind kind;
     ast_type return_type;
@@ -172,8 +273,19 @@ typedef struct ast_subroutine {
     ast_var_dec* locals; // Linked list of VAR_LOCAL
     ast_stmt* body;      // Linked list of statements
 
-    struct ast_subroutine* next; // Linked list of subroutines in class
-} ast_subroutine;
+    ast_subroutine* next; // Linked list of subroutines in class
+};
+
+ast_subroutine* ast_subroutine_create(
+    Allocator* allocator,
+    jack_location* loc,
+    const jackc_string* name,
+    ast_var_dec* params,
+    ast_var_dec* locals,
+    ast_stmt* body,
+    ast_subroutine* next
+);
+
 
 // The Root Node
 typedef struct {
@@ -182,5 +294,13 @@ typedef struct {
     ast_var_dec* class_vars;      // Linked list of VAR_STATIC and VAR_FIELD
     ast_subroutine* subroutines;  // Linked list of methods/funcs/constructors
 } ast_class;
+
+ast_class* ast_class_create(
+    Allocator* allocator,
+    jack_location* loc,
+    const jackc_string* name,
+    ast_var_dec* class_vars,
+    ast_subroutine* subroutines
+);
 
 #endif
