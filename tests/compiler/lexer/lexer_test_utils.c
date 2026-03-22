@@ -8,7 +8,7 @@ bool is_token_equal_str(const jack_token* token, int token_type, const char* tok
 }
 
 bool is_token_equal_int(const jack_token* token, jack_int token_value) {
-    return token->type == TOKEN_NUMBER_INT && token->value.integer == token_value;
+    return token->type == TOKEN_INT && token->value.integer == token_value;
 }
 
 bool is_token_match(const jack_token* token, char chr) {

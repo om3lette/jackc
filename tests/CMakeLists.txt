@@ -1,5 +1,8 @@
+include_directories(include)
+
 add_executable(compiler_lexer_tests
     main.c
+    compiler/lexer/eof.c
     compiler/lexer/internal.c
     compiler/lexer/numbers.c
     compiler/lexer/comments.c
@@ -48,7 +51,21 @@ target_link_libraries(allocators_tests
         common
 )
 
+add_executable(compiler_parser_tests
+    main.c
+    compiler/lexer/lexer_test_utils.c
+    compiler/parser/var_dec.c
+    compiler/parser/class_var_dec.c
+    compiler/parser/param_list.c
+)
+target_link_libraries(compiler_parser_tests
+    PRIVATE
+        Tau
+        compiler
+)
+
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
 add_test(NAME compiler_symtab_tests COMMAND compiler_symtab_tests)
 add_test(NAME data_structure_tests COMMAND data_structure_tests)
 add_test(NAME allocators_tests COMMAND allocators_tests)
+add_test(NAME compiler_parser_tests COMMAND compiler_parser_tests)

@@ -2,7 +2,6 @@
 #define JACKC_SYMTABLE_TOKEN_H
 
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_stdlib.h"
 #include "jackc_string.h"
 
 typedef enum {
@@ -45,8 +44,8 @@ static inline sym_table_token sym_table_token_init(
     token.var.kind = var_type;
     token.var.idx = 0;
     // Shallow copies
-    jackc_memcpy(&token.name, name, sizeof(jackc_string));
-    jackc_memcpy(&token.str_type, str_type, sizeof(jackc_string));
+    token.name = *name;
+    token.str_type = *str_type;
     return token;
 }
 

@@ -21,7 +21,7 @@ typedef enum {
 
 typedef struct {
     ast_type_kind kind;
-    jackc_string* class_name;
+    jackc_string class_name;
 } ast_type;
 
 typedef enum {
@@ -48,7 +48,7 @@ typedef struct ast_expr_list {
 } ast_expr_list;
 
 typedef struct {
-    jack_location* loc;
+    jack_location loc;
 } ast_base;
 
 // ==================

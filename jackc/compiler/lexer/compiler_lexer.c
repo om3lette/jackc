@@ -5,6 +5,10 @@
 #include "jackc_stdlib.h"
 #include "jackc_string.h"
 
+static inline jack_token eof_token(jack_lexer* lexer) {
+    return jack_lexer_new_str_token(lexer, '\0', jack_lexer_cur_pos(lexer));
+}
+
 jack_lexer* jack_lexer_init(const char* buffer) {
     jackc_assert(buffer != NULL && "Lexer's buffer cannot be NULL");
 
@@ -51,11 +55,15 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
 
     if (c == '\0') {
         // '\0' does not follow common logic as there is no char after it
-        return jack_lexer_new_str_token(lexer, c, jack_lexer_cur_pos(lexer));
+        return eof_token(lexer);
     }
     jackc_assert(c != '\n' && c != '\r' && c != '\0' && "These chars are not meant to be processed by this code block");
 
     c = lexer->c;
     jack_lexer_read_char(lexer);
     return jack_lexer_new_str_token(lexer, c, jack_lexer_cur_pos(lexer) - 1);
+}
+
+bool jack_lexer_has_token(jack_lexer* lexer) {
+    return lexer->c != '\0';
 }

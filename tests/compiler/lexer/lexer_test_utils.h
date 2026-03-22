@@ -45,6 +45,4 @@ struct lexer_fixture {
 
 [[nodiscard]] bool is_token_match(const jack_token* token, char chr);
 
-void test_jack_lexer_new_buffer(jack_lexer* lexer, const char* buffer);
-
 #endif

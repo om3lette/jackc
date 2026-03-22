@@ -28,5 +28,15 @@
         "program": "$ZED_WORKTREE_ROOT/build/tests/compiler_symtab_tests",
         "request": "launch",
         "adapter": "CodeLLDB"
+    },
+    {
+        "label": "Parser tests",
+        "build": {
+            "command": "just configure && just build",
+            "cwd": "$ZED_WORKTREE_ROOT"
+        },
+        "program": "$ZED_WORKTREE_ROOT/build/tests/compiler_parser_tests",
+        "request": "launch",
+        "adapter": "CodeLLDB"
     }
 ]

@@ -40,7 +40,6 @@ typedef enum {
     TOKEN_ELSE,
     TOKEN_WHILE,
     TOKEN_RETURN,
-    TOKEN_NUMBER_INT,
     TOKEN_IDENTIFIER,
     TOKEN_EOF
 } jack_token_type;
@@ -77,6 +76,6 @@ typedef struct {
 
 [[nodiscard]] jack_token jack_lexer_next_token(jack_lexer* lexer);
 
-// [[nodiscard]] jackc_lexer_return_code jack_lexer_peek();
+[[nodiscard]] bool jack_lexer_has_token(jack_lexer* lexer);
 
 #endif

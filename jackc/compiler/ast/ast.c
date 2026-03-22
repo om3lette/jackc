@@ -1,14 +1,9 @@
 #include "ast.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_stdlib.h"
 #include "jackc_string.h"
 
-static inline void jackc_string_shallow_copy(void* dest, const jackc_string* str) {
-    jackc_memcpy(dest, str, sizeof(jackc_string));
-}
-
 static void ast_base_init(ast_base* base, const jack_location* loc) {
-    jackc_memcpy(base->loc, loc, sizeof(jack_location));
+    base->loc = *loc;
 }
 
 static ast_expr* ast_expr_common_init(
@@ -40,7 +35,7 @@ ast_expr* ast_expr_string(
     const jackc_string* value
 ) {
     ast_expr* expr = ast_expr_common_init(allocator, loc, EXPR_STRING);
-    jackc_string_shallow_copy(&expr->string_val, value);
+    expr->string_val = *value;
 
     return expr;
 }
@@ -51,7 +46,7 @@ ast_expr* ast_expr_var(
     const jackc_string* name
 ) {
     ast_expr* expr = ast_expr_common_init(allocator, loc, EXPR_VAR);
-    jackc_string_shallow_copy(&expr->var_name, name);
+    expr->var_name = *name;
 
     return expr;
 }
@@ -96,10 +91,10 @@ ast_expr* ast_expr_call(
     ast_expr* expr = ast_expr_common_init(allocator, loc, EXPR_CALL);
 
     expr->call.args = args;
-    jackc_string_shallow_copy(&expr->call.subroutine_name, subroutine_name);
+    expr->call.subroutine_name = *subroutine_name;
 
     expr->call.implicit_this_receiver = !receiver;
-    jackc_string_shallow_copy(&expr->call.receiver, receiver);
+    expr->call.receiver = *receiver;
 
     return expr;
 }
@@ -112,7 +107,7 @@ ast_expr* ast_expr_array_access(
 ) {
     ast_expr* expr = ast_expr_common_init(allocator, loc, EXPR_ARRAY_ACCESS);
 
-    jackc_string_shallow_copy(&expr->array_access.var_name, var_name);
+    expr->array_access.var_name = *var_name;
     expr->array_access.index = index;
 
     return expr;
@@ -143,7 +138,7 @@ ast_stmt* ast_stmt_let(
 
     stmt->let_stmt.index = index;
     stmt->let_stmt.value = value;
-    jackc_string_shallow_copy(&stmt->let_stmt.var_name, var_name);
+    stmt->let_stmt.var_name = *var_name;
 
     return stmt;
 }
@@ -189,10 +184,10 @@ ast_stmt* ast_stmt_do(
     ast_stmt* stmt = ast_stmt_common_init(a, loc, STMT_DO);
 
     stmt->do_stmt.args = args;
-    jackc_string_shallow_copy(&stmt->do_stmt.subroutine_name, subroutine_name);
+    stmt->do_stmt.subroutine_name = *subroutine_name;
 
     stmt->do_stmt.implicit_this_receiver = !receiver;
-    jackc_string_shallow_copy(&stmt->do_stmt.receiver, receiver);
+    stmt->do_stmt.receiver = *receiver;
 
     return stmt;
 }
@@ -224,7 +219,7 @@ ast_var_dec* ast_variable_declaration(
     var->kind = kind;
     var->type = type;
     var->next = next;
-    jackc_string_shallow_copy(&var->name, name);
+    var->name = *name;
 
     return var;
 }
@@ -245,7 +240,7 @@ ast_subroutine* ast_subroutine_create(
     subroutine->locals = locals;
     subroutine->body = body;
     subroutine->next = next;
-    jackc_string_shallow_copy(&subroutine->name, name);
+    subroutine->name = *name;
 
     return subroutine;
 }
@@ -262,7 +257,7 @@ ast_class* ast_class_create(
 
     class->class_vars = class_vars;
     class->subroutines = subroutines;
-    jackc_string_shallow_copy(&class->name, name);
+    class->name = *name;
 
     return class;
 }
