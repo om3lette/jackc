@@ -4,6 +4,11 @@
 #include "compiler/ast/ast.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
+#include <stdint.h>
+
+typedef uint8_t binding_power;
+
+#define PREFIX_BP (binding_power)255
 
 [[ nodiscard ]] ast_class* jack_parser_parse_class(jack_parser* parser);
 
@@ -20,7 +25,7 @@
 [[ nodiscard ]] ast_stmt* jack_parser_parse_do(jack_parser* parser);
 [[ nodiscard ]] ast_stmt* jack_parser_parse_return(jack_parser* parser);
 
-[[ nodiscard ]] ast_expr* jack_parser_parse_expression(jack_parser* parser);
+[[ nodiscard ]] ast_expr* jack_parser_parse_expression(jack_parser* parser, binding_power min_bp);
 [[ nodiscard ]] ast_expr* jack_parser_parse_term(jack_parser* parser);
 [[ nodiscard ]] ast_expr* jack_parser_parse_subroutine_call(jack_parser* parser);
 [[ nodiscard ]] ast_expr_list* jack_parser_parse_expression_list(jack_parser* parser);

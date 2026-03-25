@@ -25,16 +25,6 @@ static inline bool is_panic_mode(jack_parser* parser) {
         return nullptr; \
 } while (0)
 
-static bool is_binary_operator(int32_t type) {
-    switch (type) {
-        case '+': case '-': case '*': case '/':
-        case '&': case '|': case '<': case '>': case '=':
-            return true;
-        default:
-            return false;
-    }
-}
-
 /**
  * Parses a list of variable declarations separated by commas.
  *
@@ -188,15 +178,56 @@ ast_stmt* jack_parser_parse_while(jack_parser* parser);
 ast_stmt* jack_parser_parse_do(jack_parser* parser);
 ast_stmt* jack_parser_parse_return(jack_parser* parser);
 
-ast_expr* jack_parser_parse_expression(jack_parser* parser) {
+static inline bool get_infix_binding_power(int32_t type, binding_power* left_bp, binding_power* right_bp) {
+    jackc_assert(left_bp && right_bp && "Binding power pointers must be valid");
+
+    switch (type) {
+        case '=':
+            *left_bp = 1;
+            *right_bp = 1;
+            return true;
+        case '<':
+        case '>':
+            *left_bp = 3;
+            *right_bp = 4;
+            return true;
+        case '+':
+        case '-':
+            *left_bp = 5;
+            *right_bp = 6;
+            return true;
+        case '*':
+        case '/':
+            *left_bp = 7;
+            *right_bp = 8;
+            return true;
+        case '&':
+        case '|':
+            *left_bp = 2;
+            *right_bp = 3;
+            return true;
+        default:
+            return false;
+    }
+}
+
+ast_expr* jack_parser_parse_expression(jack_parser* parser, binding_power min_bp) {
+    jackc_assert(parser);
+
     ast_expr* lhs = jack_parser_parse_term(parser);
     RETURN_IF_PANIC(parser);
 
-    while (is_binary_operator(parser->current.type)) {
+    while (true) {
+        binding_power lbp, rbp;
+        if (!get_infix_binding_power(parser->current.type, &lbp, &rbp))
+            break;
+        if (lbp < min_bp)
+            break;
+
         jack_token op_token = jack_parser_advance(parser);
         ast_binary_op op = jack_parser_token_type_to_binary_op(parser, op_token.type);
 
-        ast_expr* rhs = jack_parser_parse_term(parser);
+        ast_expr* rhs = jack_parser_parse_expression(parser, rbp);
         RETURN_IF_PANIC(parser);
 
         lhs = ast_expr_binary(parser->allocator, &op_token.loc, lhs, op, rhs);
@@ -245,7 +276,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
                 jack_parser_expect(parser, '[');
                 RETURN_IF_PANIC(parser);
 
-                ast_expr* index = jack_parser_parse_expression(parser);
+                ast_expr* index = jack_parser_parse_expression(parser, 0);
                 RETURN_IF_PANIC(parser);
 
                 jack_parser_expect(parser, ']');
@@ -262,7 +293,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
         case '(': {
             jack_parser_advance(parser);
 
-            expr = jack_parser_parse_expression(parser);
+            expr = jack_parser_parse_expression(parser, 0);
             RETURN_IF_PANIC(parser);
 
             jack_parser_expect(parser, ')');
@@ -271,7 +302,8 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
         case '-':
         case '~': {
             jack_token op = jack_parser_advance(parser);
-            ast_expr* operand = jack_parser_parse_term(parser);
+
+            ast_expr* operand = jack_parser_parse_expression(parser, PREFIX_BP);
             RETURN_IF_PANIC(parser);
 
             ast_unary_op op_type = jack_parser_token_type_to_unary_op(parser, op.type);
