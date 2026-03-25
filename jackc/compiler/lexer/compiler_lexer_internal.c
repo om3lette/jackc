@@ -86,7 +86,10 @@ void jack_lexer_skip_blank_and_comments(jack_lexer* lexer) {
             if (!is_one_line_comment) {
                 is_multiline_comment = is_multiline_comment || jack_lexer_read_and_expect(lexer, '*');
             }
-            continue;
+
+            if (is_one_line_comment || is_multiline_comment) continue;
+            // Division operator
+            return;
         }
         else if (lexer->c == '*' && jack_lexer_read_and_expect(lexer, '/')) {
             is_multiline_comment = false;

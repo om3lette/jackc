@@ -105,7 +105,7 @@ ast_expr* ast_expr_call(
     expr->call.subroutine_name = *subroutine_name;
 
     expr->call.implicit_this_receiver = !receiver;
-    expr->call.receiver = *receiver;
+    if (receiver) expr->call.receiver = *receiver;
 
     return expr;
 }

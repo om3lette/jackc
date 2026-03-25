@@ -375,7 +375,12 @@ ast_expr_list* jack_parser_parse_expression_list(jack_parser* parser) {
     ast_expr_list* tail = nullptr;
 
     while (!jack_parser_match(parser, ')')) {
-        ast_expr* expr = jack_parser_parse_term(parser);
+        if (head) {
+            jack_parser_expect(parser, ',');
+            RETURN_IF_PANIC(parser);
+        }
+
+        ast_expr* expr = jack_parser_parse_expression(parser, 0);
         RETURN_IF_PANIC(parser);
 
         if (!head) {

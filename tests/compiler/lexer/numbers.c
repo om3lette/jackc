@@ -45,3 +45,24 @@ TEST_F(lexer_fixture, negative_integer) {
     REQUIRE_CHAR_TOKEN(';');
     REQUIRE_END_TOKEN();
 }
+
+TEST_F(lexer_fixture, basic_expression) {
+    test_jack_lexer_new_buffer(tau->lexer, "2 + 3 * 4");
+    REQUIRE_INT_TOKEN(2);
+    REQUIRE_CHAR_TOKEN('+');
+    REQUIRE_INT_TOKEN(3);
+    REQUIRE_CHAR_TOKEN('*');
+    REQUIRE_INT_TOKEN(4);
+    REQUIRE_END_TOKEN();
+}
+
+TEST_F(lexer_fixture, only_integer_input) {
+    test_jack_lexer_new_buffer(tau->lexer, "123");
+    REQUIRE_INT_TOKEN(123);
+    REQUIRE_END_TOKEN();
+
+    test_jack_lexer_new_buffer(tau->lexer, "-123");
+    REQUIRE_CHAR_TOKEN('-');
+    REQUIRE_INT_TOKEN(123);
+    REQUIRE_END_TOKEN();
+}
