@@ -54,7 +54,7 @@ jack_token jack_lexer_new_str_token(jack_lexer* lexer, int32_t type, const char*
 jack_token jack_lexer_new_int_token(jack_lexer* lexer, const char* start, jack_int value) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
-    jack_token token = jack_lexer_new_str_token(lexer, TOKEN_INT, start);
+    jack_token token = jack_lexer_new_str_token(lexer, TOKEN_INT_LITERAL, start);
     token.value.integer = value;
 
     return token;
@@ -86,7 +86,10 @@ void jack_lexer_skip_blank_and_comments(jack_lexer* lexer) {
             if (!is_one_line_comment) {
                 is_multiline_comment = is_multiline_comment || jack_lexer_read_and_expect(lexer, '*');
             }
-            continue;
+
+            if (is_one_line_comment || is_multiline_comment) continue;
+            // Division operator
+            return;
         }
         else if (lexer->c == '*' && jack_lexer_read_and_expect(lexer, '/')) {
             is_multiline_comment = false;

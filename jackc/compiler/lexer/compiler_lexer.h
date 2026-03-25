@@ -40,6 +40,8 @@ typedef enum {
     TOKEN_ELSE,
     TOKEN_WHILE,
     TOKEN_RETURN,
+    TOKEN_INT_LITERAL,
+    TOKEN_STR_LITERAL,
     TOKEN_IDENTIFIER,
     TOKEN_EOF
 } jack_token_type;

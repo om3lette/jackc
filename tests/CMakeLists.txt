@@ -6,9 +6,11 @@ add_executable(compiler_lexer_tests
     compiler/lexer/internal.c
     compiler/lexer/numbers.c
     compiler/lexer/comments.c
+    compiler/lexer/operations.c
     compiler/lexer/tabs_and_spaces.c
     compiler/lexer/line_col_counting.c
     compiler/lexer/unknown_characters.c
+    compiler/lexer/string_literals.c
     compiler/lexer/lexer_test_utils.c
 )
 target_link_libraries(compiler_lexer_tests
@@ -54,9 +56,11 @@ target_link_libraries(allocators_tests
 add_executable(compiler_parser_tests
     main.c
     compiler/lexer/lexer_test_utils.c
+    compiler/parser/test_parser_utils.c
     compiler/parser/var_dec.c
     compiler/parser/class_var_dec.c
     compiler/parser/param_list.c
+    compiler/parser/expression.c
 )
 target_link_libraries(compiler_parser_tests
     PRIVATE

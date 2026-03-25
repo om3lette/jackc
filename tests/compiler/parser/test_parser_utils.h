@@ -6,6 +6,8 @@
 #include "compiler/parser/compiler_parser.h"
 #include "core/allocators/allocators.h"
 
+[[ nodiscard ]] const char* ast_expression_to_string(Allocator* allocator, const ast_expr* expr);
+
 #define REQUIRE_VAR(_var, _kind, _type, _name) do { \
     REQUIRE(_var); \
     REQUIRE_EQ(_var->kind, _kind); \
