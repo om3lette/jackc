@@ -9,6 +9,7 @@ add_executable(compiler_lexer_tests
     compiler/lexer/tabs_and_spaces.c
     compiler/lexer/line_col_counting.c
     compiler/lexer/unknown_characters.c
+    compiler/lexer/string_literals.c
     compiler/lexer/lexer_test_utils.c
 )
 target_link_libraries(compiler_lexer_tests

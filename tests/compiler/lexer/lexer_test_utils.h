@@ -23,6 +23,11 @@ struct lexer_fixture {
     REQUIRE(is_token_match(&tau->token, token_chr)); \
 } while(0)
 
+#define REQUIRE_STR_LITERAL_TOKEN(token_str) do { \
+    NEXT_TOKEN(); \
+    REQUIRE(is_token_equal_str(&tau->token, TOKEN_STR_LITERAL, token_str)); \
+} while(0)
+
 #define REQUIRE_ID_TOKEN(token_str) do { \
     NEXT_TOKEN(); \
     REQUIRE(is_token_equal_str(&tau->token, TOKEN_IDENTIFIER, token_str)); \

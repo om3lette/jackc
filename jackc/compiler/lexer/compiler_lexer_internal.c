@@ -54,7 +54,7 @@ jack_token jack_lexer_new_str_token(jack_lexer* lexer, int32_t type, const char*
 jack_token jack_lexer_new_int_token(jack_lexer* lexer, const char* start, jack_int value) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
-    jack_token token = jack_lexer_new_str_token(lexer, TOKEN_INT, start);
+    jack_token token = jack_lexer_new_str_token(lexer, TOKEN_INT_LITERAL, start);
     token.value.integer = value;
 
     return token;

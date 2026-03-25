@@ -25,8 +25,11 @@ typedef struct {
 } ast_type;
 
 typedef enum {
-    OP_ADD, OP_SUB, OP_MUL, OP_DIV,
-    OP_AND, OP_OR,  OP_LT,  OP_GT, OP_EQ
+    BINARY_OP_ADD, BINARY_OP_SUB,
+    BINARY_OP_MUL, BINARY_OP_DIV,
+    BINARY_OP_AND, BINARY_OP_OR,
+    BINARY_OP_LT,  BINARY_OP_GT,
+    BINARY_OP_EQ
 } ast_binary_op;
 
 typedef enum {
@@ -35,17 +38,27 @@ typedef enum {
 } ast_unary_op;
 
 typedef enum {
-    KW_TRUE, KW_FALSE, KW_NULL, KW_THIS
+    KEYWORD_TRUE,
+    KEYWORD_FALSE,
+    KEYWORD_NULL,
+    KEYWORD_THIS
 } ast_keyword_const;
 
 
 typedef struct ast_expr ast_expr;
 typedef struct ast_stmt ast_stmt;
+typedef struct ast_expr_list ast_expr_list;
 
-typedef struct ast_expr_list {
+struct ast_expr_list {
     ast_expr* expr;
-    struct ast_expr_list* next;
-} ast_expr_list;
+    ast_expr_list* next;
+};
+
+ast_expr_list* ast_expr_list_append(
+    Allocator* allocator,
+    ast_expr_list* tail,
+    ast_expr* expr
+);
 
 typedef struct {
     jack_location loc;
@@ -114,6 +127,12 @@ ast_expr* ast_expr_string(
     Allocator* allocator,
     jack_location* loc,
     const jackc_string* value
+);
+
+ast_expr* ast_expr_keyword(
+    Allocator* allocator,
+    jack_location* loc,
+    ast_keyword_const keyword
 );
 
 ast_expr* ast_expr_var(

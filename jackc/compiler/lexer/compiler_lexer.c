@@ -38,6 +38,25 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
         return jack_lexer_new_int_token(lexer, num_start, value);
     }
 
+    if (lexer->c == '"') {
+        const char* str_start = jack_lexer_cur_pos(lexer) + 1;
+        jack_lexer_read_char(lexer);
+        // TODO: Get "is_end_of_line" function
+        while (
+            lexer->c != '"'
+            && lexer->c != '\n'
+            && lexer->c != '\r'
+            && lexer->c != '\0'
+        ) {
+            jack_lexer_read_char(lexer);
+        }
+        jack_token token = jack_lexer_new_str_token(lexer, TOKEN_STR_LITERAL, str_start);
+        if (lexer->c == '"') {
+            jack_lexer_read_char(lexer);
+        }
+        return token;
+    }
+
     // Identifiers
     char c = jackc_tolower(lexer->c);
     if (c >= 'a' && c <= 'z') {

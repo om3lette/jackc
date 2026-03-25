@@ -40,6 +40,17 @@ ast_expr* ast_expr_string(
     return expr;
 }
 
+ast_expr* ast_expr_keyword(
+    Allocator* allocator,
+    jack_location* loc,
+    ast_keyword_const keyword
+) {
+    ast_expr* expr = ast_expr_common_init(allocator, loc, EXPR_KEYWORD);
+    expr->keyword_val = keyword;
+
+    return expr;
+}
+
 ast_expr* ast_expr_var(
     Allocator* allocator,
     jack_location* loc,
@@ -111,6 +122,18 @@ ast_expr* ast_expr_array_access(
     expr->array_access.index = index;
 
     return expr;
+}
+
+ast_expr_list* ast_expr_list_append(
+    Allocator* allocator,
+    ast_expr_list* tail,
+    ast_expr* expr
+) {
+    ast_expr_list* new_tail = allocator->alloc(sizeof(ast_expr_list), allocator->context);
+    new_tail->expr = expr;
+    new_tail->next = nullptr;
+    if (tail) tail->next = new_tail;
+    return new_tail;
 }
 
 
