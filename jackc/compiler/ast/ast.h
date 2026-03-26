@@ -315,7 +315,7 @@ ast_subroutine* ast_subroutine_create(
     ast_subroutine* next
 );
 
-ast_subroutine* ast_subroutine_push_back(
+ast_subroutine* ast_subroutine_push_front(
     ast_subroutine* tail,
     ast_subroutine* subroutine
 );

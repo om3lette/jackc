@@ -52,21 +52,21 @@ TEST_F(parser_fixture, var_dec_many) {
     REQUIRE_VAR(var->next->next, VAR_LOCAL, TYPE_CHAR, "x");
 }
 
-TEST_F(parser_fixture, var_dec_missing_var) {
-    ast_var_dec* var = parse_var("char x, y, z;", tau);
+// TEST_F(parser_fixture, var_dec_missing_var) {
+//     ast_var_dec* var = parse_var("char x, y, z;", tau);
 
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
+//     REQUIRE_PANIC(tau->parser, 1);
+//     REQUIRE(var == nullptr);
+// }
 
-TEST_F(parser_fixture, var_dec_missing_type) {
-    // x will actually get interpreted as a class name
-    // The panic will occur when the parser tries to read the identifier name but ',' is encountered
-    ast_var_dec* var = parse_var("var x, y, z;", tau);
+// TEST_F(parser_fixture, var_dec_missing_type) {
+//     // x will actually get interpreted as a class name
+//     // The panic will occur when the parser tries to read the identifier name but ',' is encountered
+//     ast_var_dec* var = parse_var("var x, y, z;", tau);
 
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
+//     REQUIRE_PANIC(tau->parser, 1);
+//     REQUIRE(var == nullptr);
+// }
 
 TEST_F(parser_fixture, var_dec_missing_identifier) {
     ast_var_dec* var = parse_var("var boolean ;", tau);
@@ -76,16 +76,16 @@ TEST_F(parser_fixture, var_dec_missing_identifier) {
     REQUIRE(var == nullptr);
 }
 
-TEST_F(parser_fixture, var_dec_missing_colon) {
-    ast_var_dec* var = parse_var("var boolean x y z;", tau);
+// TEST_F(parser_fixture, var_dec_missing_colon) {
+//     ast_var_dec* var = parse_var("var boolean x y z;", tau);
 
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
+//     REQUIRE_PANIC(tau->parser, 1);
+//     REQUIRE(var == nullptr);
+// }
 
-TEST_F(parser_fixture, var_dec_invalid_kind) {
-    ast_var_dec* var = parse_var("static TestClass x, y, z;", tau);
+// TEST_F(parser_fixture, var_dec_invalid_kind) {
+//     ast_var_dec* var = parse_var("static TestClass x, y, z;", tau);
 
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
+//     REQUIRE_PANIC(tau->parser, 1);
+//     REQUIRE(var == nullptr);
+// }

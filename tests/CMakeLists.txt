@@ -64,6 +64,7 @@ add_executable(compiler_parser_tests
     compiler/parser/statements.c
     compiler/parser/subroutine.c
     compiler/parser/class.c
+    compiler/parser/error_recovery.c
 )
 target_link_libraries(compiler_parser_tests
     PRIVATE

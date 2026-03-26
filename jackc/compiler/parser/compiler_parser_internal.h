@@ -30,7 +30,7 @@ typedef uint8_t binding_power;
 [[ nodiscard ]] ast_expr* jack_parser_parse_subroutine_call(jack_parser* parser);
 [[ nodiscard ]] ast_expr_list* jack_parser_parse_expression_list(jack_parser* parser);
 
-[[ nodiscard ]] bool jack_parser_match(jack_parser* parser, int32_t type);
+[[ nodiscard ]] bool jack_parser_check(jack_parser* parser, int32_t type);
 
 jack_token jack_parser_advance(jack_parser* parser);
 

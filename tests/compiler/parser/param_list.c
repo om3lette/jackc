@@ -69,24 +69,3 @@ TEST_F(parser_fixture, param_list_many_classes) {
     REQUIRE_CLASS_VAR(var->next, VAR_ARG, "Stepladder", "y");
     REQUIRE_CLASS_VAR(var->next->next, VAR_ARG, "Carrot", "x");
 }
-
-TEST_F(parser_fixture, param_list_missing_type) {
-    ast_var_dec* var = parse_param_list("char x, y, boolean z)", tau);
-
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
-
-TEST_F(parser_fixture, param_list_missing_rparen) {
-    ast_var_dec* var = parse_param_list("char x, int y, boolean z;", tau);
-
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
-
-TEST_F(parser_fixture, param_list_missing_identifier) {
-    ast_var_dec* var = parse_param_list("char , int y)", tau);
-
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}

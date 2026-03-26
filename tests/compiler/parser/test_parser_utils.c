@@ -206,3 +206,19 @@ const char* ast_expression_to_string(Allocator* allocator, const ast_expr* expr)
     jackc_assert(false);
     return "";
 }
+
+size_t var_len(ast_var_dec* var) {
+    size_t len = 0;
+    for (ast_var_dec* cur = var; cur != nullptr; cur = cur->next) {
+        ++len;
+    }
+    return len;
+}
+
+size_t subroutine_len(ast_subroutine* sub) {
+    size_t len = 0;
+    for (ast_subroutine* cur = sub; cur != nullptr; cur = cur->next) {
+        ++len;
+    }
+    return len;
+}

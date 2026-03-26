@@ -1,6 +1,7 @@
 #ifndef TEST_PARSER_UTILS_H
 #define TEST_PARSER_UTILS_H
 
+#include "compiler/ast/ast.h"
 #include "compiler/diagnostics-engine/engine.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
@@ -60,5 +61,8 @@ struct parser_fixture {
     jack_diagnostic_engine engine;
     jack_parser* parser;
 };
+
+[[ nodiscard ]] size_t var_len(ast_var_dec* var);
+[[ nodiscard ]] size_t subroutine_len(ast_subroutine* sub);
 
 #endif

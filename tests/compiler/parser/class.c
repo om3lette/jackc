@@ -43,21 +43,8 @@ static void require_class(
 
     CHECK(jackc_streq(&class->name, name));
 
-    uint32_t class_vars = 0;
-    ast_var_dec* cur_class_var = class->class_vars;
-    while (cur_class_var) {
-        ++class_vars;
-        cur_class_var = cur_class_var->next;
-    }
-    CHECK(class_vars == expected_class_var_decs);
-
-    uint32_t subroutines = 0;
-    ast_subroutine* cur_subroutine = class->subroutines;
-    while (cur_subroutine) {
-        ++subroutines;
-        cur_subroutine = cur_subroutine->next;
-    }
-    CHECK(subroutines == expected_subroutines);
+    CHECK(var_len(class->class_vars) == expected_class_var_decs);
+    CHECK(subroutine_len(class->subroutines) == expected_subroutines);
 }
 
 typedef struct {
