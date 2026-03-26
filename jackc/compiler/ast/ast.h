@@ -54,13 +54,13 @@ struct ast_expr_list {
     ast_expr_list* next;
 };
 
-ast_expr_list* ast_expr_list_append(
+ast_expr_list* ast_expr_list_push_back(
     Allocator* allocator,
     ast_expr_list* tail,
     ast_expr* expr
 );
 
-ast_stmt* ast_stmt_list_append(
+ast_stmt* ast_stmt_list_push_back(
     ast_stmt* tail,
     ast_stmt* stmt
 );
@@ -267,7 +267,7 @@ struct ast_var_dec {
     struct ast_var_dec* next; // Linked list of declarations
 };
 
-ast_var_dec* ast_var_dec_list_append(
+ast_var_dec* ast_var_dec_list_push_front(
     ast_var_dec* tail,
     ast_var_dec* stmt
 );
@@ -315,6 +315,10 @@ ast_subroutine* ast_subroutine_create(
     ast_subroutine* next
 );
 
+ast_subroutine* ast_subroutine_push_back(
+    ast_subroutine* tail,
+    ast_subroutine* subroutine
+);
 
 // The Root Node
 typedef struct {

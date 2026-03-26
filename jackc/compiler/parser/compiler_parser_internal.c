@@ -113,6 +113,53 @@ static ast_var_dec* jack_parser_parse_variables(
     return declarations;
 }
 
+ast_class* jack_parser_parse_class(jack_parser* parser) {
+    jack_parser_expect(parser, TOKEN_CLASS);
+    RETURN_IF_PANIC(parser);
+
+    jack_token class_name = jack_parser_expect(parser, TOKEN_IDENTIFIER);
+    RETURN_IF_PANIC(parser);
+
+    // TODO: Sync
+    EXPECT_LEFT_CURLY_BRACE(parser);
+    ast_var_dec* class_vars = nullptr;
+    while (
+        jack_parser_match(parser, TOKEN_STATIC)
+        || jack_parser_match(parser, TOKEN_FIELD)
+    ) {
+        class_vars = ast_var_dec_list_push_front(
+            class_vars,
+            jack_parser_parse_class_var_dec(parser)
+        );
+        RETURN_IF_PANIC(parser);
+    }
+
+    ast_subroutine* subroutines = nullptr;
+    ast_subroutine* sub_tail = nullptr;
+    while (
+        jack_parser_match(parser, TOKEN_FUNCTION)
+        || jack_parser_match(parser, TOKEN_METHOD)
+        || jack_parser_match(parser, TOKEN_CONSTRUCTOR)
+    ) {
+        sub_tail = ast_subroutine_push_back(
+            sub_tail,
+            jack_parser_parse_subroutine(parser)
+        );
+        if (!subroutines)
+            subroutines = sub_tail;
+        RETURN_IF_PANIC(parser);
+    }
+    EXPECT_RIGHT_CURLY_BRACE(parser);
+
+    return ast_class_create(
+        parser->allocator,
+        &class_name.loc,
+        &class_name.str,
+        class_vars,
+        subroutines
+    );
+}
+
 ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
     jack_variable_kind kind = VAR_STATIC;
     switch (parser->current.type) {
@@ -206,7 +253,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
     ast_var_dec* locals = nullptr;
     EXPECT_LEFT_CURLY_BRACE(parser);
     while (jack_parser_match(parser, TOKEN_VAR)) {
-        locals = ast_var_dec_list_append(
+        locals = ast_var_dec_list_push_front(
             locals,
             jack_parser_parse_var_dec(parser)
         );
@@ -319,7 +366,7 @@ ast_stmt* jack_parser_parse_statements(jack_parser* parser) {
         }
         RETURN_IF_PANIC(parser);
 
-        tail = ast_stmt_list_append(tail, stmt);
+        tail = ast_stmt_list_push_back(tail, stmt);
         if (!head) head = tail;
     }
     return head;
@@ -634,7 +681,7 @@ ast_expr_list* jack_parser_parse_expression_list(jack_parser* parser) {
         ast_expr* expr = jack_parser_parse_expression(parser, 0);
         RETURN_IF_PANIC(parser);
 
-        tail = ast_expr_list_append(parser->allocator, tail, expr);
+        tail = ast_expr_list_push_back(parser->allocator, tail, expr);
         if (!head) head = tail;
     }
 

@@ -5,7 +5,6 @@
 #include "test_lexer_common.h"
 #include "core/allocators/adapters.h"
 #include "tau.h"
-#include <assert.h>
 
 TEST_F_SETUP(parser_fixture) {
     tau->arena = arena_allocator_adapter();

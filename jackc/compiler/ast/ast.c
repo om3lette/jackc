@@ -124,7 +124,7 @@ ast_expr* ast_expr_array_access(
     return expr;
 }
 
-ast_expr_list* ast_expr_list_append(
+ast_expr_list* ast_expr_list_push_back(
     Allocator* allocator,
     ast_expr_list* tail,
     ast_expr* expr
@@ -150,16 +150,14 @@ static ast_stmt* ast_stmt_common_init(
     return stmt;
 }
 
-ast_stmt* ast_stmt_list_append(
+ast_stmt* ast_stmt_list_push_back(
     ast_stmt* tail,
     ast_stmt* stmt
 ) {
     if (tail) {
         tail->next = stmt;
-        return tail;
-    } else {
-        return stmt;
     }
+    return stmt;
 }
 
 ast_stmt* ast_stmt_let(
@@ -253,16 +251,14 @@ ast_var_dec* ast_variable_declaration(
     return var;
 }
 
-ast_var_dec* ast_var_dec_list_append(
-    ast_var_dec* tail,
+ast_var_dec* ast_var_dec_list_push_front(
+    ast_var_dec* head,
     ast_var_dec* stmt
 ) {
-    if (tail) {
-        tail->next = stmt;
-        return tail;
-    } else {
-        return stmt;
+    if (head) {
+        stmt->next = head;
     }
+    return stmt;
 }
 
 ast_subroutine* ast_subroutine_create(
@@ -287,6 +283,16 @@ ast_subroutine* ast_subroutine_create(
     subroutine->next = next;
     subroutine->name = *name;
 
+    return subroutine;
+}
+
+ast_subroutine* ast_subroutine_push_back(
+    ast_subroutine* tail,
+    ast_subroutine* subroutine
+) {
+    if (tail) {
+        tail->next = subroutine;
+    }
     return subroutine;
 }
 

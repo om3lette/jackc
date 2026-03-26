@@ -10,7 +10,6 @@
 #include "test_lexer_common.h"
 #include "test_parser_utils.h"
 #include "tau.h"
-#include <assert.h>
 
 
 TEST_F_SETUP(parser_fixture) {
@@ -160,7 +159,8 @@ static const subroutine_test tests[] = {
     {
         .source =
         "function int calculate(int x, int y, boolean abs) {"
-            "var int xy, abs_xy; let xy = x * y;"
+            "var int xy, abs_xy;"
+            "let xy = x * y;"
             "if (abs) {"
                 "let abs_xy = Math.abs(xy);"
             "} else {"
@@ -173,7 +173,7 @@ static const subroutine_test tests[] = {
         .name = "calculate",
         .expected_arg_count = 3,
         .expected_vars_count = 2,
-        .expected_statements_count = 2,
+        .expected_statements_count = 3,
     },
 };
 
