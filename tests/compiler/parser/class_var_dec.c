@@ -66,17 +66,3 @@ TEST_F(parser_fixture, class_var_dec_missing_identifier) {
     REQUIRE_ERRORS(tau->parser, 1);
     REQUIRE(var == nullptr);
 }
-
-// TEST_F(parser_fixture, class_var_dec_missing_colon) {
-//     ast_var_dec* var = parse_class_var("static boolean x y z;", tau);
-
-//     REQUIRE_PANIC(tau->parser, 1);
-//     REQUIRE(var == nullptr);
-// }
-
-// TEST_F(parser_fixture, class_var_dec_invalid_kind) {
-//     ast_var_dec* var = parse_class_var("var TestClass x, y, z;", tau);
-
-//     REQUIRE_PANIC(tau->parser, 1);
-//     REQUIRE(var == nullptr);
-// }
