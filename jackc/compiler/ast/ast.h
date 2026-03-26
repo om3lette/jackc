@@ -60,6 +60,11 @@ ast_expr_list* ast_expr_list_append(
     ast_expr* expr
 );
 
+ast_stmt* ast_stmt_list_append(
+    ast_stmt* tail,
+    ast_stmt* stmt
+);
+
 typedef struct {
     jack_location loc;
 } ast_base;
@@ -198,7 +203,7 @@ struct ast_stmt {
 
         // if (cond) { true_branch } else { false_branch? }
         struct {
-            ast_expr* cond;
+            ast_expr* condition;
             ast_stmt* true_branch;
             ast_stmt* false_branch; // null if no 'else' block
         } if_stmt;
@@ -210,7 +215,7 @@ struct ast_stmt {
         } while_stmt;
 
         // do call;
-        ast_call do_stmt;
+        ast_call* do_stmt;
 
         // return value?;
         ast_expr* return_stmt; // null if returning void
@@ -243,9 +248,7 @@ ast_stmt* ast_stmt_while(
 ast_stmt* ast_stmt_do(
     Allocator* a,
     jack_location* loc,
-    const jackc_string* receiver,
-    const jackc_string* subroutine_name,
-    ast_expr_list* args
+    ast_call* subroutine_call
 );
 
 ast_stmt* ast_stmt_return(

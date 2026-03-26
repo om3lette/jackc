@@ -25,6 +25,45 @@ static inline bool is_panic_mode(jack_parser* parser) {
         return nullptr; \
 } while (0)
 
+#define EXPECT_LEFT_PAREN(parser) do { \
+    jack_parser_expect(parser, '('); \
+    RETURN_IF_PANIC(parser); \
+} while (0)
+
+#define EXPECT_RIGHT_PAREN(parser) do { \
+    jack_parser_expect(parser, ')'); \
+    RETURN_IF_PANIC(parser); \
+} while (0)
+
+#define EXPECT_LEFT_CURLY_BRACE(parser) do { \
+    jack_parser_expect(parser, '{'); \
+    RETURN_IF_PANIC(parser); \
+} while (0)
+
+#define EXPECT_RIGHT_CURLY_BRACE(parser) do { \
+    jack_parser_expect(parser, '}'); \
+    RETURN_IF_PANIC(parser); \
+} while (0)
+
+// TODO: Error "Missing semicolon"
+#define EXPECT_SEMICOLON(parser) do { \
+    jack_parser_expect(parser, ';'); \
+    RETURN_IF_PANIC(parser); \
+} while (0)
+
+static ast_expr* jack_parser_parse_array_index(jack_parser* parser) {
+    jack_parser_expect(parser, '[');
+    RETURN_IF_PANIC(parser);
+
+    ast_expr* index = jack_parser_parse_expression(parser, 0);
+    RETURN_IF_PANIC(parser);
+
+    jack_parser_expect(parser, ']');
+    RETURN_IF_PANIC(parser);
+
+    return index;
+}
+
 /**
  * Parses a list of variable declarations separated by commas.
  *
@@ -105,7 +144,7 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
         jack_parser_diag_unexpected_token(parser, ';', TOKEN_IDENTIFIER);
     }
 
-    jack_parser_expect(parser, ';');
+    EXPECT_SEMICOLON(parser);
     return declarations;
 }
 
@@ -141,7 +180,7 @@ ast_var_dec* jack_parser_parse_var_dec(jack_parser* parser) {
         jack_parser_diag_unexpected_token(parser, ';', TOKEN_IDENTIFIER);
     }
 
-    jack_parser_expect(parser, ';');
+    EXPECT_SEMICOLON(parser);
     return declarations;
 }
 
@@ -171,12 +210,149 @@ ast_type jack_parser_parse_type(jack_parser* parser) {
 }
 
 
-ast_stmt* jack_parser_parse_statements(jack_parser* parser);
-ast_stmt* jack_parser_parse_let(jack_parser* parser);
-ast_stmt* jack_parser_parse_if(jack_parser* parser);
-ast_stmt* jack_parser_parse_while(jack_parser* parser);
-ast_stmt* jack_parser_parse_do(jack_parser* parser);
-ast_stmt* jack_parser_parse_return(jack_parser* parser);
+ast_stmt* jack_parser_parse_statements(jack_parser* parser) {
+    ast_stmt* head = nullptr;
+    ast_stmt* tail = nullptr;
+
+    while (!jack_parser_match(parser, TOKEN_EOF)) {
+        ast_stmt* stmt = nullptr;
+
+        switch (parser->current.type) {
+            case TOKEN_LET:
+                stmt = jack_parser_parse_let(parser);
+                break;
+            case TOKEN_DO:
+                stmt = jack_parser_parse_do(parser);
+                break;
+            case TOKEN_IF:
+                stmt = jack_parser_parse_if(parser);
+                break;
+            case TOKEN_WHILE:
+                stmt = jack_parser_parse_while(parser);
+                break;
+            case TOKEN_RETURN:
+                stmt = jack_parser_parse_return(parser);
+                break;
+            default:
+                return head;
+        }
+        RETURN_IF_PANIC(parser);
+
+        tail = ast_stmt_list_append(tail, stmt);
+        if (!head) head = tail;
+    }
+    return head;
+}
+
+ast_stmt* jack_parser_parse_let(jack_parser* parser) {
+    jack_token let_token = jack_parser_expect(parser, TOKEN_LET);
+    RETURN_IF_PANIC(parser);
+
+    jack_token var_token = jack_parser_expect(parser, TOKEN_IDENTIFIER);
+    RETURN_IF_PANIC(parser);
+
+    ast_expr* index = nullptr;
+    if (jack_parser_match(parser, '[')) {
+        index = jack_parser_parse_array_index(parser);
+        RETURN_IF_PANIC(parser);
+    }
+
+    jack_parser_expect(parser, '=');
+    RETURN_IF_PANIC(parser);
+
+    ast_expr* value = jack_parser_parse_expression(parser, 0);
+    RETURN_IF_PANIC(parser);
+
+    EXPECT_SEMICOLON(parser);
+    return ast_stmt_let(
+        parser->allocator,
+        &let_token.loc,
+        &var_token.str,
+        index,
+        value
+    );
+}
+
+ast_stmt* jack_parser_parse_if(jack_parser* parser) {
+    jack_token if_token = jack_parser_expect(parser, TOKEN_IF);
+    RETURN_IF_PANIC(parser);
+
+    EXPECT_LEFT_PAREN(parser);
+    ast_expr* condition = jack_parser_parse_expression(parser, 0);
+    RETURN_IF_PANIC(parser);
+    EXPECT_RIGHT_PAREN(parser);
+
+    EXPECT_LEFT_CURLY_BRACE(parser);
+    ast_stmt* true_branch = jack_parser_parse_statements(parser);
+    RETURN_IF_PANIC(parser);
+    EXPECT_RIGHT_CURLY_BRACE(parser);
+
+    ast_stmt* false_branch = nullptr;
+    if (jack_parser_match(parser, TOKEN_ELSE)) {
+        jack_parser_advance(parser);
+        EXPECT_LEFT_CURLY_BRACE(parser);
+        false_branch = jack_parser_parse_statements(parser);
+        RETURN_IF_PANIC(parser);
+        EXPECT_RIGHT_CURLY_BRACE(parser);
+    }
+
+    return ast_stmt_if(
+        parser->allocator,
+        &if_token.loc,
+        condition,
+        true_branch,
+        false_branch
+    );
+}
+
+ast_stmt* jack_parser_parse_while(jack_parser* parser) {
+    jack_token while_token = jack_parser_expect(parser, TOKEN_WHILE);
+    RETURN_IF_PANIC(parser);
+
+    EXPECT_LEFT_PAREN(parser);
+    ast_expr* condition = jack_parser_parse_expression(parser, 0);
+    RETURN_IF_PANIC(parser);
+    EXPECT_RIGHT_PAREN(parser);
+
+    EXPECT_LEFT_CURLY_BRACE(parser);
+    ast_stmt* body = jack_parser_parse_statements(parser);
+    RETURN_IF_PANIC(parser);
+    EXPECT_RIGHT_CURLY_BRACE(parser);
+
+    return ast_stmt_while(
+        parser->allocator, &while_token.loc, condition, body
+    );
+}
+
+ast_stmt* jack_parser_parse_do(jack_parser* parser) {
+    jack_token do_token = jack_parser_expect(parser, TOKEN_DO);
+    RETURN_IF_PANIC(parser);
+
+    ast_expr* body = jack_parser_parse_subroutine_call(parser);
+    RETURN_IF_PANIC(parser);
+
+    EXPECT_SEMICOLON(parser);
+    return ast_stmt_do(
+        parser->allocator, &do_token.loc, &body->call
+    );
+}
+
+ast_stmt* jack_parser_parse_return(jack_parser* parser) {
+    jack_token return_token = jack_parser_expect(parser, TOKEN_RETURN);
+    RETURN_IF_PANIC(parser);
+
+    ast_expr* return_value = nullptr;
+
+    if (!jack_parser_match(parser, ';')) {
+        return_value = jack_parser_parse_expression(parser, 0);
+        RETURN_IF_PANIC(parser);
+    }
+
+    EXPECT_SEMICOLON(parser);
+    return ast_stmt_return(
+        parser->allocator, &return_token.loc, return_value
+    );
+}
 
 static inline bool get_infix_binding_power(int32_t type, binding_power* left_bp, binding_power* right_bp) {
     jackc_assert(left_bp && right_bp && "Binding power pointers must be valid");
@@ -273,13 +449,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
                 // varName'['expression']'
                 jack_token var_name = jack_parser_advance(parser);
 
-                jack_parser_expect(parser, '[');
-                RETURN_IF_PANIC(parser);
-
-                ast_expr* index = jack_parser_parse_expression(parser, 0);
-                RETURN_IF_PANIC(parser);
-
-                jack_parser_expect(parser, ']');
+                ast_expr* index = jack_parser_parse_array_index(parser);
                 RETURN_IF_PANIC(parser);
 
                 expr = ast_expr_array_access(parser->allocator, &cur_token.loc, &var_name.str, index);
@@ -383,12 +553,8 @@ ast_expr_list* jack_parser_parse_expression_list(jack_parser* parser) {
         ast_expr* expr = jack_parser_parse_expression(parser, 0);
         RETURN_IF_PANIC(parser);
 
-        if (!head) {
-            head = ast_expr_list_append(parser->allocator, head, expr);
-            tail = head;
-        } else {
-            tail = ast_expr_list_append(parser->allocator, tail, expr);
-        }
+        tail = ast_expr_list_append(parser->allocator, tail, expr);
+        if (!head) head = tail;
     }
 
     return head;

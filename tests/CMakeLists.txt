@@ -61,6 +61,7 @@ add_executable(compiler_parser_tests
     compiler/parser/class_var_dec.c
     compiler/parser/param_list.c
     compiler/parser/expression.c
+    compiler/parser/statements.c
 )
 target_link_libraries(compiler_parser_tests
     PRIVATE

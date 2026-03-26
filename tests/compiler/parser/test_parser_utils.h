@@ -8,6 +8,20 @@
 
 [[ nodiscard ]] const char* ast_expression_to_string(Allocator* allocator, const ast_expr* expr);
 
+#define REQUIRE_JACK_STREQ(_jack_str, _expected_c_str) do { \
+    REQUIRE(jackc_streq(&_jack_str, _expected_c_str)); \
+} while (0)
+
+#define REQUIRE_STMT(_stmt, _kind) do { \
+    REQUIRE(_stmt); \
+    REQUIRE_EQ(_stmt->kind, _kind); \
+} while (0)
+
+#define REQUIRE_EXPR(_a, _expr, _expected_str) do { \
+    REQUIRE(_expr); \
+    REQUIRE_STREQ(ast_expression_to_string(_a, _expr), _expected_str); \
+} while (0)
+
 #define REQUIRE_VAR(_var, _kind, _type, _name) do { \
     REQUIRE(_var); \
     REQUIRE_EQ(_var->kind, _kind); \

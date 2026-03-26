@@ -150,6 +150,18 @@ static ast_stmt* ast_stmt_common_init(
     return stmt;
 }
 
+ast_stmt* ast_stmt_list_append(
+    ast_stmt* tail,
+    ast_stmt* stmt
+) {
+    if (tail) {
+        tail->next = stmt;
+        return tail;
+    } else {
+        return stmt;
+    }
+}
+
 ast_stmt* ast_stmt_let(
     Allocator* a,
     jack_location* loc,
@@ -175,7 +187,7 @@ ast_stmt* ast_stmt_if(
 ) {
     ast_stmt* stmt = ast_stmt_common_init(a, loc, STMT_IF);
 
-    stmt->if_stmt.cond = cond;
+    stmt->if_stmt.condition = cond;
     stmt->if_stmt.true_branch = true_branch;
     stmt->if_stmt.false_branch = false_branch;
 
@@ -200,17 +212,11 @@ ast_stmt* ast_stmt_while(
 ast_stmt* ast_stmt_do(
     Allocator* a,
     jack_location* loc,
-    const jackc_string* receiver,
-    const jackc_string* subroutine_name,
-    ast_expr_list* args
+    ast_call* subroutine_call
 ) {
     ast_stmt* stmt = ast_stmt_common_init(a, loc, STMT_DO);
 
-    stmt->do_stmt.args = args;
-    stmt->do_stmt.subroutine_name = *subroutine_name;
-
-    stmt->do_stmt.implicit_this_receiver = !receiver;
-    stmt->do_stmt.receiver = *receiver;
+    stmt->do_stmt = subroutine_call;
 
     return stmt;
 }
@@ -221,7 +227,7 @@ ast_stmt* ast_stmt_return(
     jack_location* loc,
     ast_expr* value
 ) {
-    ast_stmt* stmt = ast_stmt_common_init(a, loc, STMT_DO);
+    ast_stmt* stmt = ast_stmt_common_init(a, loc, STMT_RETURN);
 
     stmt->return_stmt = value;
 
