@@ -267,6 +267,11 @@ struct ast_var_dec {
     struct ast_var_dec* next; // Linked list of declarations
 };
 
+ast_var_dec* ast_var_dec_list_append(
+    ast_var_dec* tail,
+    ast_var_dec* stmt
+);
+
 ast_var_dec* ast_variable_declaration(
     Allocator* allocator,
     jack_location* loc,
@@ -301,6 +306,8 @@ struct ast_subroutine {
 ast_subroutine* ast_subroutine_create(
     Allocator* allocator,
     jack_location* loc,
+    ast_sub_kind kind,
+    const ast_type* return_type,
     const jackc_string* name,
     ast_var_dec* params,
     ast_var_dec* locals,

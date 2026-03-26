@@ -62,6 +62,7 @@ add_executable(compiler_parser_tests
     compiler/parser/param_list.c
     compiler/parser/expression.c
     compiler/parser/statements.c
+    compiler/parser/subroutine.c
 )
 target_link_libraries(compiler_parser_tests
     PRIVATE

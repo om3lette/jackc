@@ -253,9 +253,23 @@ ast_var_dec* ast_variable_declaration(
     return var;
 }
 
+ast_var_dec* ast_var_dec_list_append(
+    ast_var_dec* tail,
+    ast_var_dec* stmt
+) {
+    if (tail) {
+        tail->next = stmt;
+        return tail;
+    } else {
+        return stmt;
+    }
+}
+
 ast_subroutine* ast_subroutine_create(
     Allocator* allocator,
     jack_location* loc,
+    ast_sub_kind kind,
+    const ast_type* return_type,
     const jackc_string* name,
     ast_var_dec* params,
     ast_var_dec* locals,
@@ -265,6 +279,8 @@ ast_subroutine* ast_subroutine_create(
     ast_subroutine* subroutine = allocator->alloc(sizeof(ast_subroutine), allocator->context);
     ast_base_init(&subroutine->base, loc);
 
+    subroutine->return_type = *return_type;
+    subroutine->kind = kind;
     subroutine->params = params;
     subroutine->locals = locals;
     subroutine->body = body;

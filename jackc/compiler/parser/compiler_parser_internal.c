@@ -148,7 +148,88 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
     return declarations;
 }
 
-ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser);
+ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
+    ast_sub_kind sub_kind = SUB_FUNCTION;
+
+    switch (parser->current.type) {
+        case TOKEN_FUNCTION:
+            sub_kind = SUB_FUNCTION;
+            break;
+        case TOKEN_CONSTRUCTOR:
+            sub_kind = SUB_CONSTRUCTOR;
+            break;
+        case TOKEN_METHOD:
+            sub_kind = SUB_METHOD;
+            break;
+        default:
+            // TODO: Invalid subroutine kind
+            enter_panic_mode(parser);
+            return nullptr;
+    }
+    jack_token subroutine_kind_token = jack_parser_advance(parser);
+
+    ast_type type;
+    switch (parser->current.type) {
+        case TOKEN_INT:
+            type.kind = TYPE_INT;
+            break;
+        case TOKEN_CHAR:
+            type.kind = TYPE_CHAR;
+            break;
+        case TOKEN_BOOLEAN:
+            type.kind = TYPE_BOOLEAN;
+            break;
+        case TOKEN_IDENTIFIER:
+            type.kind = TYPE_CLASS;
+            type.class_name = parser->current.str;
+            break;
+        case TOKEN_VOID:
+            type.kind = TYPE_VOID;
+            break;
+        default:
+            enter_panic_mode(parser);
+            // TODO: Invalid return type
+            jack_parser_diag_invalid_variable_type(parser);
+            return nullptr;
+    }
+    jack_parser_advance(parser);
+
+    jack_token subroutine_name = jack_parser_expect(parser, TOKEN_IDENTIFIER);
+    RETURN_IF_PANIC(parser);
+
+    EXPECT_LEFT_PAREN(parser);
+    ast_var_dec* params = jack_parser_parse_param_list(parser);
+    RETURN_IF_PANIC(parser);
+    EXPECT_RIGHT_PAREN(parser);
+
+
+    ast_var_dec* locals = nullptr;
+    EXPECT_LEFT_CURLY_BRACE(parser);
+    while (jack_parser_match(parser, TOKEN_VAR)) {
+        locals = ast_var_dec_list_append(
+            locals,
+            jack_parser_parse_var_dec(parser)
+        );
+        RETURN_IF_PANIC(parser);
+    }
+    RETURN_IF_PANIC(parser);
+
+    ast_stmt* body = jack_parser_parse_statements(parser);
+    RETURN_IF_PANIC(parser);
+    EXPECT_RIGHT_CURLY_BRACE(parser);
+
+    return ast_subroutine_create(
+        parser->allocator,
+        &subroutine_kind_token.loc,
+        sub_kind,
+        &type,
+        &subroutine_name.str,
+        params,
+        locals,
+        body,
+        nullptr
+    );
+}
 
 ast_var_dec* jack_parser_parse_param_list(jack_parser* parser) {
     if (jack_parser_match(parser, ')'))
@@ -559,8 +640,6 @@ ast_expr_list* jack_parser_parse_expression_list(jack_parser* parser) {
 
     return head;
 }
-
-ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser);
 
 bool jack_parser_match(jack_parser* parser, int32_t type) {
     jackc_assert(parser && "Parser is null");

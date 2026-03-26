@@ -38,7 +38,7 @@ typedef struct {
         REQUIRE_STREQ(str, expected);                                                  \
     }
 
-expr_test_case tests[] = {
+static const expr_test_case tests[] = {
     // Unary operators
     { "-a", "-(a)" },
     { "~-a", "~(-(a))" },
