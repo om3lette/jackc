@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #define PATH_MAX 4096
 #define TEST_FILENAME "source.jack"
@@ -34,10 +35,14 @@ static void get_test_root(char* out, size_t size) {
 }
 
 static void path_join(char* out, size_t size, const char* a, const char* b) {
-    snprintf(out, size, "%s/%s", a, b);
-}
+    if (!a) a = "";
+    if (!b) b = "";
 
-#include <sys/stat.h>
+    int written = snprintf(out, size, "%s/%s", a, b);
+    if (written < 0 || (size_t)written >= size) {
+        out[size - 1] = '\0';
+    }
+}
 
 bool next_test_case(const char* base_path, char* out_dir) {
     static DIR* dir = nullptr;
