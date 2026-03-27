@@ -75,6 +75,23 @@ TEST_F(parser_fixture, error_recovery_var_dec_missing_type) {
     CHECK_EQ(var_len(var), 2);
 }
 
+TEST_F(parser_fixture, error_recovery_subroutine_invalid_let_statement) {
+    // var x = 4; -> let x = 4;
+    ast_subroutine* sub = parse_subroutine("function void f() { var int x; var x = 4; while (x > 0) { let x = x - 1; }}", tau);
+
+    REQUIRE_NO_PANIC(tau->parser);
+    CHECK_EQ(var_len(sub->locals), 1);
+    CHECK_EQ(statements_len(sub->body), 1);
+}
+
+TEST_F(parser_fixture, error_recovery_subroutine_invalid_statement_order) {
+    ast_subroutine* sub = parse_subroutine("function void f() { var int x; let x = 4; var char z; }", tau);
+
+    REQUIRE_NO_PANIC(tau->parser);
+    CHECK_EQ(var_len(sub->locals), 2);
+}
+
+
 TEST_F(parser_fixture, error_recovery_subroutine_invalid_statement) {
     // Do statement missing ()
     ast_subroutine* sub = parse_subroutine("function void f(MyClass c) { do c.calc; if (x < 0) { return 10; } }", tau);
