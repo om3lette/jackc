@@ -226,6 +226,14 @@ size_t subroutine_len(ast_subroutine* sub) {
     return len;
 }
 
+size_t statements_len(ast_stmt* sub) {
+    size_t len = 0;
+    for (ast_stmt* cur = sub; cur != nullptr; cur = cur->next) {
+        ++len;
+    }
+    return len;
+}
+
 static jack_parser* common_init(const char* src, struct parser_fixture* tau) {
     test_jack_lexer_new_buffer(tau->lexer, src);
     jack_parser* parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);

@@ -64,6 +64,7 @@ struct parser_fixture {
 
 [[ nodiscard ]] size_t var_len(ast_var_dec* var);
 [[ nodiscard ]] size_t subroutine_len(ast_subroutine* sub);
+[[ nodiscard ]] size_t statements_len(ast_stmt* sub);
 
 ast_var_dec* parse_var(const char* src, struct parser_fixture* tau);
 ast_stmt* parse_statements(const char* src, struct parser_fixture* tau);

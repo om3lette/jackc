@@ -74,3 +74,11 @@ TEST_F(parser_fixture, error_recovery_var_dec_missing_type) {
     REQUIRE_NO_PANIC(tau->parser);
     CHECK_EQ(var_len(var), 2);
 }
+
+TEST_F(parser_fixture, error_recovery_subroutine_invalid_statement) {
+    // Do statement missing ()
+    ast_subroutine* sub = parse_subroutine("function void f(MyClass c) { do c.calc; if (x < 0) { return 10; } }", tau);
+
+    REQUIRE_NO_PANIC(tau->parser);
+    CHECK_EQ(statements_len(sub->body), 1);
+}

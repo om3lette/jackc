@@ -3,6 +3,7 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_diagnostics.h"
+#include "compiler/parser/compiler_parser_utils.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_string.h"
 #include <stdint.h>
@@ -52,7 +53,7 @@ static ast_var_dec* jack_parser_parse_variables(
     ast_var_dec* declarations = nullptr;
 
     while (
-        !jack_parser_check(parser, TOKEN_EOF)
+        !is_rcurl_or_eof(parser)
         && !jack_parser_check(parser, end_token)
     ) {
         // Expect a comma separator between variables (after the first one)
@@ -101,23 +102,13 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
     ast_var_dec* class_vars = nullptr;
     ast_subroutine* subroutines = nullptr;
 
-    while (
-        !jack_parser_check(parser, '}')
-        && !jack_parser_check(parser, TOKEN_EOF)
-    ) {
-        if (
-            jack_parser_check(parser, TOKEN_STATIC)
-            || jack_parser_check(parser, TOKEN_FIELD)
-        ) {
+    while (!is_rcurl_or_eof(parser)) {
+        if (is_class_var_start(parser)) {
             class_vars = ast_var_dec_list_push_front(
                 class_vars,
                 jack_parser_parse_class_var_dec(parser)
             );
-        } else if (
-            jack_parser_check(parser, TOKEN_FUNCTION)
-            || jack_parser_check(parser, TOKEN_METHOD)
-            || jack_parser_check(parser, TOKEN_CONSTRUCTOR)
-        ) {
+        } else if (is_subroutine_start(parser)) {
             subroutines = ast_subroutine_push_front(
                 subroutines,
                 jack_parser_parse_subroutine(parser)
@@ -126,7 +117,7 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
             // TODO: Error
             jack_parser_sync(parser);
             // Synchronization stopped at the end of a subroutine
-            // E.g `class C { var int badFunc() {} function goodFunc() {} }`
+            // E.g `class C { var int badFunc() {} function void goodFunc() {} }`
             //                                   ^
             //                                   |
             //                               Sync token
@@ -184,6 +175,8 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
 }
 
 ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
+    jack_sync_context_push(parser, SYNC_SUBROUTINE);
+
     ast_sub_kind sub_kind = SUB_FUNCTION;
 
     switch (parser->current.type) {
@@ -236,8 +229,29 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
     ast_var_dec* params = jack_parser_parse_param_list(parser);
     EXPECT_RIGHT_PAREN(parser);
 
+
     ast_var_dec* locals = nullptr;
+    ast_stmt* body = nullptr;
+    ast_stmt* stmt_tail = nullptr;
     EXPECT_LEFT_CURLY_BRACE(parser);
+
+    while(!is_rcurl_or_eof(parser)) {
+        if (jack_parser_check(parser, TOKEN_VAR)) {
+            locals = ast_var_dec_list_push_front(
+                locals,
+                jack_parser_parse_var_dec(parser)
+            );
+        } else if (is_statement_start(parser)) {
+            stmt_tail = ast_stmt_list_push_back(
+                stmt_tail,
+                jack_parser_parse_statements(parser)
+            );
+            if (!body)
+                body = stmt_tail;
+        } else {
+            jack_parser_sync(parser);
+        }
+    }
     jack_sync_context_push(parser, SYNC_VAR_DEC);
     while (jack_parser_check(parser, TOKEN_VAR)) {
         locals = ast_var_dec_list_push_front(
@@ -245,12 +259,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             jack_parser_parse_var_dec(parser)
         );
     }
-    jack_sync_context_pop(parser, SYNC_VAR_DEC);
-    RETURN_IF_PANIC(parser);
-
-
-    ast_stmt* body = jack_parser_parse_statements(parser);
-    RETURN_IF_PANIC(parser);
+    jack_sync_context_pop(parser, SYNC_SUBROUTINE);
     EXPECT_RIGHT_CURLY_BRACE(parser);
 
     return ast_subroutine_create(
