@@ -1,13 +1,10 @@
 #include "compiler/ast/ast.h"
 #include "compiler/diagnostics-engine/engine.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "compiler/parser/compiler_parser.h"
-#include "compiler/parser/compiler_parser_internal.h"
 #include "core/allocators/adapters.h"
 #include "core/allocators/allocators.h"
 #include "jackc_stdlib.h"
 #include "jackc_string.h"
-#include "test_lexer_common.h"
 #include "test_parser_utils.h"
 #include "tau.h"
 
@@ -24,13 +21,6 @@ TEST_F_TEARDOWN(parser_fixture) {
     jackc_free(tau->lexer);
 }
 
-static ast_class* parse_class(const char* src, struct parser_fixture* tau) {
-    test_jack_lexer_new_buffer(tau->lexer, src);
-    jack_parser* parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);
-    tau->parser = parser;
-    return jack_parser_parse_class(parser);
-}
-
 static void require_class(
     const struct parser_fixture* tau,
     const ast_class* class,
@@ -43,21 +33,8 @@ static void require_class(
 
     CHECK(jackc_streq(&class->name, name));
 
-    uint32_t class_vars = 0;
-    ast_var_dec* cur_class_var = class->class_vars;
-    while (cur_class_var) {
-        ++class_vars;
-        cur_class_var = cur_class_var->next;
-    }
-    CHECK(class_vars == expected_class_var_decs);
-
-    uint32_t subroutines = 0;
-    ast_subroutine* cur_subroutine = class->subroutines;
-    while (cur_subroutine) {
-        ++subroutines;
-        cur_subroutine = cur_subroutine->next;
-    }
-    CHECK(subroutines == expected_subroutines);
+    CHECK(var_len(class->class_vars) == expected_class_var_decs);
+    CHECK(subroutine_len(class->subroutines) == expected_subroutines);
 }
 
 typedef struct {

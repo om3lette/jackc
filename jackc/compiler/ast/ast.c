@@ -255,9 +255,10 @@ ast_var_dec* ast_var_dec_list_push_front(
     ast_var_dec* head,
     ast_var_dec* stmt
 ) {
-    if (head) {
-        stmt->next = head;
-    }
+    if (!stmt) return head;
+    if (!head) return stmt;
+
+    stmt->next = head;
     return stmt;
 }
 
@@ -286,13 +287,14 @@ ast_subroutine* ast_subroutine_create(
     return subroutine;
 }
 
-ast_subroutine* ast_subroutine_push_back(
-    ast_subroutine* tail,
+ast_subroutine* ast_subroutine_push_front(
+    ast_subroutine* head,
     ast_subroutine* subroutine
 ) {
-    if (tail) {
-        tail->next = subroutine;
-    }
+    if (!subroutine) return head;
+    if (!head) return subroutine;
+
+    subroutine->next = head;
     return subroutine;
 }
 

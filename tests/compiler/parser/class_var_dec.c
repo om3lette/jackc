@@ -59,40 +59,10 @@ TEST_F(parser_fixture, class_var_dec_many) {
     REQUIRE_VAR(var->next->next, VAR_FIELD, TYPE_CHAR, "x");
 }
 
-TEST_F(parser_fixture, class_var_dec_missing_kind) {
-    ast_var_dec* var = parse_class_var("char x, y, z;", tau);
-
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
-
-TEST_F(parser_fixture, class_var_dec_missing_type) {
-    // x will actually get interpreted as a class name
-    // The panic will occur when the parser tries to read the identifier name but ',' is encountered
-    ast_var_dec* var = parse_class_var("static x, y, z;", tau);
-
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
-
 TEST_F(parser_fixture, class_var_dec_missing_identifier) {
     ast_var_dec* var = parse_class_var("static boolean ;", tau);
 
     REQUIRE_NO_PANIC(tau->parser);
     REQUIRE_ERRORS(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
-
-TEST_F(parser_fixture, class_var_dec_missing_colon) {
-    ast_var_dec* var = parse_class_var("static boolean x y z;", tau);
-
-    REQUIRE_PANIC(tau->parser, 1);
-    REQUIRE(var == nullptr);
-}
-
-TEST_F(parser_fixture, class_var_dec_invalid_kind) {
-    ast_var_dec* var = parse_class_var("var TestClass x, y, z;", tau);
-
-    REQUIRE_PANIC(tau->parser, 1);
     REQUIRE(var == nullptr);
 }

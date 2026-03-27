@@ -8,6 +8,7 @@ add_library(compiler STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/parser/compiler_parser.c
     ${CMAKE_CURRENT_SOURCE_DIR}/parser/compiler_parser_diagnostics.c
     ${CMAKE_CURRENT_SOURCE_DIR}/parser/compiler_parser_internal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/parser/compiler_parser_utils.c
 )
 target_link_libraries(compiler
     PUBLIC

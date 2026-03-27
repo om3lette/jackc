@@ -19,6 +19,7 @@ typedef enum {
 } jackc_lexer_return_code;
 
 typedef enum {
+    TOKEN_EOF = 0, // Match '\0'
     TOKEN_CLASS = 256,
     TOKEN_CONSTRUCTOR,
     TOKEN_FUNCTION,
@@ -43,7 +44,6 @@ typedef enum {
     TOKEN_INT_LITERAL,
     TOKEN_STR_LITERAL,
     TOKEN_IDENTIFIER,
-    TOKEN_EOF
 } jack_token_type;
 
 typedef enum {

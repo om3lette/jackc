@@ -1,4 +1,7 @@
+#include "test_parser_utils.h"
+#include "test_lexer_common.h"
 #include "compiler/ast/ast.h"
+#include "compiler/parser/compiler_parser_internal.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_stdio.h"
 #include "jackc_stdlib.h"
@@ -205,4 +208,55 @@ const char* ast_expression_to_string(Allocator* allocator, const ast_expr* expr)
 
     jackc_assert(false);
     return "";
+}
+
+size_t var_len(ast_var_dec* var) {
+    size_t len = 0;
+    for (ast_var_dec* cur = var; cur != nullptr; cur = cur->next) {
+        ++len;
+    }
+    return len;
+}
+
+size_t subroutine_len(ast_subroutine* sub) {
+    size_t len = 0;
+    for (ast_subroutine* cur = sub; cur != nullptr; cur = cur->next) {
+        ++len;
+    }
+    return len;
+}
+
+size_t statements_len(ast_stmt* sub) {
+    size_t len = 0;
+    for (ast_stmt* cur = sub; cur != nullptr; cur = cur->next) {
+        ++len;
+    }
+    return len;
+}
+
+static jack_parser* common_init(const char* src, struct parser_fixture* tau) {
+    test_jack_lexer_new_buffer(tau->lexer, src);
+    jack_parser* parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);
+    tau->parser = parser;
+    return parser;
+}
+
+ast_var_dec* parse_var(const char* src, struct parser_fixture* tau) {
+    return jack_parser_parse_var_dec(common_init(src, tau));
+}
+
+ast_stmt* parse_statements(const char* src, struct parser_fixture* tau) {
+    return jack_parser_parse_statements(common_init(src, tau));
+}
+
+ast_class* parse_class(const char* src, struct parser_fixture* tau) {
+    return jack_parser_parse_class(common_init(src, tau));
+}
+
+ast_var_dec* parse_param_list(const char* src, struct parser_fixture* tau) {
+    return jack_parser_parse_param_list(common_init(src, tau));
+}
+
+ast_subroutine* parse_subroutine(const char* src, struct parser_fixture* tau) {
+    return jack_parser_parse_subroutine(common_init(src, tau));
 }
