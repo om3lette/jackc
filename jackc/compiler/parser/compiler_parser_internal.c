@@ -1,5 +1,6 @@
 #include "compiler_parser_internal.h"
 #include "compiler/ast/ast.h"
+#include "compiler/diagnostics-engine/diagnostic.h"
 #include "compiler/diagnostics-engine/engine.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
@@ -7,30 +8,6 @@
 #include "core/asserts/jackc_assert.h"
 #include "jackc_string.h"
 #include <stdint.h>
-
-static inline void enter_panic_mode(jack_parser* parser) {
-    parser->had_error = true;
-    parser->panic_mode = true;
-}
-
-static inline void exit_panic_mode(jack_parser* parser) {
-    parser->panic_mode = false;
-}
-
-static inline bool is_panic_mode(jack_parser* parser) {
-    return parser->panic_mode;
-}
-
-static jackc_diag_builder diagnostic_begin(jack_parser* parser, jackc_diagnostic_severity severity, jackc_diagnostic_code code) {
-    jack_token token = parser->current;
-    uint32_t span_start = (uint32_t)(token.str.data - parser->lexer->buffer.data);
-    return jackc_diag_begin(
-        parser->engine,
-        severity,
-        code,
-        (jackc_span){ .start = span_start, .end = (uint32_t)(span_start + token.str.length) }
-    );
-}
 
 static ast_expr* jack_parser_parse_array_index(jack_parser* parser) {
     jack_parser_expect(parser, '[');
@@ -125,7 +102,10 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
                 jack_parser_parse_subroutine(parser)
             );
         } else {
-            // TODO: Error
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_TOKEN_CLASS_BODY);
+            d.diag.data.invalid_token.got = parser->current.str;
+            jackc_diag_emit(&d);
+
             jack_parser_sync(parser);
             // Synchronization stopped at the end of a subroutine
             // E.g `class C { var int badFunc() {} function void goodFunc() {} }`
@@ -163,7 +143,6 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
             enter_panic_mode(parser);
 
             jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_VARIABLE_TYPE);
-            d.diag.data.unexpected_token = (typeof(d.diag.data.unexpected_token)){ .expected = TOKEN_STATIC, .got = parser->current.type };
             jackc_diag_emit(&d);
 
             return nullptr;
@@ -738,7 +717,9 @@ jack_token jack_parser_expect(jack_parser* parser, int32_t type) {
         enter_panic_mode(parser);
 
         jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_UNEXPECTED_TOKEN);
-        d.diag.data.unexpected_token = (typeof(d.diag.data.unexpected_token)) { .expected = type, .got = parser->current.type };
+        d.diag.data.unexpected_token = (typeof(d.diag.data.unexpected_token)) {
+            .expected = type, .got = parser->current.str
+        };
         jackc_diag_emit(&d);
 
         return parser->current;

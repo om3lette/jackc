@@ -6,6 +6,7 @@
 typedef struct {
     jackc_diagnostic_code code;
     const char* fmt;
+    const char* desc;
 } jackc_diagnostic_translation;
 
 #endif

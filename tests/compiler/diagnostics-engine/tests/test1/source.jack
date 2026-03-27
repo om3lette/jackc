@@ -1,0 +1,9 @@
+class t {
+    var x, y;
+
+    function int mult(int x, int y) {
+        var xy;
+        let xy = x * y;
+        return xy;
+    }
+}

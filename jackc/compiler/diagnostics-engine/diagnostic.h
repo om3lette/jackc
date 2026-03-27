@@ -1,7 +1,9 @@
 #ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 
+#include "jackc_string.h"
 #include <stdint.h>
+
 #define MAX_DIAGNOSTICS 128
 
 typedef struct {
@@ -20,7 +22,10 @@ typedef enum {
     DIAG_MISSING_VARIABLE_KIND,
     DIAG_MISSING_VARIABLE_NAME,
     DIAG_INVALID_VARIABLE_TYPE,
-    DIAG_INVALID_RETURN_TYPE
+    DIAG_INVALID_RETURN_TYPE,
+    DIAG_INVALID_SUBROUTINE_KIND,
+    DIAG_INVALID_TOKEN_CLASS_BODY,
+    NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
 
 typedef struct {
@@ -31,8 +36,11 @@ typedef struct {
     union {
         struct {
             int32_t expected;
-            int32_t got;
+            jackc_string got;
         } unexpected_token;
+        struct {
+            jackc_string got;
+        } invalid_token;
     } data;
 } jackc_diagnostic;
 

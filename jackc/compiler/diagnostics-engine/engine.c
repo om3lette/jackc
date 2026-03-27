@@ -1,17 +1,95 @@
 #include "engine.h"
+#include "compiler/diagnostics-engine/diagnostic.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_stdlib.h"
+#include "jackc_stdio.h"
+#include "jackc_string.h"
 
-jackc_diagnostic_engine jack_diag_engine_init(jackc_string source, const char* filename, const jackc_diagnostic_translation* translations) {
+jackc_diagnostic_engine jack_diag_engine_init(
+    jackc_string source,
+    const char* filename,
+    const jackc_diagnostic_translation* translations,
+    int output_fd
+) {
     jackc_diagnostic_engine engine = {
         .source = source,
         .filename = filename,
         .translations = translations,
+        .output_fd = output_fd,
         .size = 0,
         .overflow = false
     };
     return engine;
+}
+
+static char* token_type_to_str(jack_token_type token) {
+    switch (token) {
+        case TOKEN_EOF:
+            return "EOF";
+        case TOKEN_CLASS:
+            return "class";
+        case TOKEN_CONSTRUCTOR:
+            return "constructor";
+        case TOKEN_FUNCTION:
+            return "function";
+        case TOKEN_METHOD:
+            return "method";
+        case TOKEN_FIELD:
+            return "field";
+        case TOKEN_STATIC:
+            return "static";
+        case TOKEN_VAR:
+            return "var";
+        case TOKEN_INT:
+            return "int";
+        case TOKEN_CHAR:
+            return "char";
+        case TOKEN_BOOLEAN:
+            return "boolean";
+        case TOKEN_VOID:
+            return "void";
+        case TOKEN_TRUE:
+            return "true";
+        case TOKEN_FALSE:
+            return "false";
+        case TOKEN_NULL:
+            return "null";
+        case TOKEN_THIS:
+            return "this";
+        case TOKEN_LET:
+            return "let";
+        case TOKEN_DO:
+            return "do";
+        case TOKEN_IF:
+            return "if";
+        case TOKEN_ELSE:
+            return "else";
+        case TOKEN_WHILE:
+            return "while";
+        case TOKEN_RETURN:
+            return "return";
+        case TOKEN_INT_LITERAL:
+            return "<integer literal>";
+        case TOKEN_STR_LITERAL:
+            return "\"string literal\"";
+        case TOKEN_IDENTIFIER:
+            return "<identifier>";
+    }
+    return nullptr;
+}
+
+static const char* token_to_str(int32_t token) {
+    if (token < 256) {
+        static char buf[2];
+        buf[0] = (char)token;
+        buf[1] = '\0';
+        return buf;
+    }
+    const char* str = token_type_to_str((jack_token_type)token);
+    if (!str) {
+        return "unknown";
+    }
+    return str;
 }
 
 void jackc_diag_push(jackc_diagnostic_engine* engine, jackc_diagnostic diagnostic) {
@@ -36,6 +114,8 @@ static jack_location source_map_resolve(
             r = m;
         }
     }
+
+    l = l ? l - 1 : 0;
     return (jack_location){ .line = (uint32_t)l, .col = (uint32_t)(pos - map[l]) };
 }
 
@@ -57,27 +137,28 @@ static uint8_t int_length(uint32_t n) {
     return length;
 }
 
-static void print_prefix(uint32_t max_line_length, bool endl) {
+static void print_prefix(int fd, uint32_t max_line_length, bool endl) {
     for (uint32_t i = 0; i < max_line_length + 1; i++) {
-        jackc_putchar(' ');
+        jackc_fprintf(fd, " ");
     }
-    jackc_putchar('|');
-    if (!endl) jackc_putchar(' ');
-    else jackc_putchar('\n');
+    jackc_fprintf(fd, "|");
+    if (!endl) jackc_fprintf(fd, " ");
+    else jackc_fprintf(fd, "\n");
 }
 
-static void print_prefix_with_line(uint32_t line, uint32_t max_line_length) {
+static void print_prefix_with_line(int fd, uint32_t line, uint32_t max_line_length) {
     uint32_t spaces_to_print = max_line_length - int_length(line) + 1;
     for (uint32_t i = 0; i < spaces_to_print / 2; i++) {
-        jackc_putchar(' ');
+        jackc_fprintf(fd, " ");
     }
-    jackc_printf("%d", line);
+    jackc_fprintf(fd, "%d", line);
     for (uint32_t i = 0; i < spaces_to_print - (spaces_to_print / 2); i++) {
-        jackc_putchar(' ');
+        jackc_fprintf(fd, " ");
     }
-    jackc_putchar('|');
-    jackc_putchar(' ');
+    jackc_fprintf(fd, "| ");
 }
+
+#define PUTCHAR(c) jackc_fprintf(engine->output_fd, "%c", c)
 
 void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t lines_total) {
     uint32_t line_starts[lines_total];
@@ -90,7 +171,6 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
         jackc_diagnostic diagnostic = engine->diagnostics[i];
         jackc_span span = diagnostic.span;
         jack_location loc = source_map_resolve(line_starts, lines_total, span.start);
-        const char* line_ptr = engine->source.data + line_starts[loc.line];
 
         char* severity_str = "";
         switch (diagnostic.severity) {
@@ -105,40 +185,55 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
                 break;
         }
 
-        // TODO: Unique formatting per diagnostic code
+        jackc_fprintf(engine->output_fd, "%s: ", severity_str);
+        const char* fmt = engine->translations[diagnostic.code].fmt;
         switch (diagnostic.code) {
             case DIAG_UNEXPECTED_TOKEN:
+                jackc_fprintf(
+                    engine->output_fd,
+                    fmt,
+                    token_to_str(diagnostic.data.unexpected_token.expected),
+                    diagnostic.data.unexpected_token.got.length,
+                    diagnostic.data.unexpected_token.got.data
+                );
                 break;
-            case DIAG_MISSING_VARIABLE_KIND:
+            case DIAG_INVALID_TOKEN_CLASS_BODY:
+                jackc_fprintf(
+                    engine->output_fd,
+                    fmt,
+                    diagnostic.data.invalid_token.got.length,
+                    diagnostic.data.invalid_token.got.data
+                );
                 break;
-            case DIAG_MISSING_VARIABLE_NAME:
-                break;
-            case DIAG_INVALID_VARIABLE_TYPE:
-                break;
-            case DIAG_INVALID_RETURN_TYPE:
+            default:
+                jackc_fprintf(engine->output_fd, fmt);
                 break;
         }
+        jackc_fprintf(engine->output_fd, "\n --> %s:%d:%d\n", engine->filename, loc.line, loc.col + 1);
 
-        jackc_printf("%s: %s\n", severity_str, engine->translations[diagnostic.code].fmt);
-        jackc_printf(" --> %s:%d:%d\n", engine->filename, loc.line + 1, loc.col + 1);
+        print_prefix(engine->output_fd, max_line_length, true);
+        print_prefix_with_line(engine->output_fd, loc.line + 1, max_line_length);
 
-        print_prefix(max_line_length, true);
-        print_prefix_with_line(loc.line + 1, max_line_length);
-
-        while (*line_ptr != '\r' && *line_ptr != '\n' && *line_ptr != '\0') {
-            jackc_putchar(*line_ptr);
-            ++line_ptr;
+        size_t cur_pos = line_starts[loc.line];
+        while (
+            cur_pos < engine->source.length
+            && engine->source.data[cur_pos] != '\r'
+            && engine->source.data[cur_pos] != '\n'
+        ) {
+            PUTCHAR(engine->source.data[cur_pos]);
+            ++cur_pos;
         }
-        jackc_putchar('\n');
-        print_prefix(max_line_length, false);
+
+        PUTCHAR('\n');
+        print_prefix(engine->output_fd, max_line_length, false);
         for (uint32_t col = 0; col < loc.col; ++col) {
-            jackc_putchar(' ');
+            PUTCHAR(' ');
         }
-        jackc_putchar('^');
+        PUTCHAR('^');
         for (uint32_t span_idx = span.start + 1; span_idx < span.end; ++span_idx) {
-            jackc_putchar('~');
+            PUTCHAR('~');
         }
-        jackc_putchar('\n');
+        PUTCHAR('\n');
     }
 }
 
