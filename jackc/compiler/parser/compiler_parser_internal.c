@@ -1,8 +1,8 @@
 #include "compiler_parser_internal.h"
 #include "compiler/ast/ast.h"
+#include "compiler/diagnostics-engine/engine.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
-#include "compiler/parser/compiler_parser_diagnostics.h"
 #include "compiler/parser/compiler_parser_utils.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_string.h"
@@ -19,6 +19,17 @@ static inline void exit_panic_mode(jack_parser* parser) {
 
 static inline bool is_panic_mode(jack_parser* parser) {
     return parser->panic_mode;
+}
+
+static jackc_diag_builder diagnostic_begin(jack_parser* parser, jackc_diagnostic_severity severity, jackc_diagnostic_code code) {
+    jack_token token = parser->current;
+    uint32_t span_start = (uint32_t)(token.str.data - parser->lexer->buffer.data);
+    return jackc_diag_begin(
+        parser->engine,
+        severity,
+        code,
+        (jackc_span){ .start = span_start, .end = (uint32_t)(span_start + token.str.length) }
+    );
 }
 
 static ast_expr* jack_parser_parse_array_index(jack_parser* parser) {
@@ -150,7 +161,11 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
             break;
         default:
             enter_panic_mode(parser);
-            jack_parser_diag_invalid_variable_type(parser);
+
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_VARIABLE_TYPE);
+            d.diag.data.unexpected_token = (typeof(d.diag.data.unexpected_token)){ .expected = TOKEN_STATIC, .got = parser->current.type };
+            jackc_diag_emit(&d);
+
             return nullptr;
     }
     jack_parser_advance(parser);
@@ -166,8 +181,9 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
     // Therefore variable name is missing, but the itself parser is in a valid state
     if (!declarations) {
         parser->had_error = true;
-        // TODO: Missing variable name
-        jack_parser_diag_unexpected_token(parser, ';', TOKEN_IDENTIFIER);
+
+        jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_MISSING_VARIABLE_NAME);
+        jackc_diag_emit(&d);
     }
 
     EXPECT_SEMICOLON(parser);
@@ -216,8 +232,10 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             break;
         default:
             enter_panic_mode(parser);
-            // TODO: Invalid return type
-            jack_parser_diag_invalid_variable_type(parser);
+
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_RETURN_TYPE);
+            jackc_diag_emit(&d);
+
             return nullptr;
     }
     jack_parser_advance(parser);
@@ -303,8 +321,9 @@ ast_var_dec* jack_parser_parse_var_dec(jack_parser* parser) {
     // Therefore variable name is missing, but the itself parser is in a valid state
     if (!declarations) {
         parser->had_error = true;
-        // TODO: Missing variable name
-        jack_parser_diag_unexpected_token(parser, ';', TOKEN_IDENTIFIER);
+
+        jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_MISSING_VARIABLE_NAME);
+        jackc_diag_emit(&d);
     }
 
     EXPECT_SEMICOLON(parser);
@@ -331,7 +350,10 @@ ast_type jack_parser_parse_type(jack_parser* parser) {
             break;
         default:
             enter_panic_mode(parser);
-            jack_parser_diag_invalid_variable_type(parser);
+
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_VARIABLE_TYPE);
+            jackc_diag_emit(&d);
+            return type;
     }
     return type;
 }
@@ -619,7 +641,8 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
         default:
             // TODO: Proper error
             enter_panic_mode(parser);
-            jack_parser_diag_unexpected_token(parser, TOKEN_INT_LITERAL, cur_token.type);
+            // jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_UNEXPECTED_TOKEN);
+            // jackc_diag_emit(&d);
             break;
     }
     return expr;
@@ -713,7 +736,11 @@ jack_token jack_parser_expect(jack_parser* parser, int32_t type) {
 
     if (!jack_parser_check(parser, type)) {
         enter_panic_mode(parser);
-        jack_parser_diag_unexpected_token(parser, type, parser->current.type);
+
+        jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_UNEXPECTED_TOKEN);
+        d.diag.data.unexpected_token = (typeof(d.diag.data.unexpected_token)) { .expected = type, .got = parser->current.type };
+        jackc_diag_emit(&d);
+
         return parser->current;
     }
     return jack_parser_advance(parser);

@@ -58,9 +58,12 @@
 struct parser_fixture {
     Allocator arena;
     jack_lexer* lexer;
-    jack_diagnostic_engine engine;
+    jackc_diagnostic_engine engine;
     jack_parser* parser;
 };
+
+void test_parser_fixture_init(struct parser_fixture* tau, const char* source);
+void test_parser_fixture_destroy(struct parser_fixture* tau);
 
 [[ nodiscard ]] size_t var_len(ast_var_dec* var);
 [[ nodiscard ]] size_t subroutine_len(ast_subroutine* sub);

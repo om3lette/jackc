@@ -1,46 +1,37 @@
 #ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_ENGINE_H
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_ENGINE_H
 
-#include "compiler/lexer/compiler_lexer.h"
+#include "compiler/diagnostics-engine/translations/translation.h"
+#include "jackc_string.h"
+#include "diagnostic.h"
 #include <stddef.h>
 #include <stdint.h>
 
-#define MAX_DIAGNOSTICS 128
-
-typedef enum {
-    DIAG_SEV_ERROR,
-    DIAG_SEV_WARNING
-} jack_diagnostic_severity;
-
-typedef enum {
-    DIAG_UNEXPECTED_TOKEN,
-    DIAG_MISSING_VARIABLE_KIND,
-    DIAG_INVALID_VARIABLE_TYPE
-} jack_diagnostic_code;
-
 typedef struct {
-    jack_location loc;
-    jack_diagnostic_severity severity;
-    jack_diagnostic_code code;
+    jackc_string source;
+    const char* filename;
+    const jackc_diagnostic_translation* translations;
 
-    union {
-        struct {
-            int32_t expected;
-            int32_t got;
-        } unexpected_token;
-    } data;
-} jack_diagnostic;
-
-
-typedef struct {
     size_t size;
     bool overflow;
+    jackc_diagnostic diagnostics[MAX_DIAGNOSTICS];
+} jackc_diagnostic_engine;
 
-    jack_diagnostic diagnostics[MAX_DIAGNOSTICS];
-} jack_diagnostic_engine;
+jackc_diagnostic_engine jack_diag_engine_init(jackc_string source, const char* filename, const jackc_diagnostic_translation* translations);
+void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t lines_total);
 
-#define jack_diag_engine_init() (jack_diagnostic_engine){ .size = 0, .overflow = false }
+typedef struct {
+    jackc_diagnostic_engine* engine;
+    jackc_diagnostic diag;
+} jackc_diag_builder;
 
-void jack_diagnostic_push(jack_diagnostic_engine* engine, jack_diagnostic diagnostic);
+jackc_diag_builder jackc_diag_begin(
+    jackc_diagnostic_engine* engine,
+    jackc_diagnostic_severity severity,
+    jackc_diagnostic_code code,
+    jackc_span span
+);
+void jackc_diag_emit(const jackc_diag_builder* builder);
+void jackc_diag_push(jackc_diagnostic_engine* engine, jackc_diagnostic diagnostic);
 
 #endif

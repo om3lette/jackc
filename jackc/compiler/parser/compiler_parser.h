@@ -24,7 +24,7 @@ struct jack_parser {
     jack_token current;
     jack_token next;
 
-    jack_diagnostic_engine* engine;
+    jackc_diagnostic_engine* engine;
     int32_t previous_token_type; // Used for error recovery
 
     bool had_error;
@@ -34,7 +34,7 @@ struct jack_parser {
     Allocator* allocator;
 };
 
-[[ nodiscard ]] jack_parser* jack_parser_init(jack_lexer* lexer, jack_diagnostic_engine* engine, Allocator* allocator);
+[[ nodiscard ]] jack_parser* jack_parser_init(jack_lexer* lexer, jackc_diagnostic_engine* engine, Allocator* allocator);
 
 [[ nodiscard ]] ast_class* jack_parser_parse(jack_parser* parser);
 

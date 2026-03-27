@@ -1,22 +1,14 @@
 #include "compiler/ast/ast.h"
-#include "compiler/diagnostics-engine/engine.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "core/allocators/adapters.h"
-#include "core/allocators/allocators.h"
-#include "jackc_stdlib.h"
 #include "test_parser_utils.h"
 #include "tau.h"
 
 TEST_F_SETUP(parser_fixture) {
-    tau->arena = arena_allocator_adapter();
-    tau->lexer = jack_lexer_init("");
-    tau->engine = jack_diag_engine_init();
-    tau->parser = nullptr;
+    test_parser_fixture_init(tau, "");
 }
 
 TEST_F_TEARDOWN(parser_fixture) {
-    arena_allocator_destroy(tau->arena.context);
-    jackc_free(tau->lexer);
+    test_parser_fixture_destroy(tau);
 }
 
 TEST_F(parser_fixture, var_dec_one) {
