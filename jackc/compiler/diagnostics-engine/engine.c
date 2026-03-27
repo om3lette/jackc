@@ -209,7 +209,7 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
                 jackc_fprintf(engine->output_fd, fmt);
                 break;
         }
-        jackc_fprintf(engine->output_fd, "\n --> %s:%d:%d\n", engine->filename, loc.line, loc.col + 1);
+        jackc_fprintf(engine->output_fd, "\n --> %s:%d:%d\n", engine->filename, loc.line + 1, loc.col + 1);
 
         print_prefix(engine->output_fd, max_line_length, true);
         print_prefix_with_line(engine->output_fd, loc.line + 1, max_line_length);
