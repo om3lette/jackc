@@ -14,10 +14,10 @@ int jackc_string_cmp(const jackc_string* str1, const jackc_string* str2) {
     }
 
     if (str1_ptr == str1_end) {
-        return (*str2_ptr == '\0') ? 0 : -1;
+        return (str2_ptr == str2_end) ? 0 : -1;
     }
     if (str2_ptr == str2_end) {
-        return (*str1_ptr == '\0') ? 0 : 1;
+        return (str1_ptr == str1_end) ? 0 : 1;
     }
     return *str1_ptr - *str2_ptr;
 }
