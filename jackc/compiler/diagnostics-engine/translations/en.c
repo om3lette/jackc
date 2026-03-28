@@ -1,6 +1,5 @@
 #include "compiler/diagnostics-engine/diagnostic.h"
 #include "translation.h"
-#include <assert.h>
 
 const jackc_diagnostic_translation diagnostic_translations[] = {
     { DIAG_UNEXPECTED_TOKEN, "Expected '%s', got '%.*s'", nullptr },
