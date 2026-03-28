@@ -18,7 +18,6 @@ void jack_lexer_read_char(jack_lexer* lexer) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
     // String length does not include null terminator
     jackc_assert(lexer->pos <= lexer->buffer.length && "Index out of range");
-    ++lexer->col;
     lexer->c = lexer->buffer.data[lexer->pos++];
 }
 
@@ -45,8 +44,8 @@ jack_token jack_lexer_new_str_token(jack_lexer* lexer, int32_t type, const char*
 
     jack_token token;
     token.type = type;
-    token.loc.line = lexer->line;
-    token.loc.col = lexer->col - length;
+    token.span.start = (uint32_t)(start - lexer->buffer.data);
+    token.span.end = token.span.start + length;
     token.str = jackc_string_create(start, length);
     return token;
 }
@@ -73,7 +72,6 @@ void jack_lexer_skip_blank_and_comments(jack_lexer* lexer) {
             lexer->c == '\n'
             ||(lexer->c == '\r' && jack_lexer_read_and_expect(lexer, '\n'))
         ) {
-            lexer->col = LEXER_DEFAULT_COL;
             ++lexer->line;
             is_one_line_comment = false;
             continue;

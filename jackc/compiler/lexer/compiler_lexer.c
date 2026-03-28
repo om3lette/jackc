@@ -2,7 +2,6 @@
 #include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer_internal.h"
 #include "compiler/lexer/compiler_reserved_keywords.h"
-#include "jackc_stdlib.h"
 #include "jackc_string.h"
 
 static inline jack_token eof_token(jack_lexer* lexer) {
@@ -21,7 +20,6 @@ jack_lexer jack_lexer_init(const char* buffer) {
 
     lexer.c = LEXER_DEFAULT_CHAR;
     lexer.line = LEXER_DEFAULT_LINE;
-    lexer.col = LEXER_DEFAULT_COL;
     lexer.pos = 0;
     return lexer;
 }

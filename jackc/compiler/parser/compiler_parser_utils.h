@@ -12,7 +12,7 @@
 void enter_panic_mode(jack_parser* parser);
 void exit_panic_mode(jack_parser* parser);
 [[ nodiscard ]] bool is_panic_mode(jack_parser* parser);
-[[ nodiscard ]] jackc_span token_to_span(const jack_parser* parser, jack_token token);
+
 [[ nodiscard ]] jackc_diag_builder diagnostic_begin(const jack_parser* parser, jackc_diagnostic_severity severity, jackc_diagnostic_code code);
 
 

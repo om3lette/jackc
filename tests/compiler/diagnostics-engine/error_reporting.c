@@ -112,6 +112,8 @@ TEST_F(parser_fixture, error_reporting) {
     }
 
     bool is_success = true;
+    uint32_t tests_total = 0;
+    uint32_t tests_passed = 0;
 
     do {
         char source_path[PATH_MAX];
@@ -152,6 +154,8 @@ TEST_F(parser_fixture, error_reporting) {
 
         char* actual = jackc_read_file_content(output_path);
         bool result = strcmp(actual, expected) == 0;
+        ++tests_total;
+        tests_passed += result;
         if (!result) {
             LOG_ERROR("Test '%s' result: FAIL\n", source_path);
             is_success = false;
@@ -162,5 +166,6 @@ TEST_F(parser_fixture, error_reporting) {
         free(expected);
     } while (next_test_case(base_path, test_dir));
 
+    LOG_INFO("%d/%d tests passed\n", tests_passed, tests_total);
     REQUIRE(is_success);
 }

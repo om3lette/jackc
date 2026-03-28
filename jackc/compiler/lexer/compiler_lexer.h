@@ -1,17 +1,13 @@
 #ifndef JACKC_COMPILER_LEXER_H
 #define JACKC_COMPILER_LEXER_H
 
+#include "compiler/diagnostics-engine/diagnostic.h"
 #include "jackc_string.h"
 #include <stdint.h>
 
 typedef int32_t jack_int;
 
 #define LEXER_DEFAULT_CHAR ' '
-// Has similar semantics to lexer->pos
-// Will display index of current char to CONSUME (which is + 1 from the current char)
-// Therefore 0 means 1 indexed (i -> i + 1 indexed)
-#define LEXER_DEFAULT_COL 0
-#define LEXER_FIRST_COL (LEXER_DEFAULT_COL + 1)
 #define LEXER_DEFAULT_LINE 1
 
 typedef enum {
@@ -58,14 +54,10 @@ typedef union {
 } jack_token_value;
 
 typedef struct {
-    uint32_t line, col;
-} jack_location;
-
-typedef struct {
     int32_t type;
     jackc_string str;
     jack_token_value value;
-    jack_location loc;
+    jackc_span span;
 } jack_token;
 
 typedef struct {

@@ -8,6 +8,10 @@
 #include <stdint.h>
 
 typedef struct {
+    uint32_t line, col;
+} jack_location;
+
+typedef struct {
     jackc_string source;
     const char* filename;
     const jackc_diagnostic_translation* translations;

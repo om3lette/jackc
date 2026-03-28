@@ -15,12 +15,10 @@ TEST_F(lexer_fixture, read_char_happy_path) {
 
     jack_lexer_read_char(&tau->lexer);
     REQUIRE(tau->lexer.c == 'a' && "Current char is incorrect");
-    REQUIRE(tau->lexer.col == LEXER_DEFAULT_COL + 1 && "col was not updated");
     REQUIRE(tau->lexer.pos == 1 && "pos was not updated");
 
     jack_lexer_read_char(&tau->lexer);
     REQUIRE(tau->lexer.c == '\0' && "Current char is incorrect");
-    REQUIRE(tau->lexer.col == LEXER_DEFAULT_COL + 2 && "col was not updated");
     REQUIRE(tau->lexer.pos == 2 && "pos was not updated");
 }
 
