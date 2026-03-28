@@ -1,25 +1,13 @@
 #include "compiler_parser_internal.h"
 #include "compiler/ast/ast.h"
+#include "compiler/diagnostics-engine/diagnostic.h"
+#include "compiler/diagnostics-engine/engine.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
-#include "compiler/parser/compiler_parser_diagnostics.h"
 #include "compiler/parser/compiler_parser_utils.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_string.h"
 #include <stdint.h>
-
-static inline void enter_panic_mode(jack_parser* parser) {
-    parser->had_error = true;
-    parser->panic_mode = true;
-}
-
-static inline void exit_panic_mode(jack_parser* parser) {
-    parser->panic_mode = false;
-}
-
-static inline bool is_panic_mode(jack_parser* parser) {
-    return parser->panic_mode;
-}
 
 static ast_expr* jack_parser_parse_array_index(jack_parser* parser) {
     jack_parser_expect(parser, '[');
@@ -55,6 +43,7 @@ static ast_var_dec* jack_parser_parse_variables(
     while (
         !is_rcurl_or_eof(parser)
         && !jack_parser_check(parser, end_token)
+        && !is_class_member_start(parser)
     ) {
         // Expect a comma separator between variables (after the first one)
         if (!is_first) {
@@ -103,18 +92,21 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
     ast_subroutine* subroutines = nullptr;
 
     while (!is_rcurl_or_eof(parser)) {
-        if (is_class_var_start(parser)) {
+        if (!is_panic_mode(parser) && is_class_var_start(parser)) {
             class_vars = ast_var_dec_list_push_front(
                 class_vars,
                 jack_parser_parse_class_var_dec(parser)
             );
-        } else if (is_subroutine_start(parser)) {
+        } else if (!is_panic_mode(parser) && is_subroutine_start(parser)) {
             subroutines = ast_subroutine_push_front(
                 subroutines,
                 jack_parser_parse_subroutine(parser)
             );
         } else {
-            // TODO: Error
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_TOKEN_CLASS_BODY);
+            d.diag.data.invalid_token.got = parser->current.str;
+            jackc_diag_emit(&d);
+
             jack_parser_sync(parser);
             // Synchronization stopped at the end of a subroutine
             // E.g `class C { var int badFunc() {} function void goodFunc() {} }`
@@ -150,7 +142,10 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
             break;
         default:
             enter_panic_mode(parser);
-            jack_parser_diag_invalid_variable_type(parser);
+
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_VARIABLE_TYPE);
+            jackc_diag_emit(&d);
+
             return nullptr;
     }
     jack_parser_advance(parser);
@@ -166,8 +161,9 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
     // Therefore variable name is missing, but the itself parser is in a valid state
     if (!declarations) {
         parser->had_error = true;
-        // TODO: Missing variable name
-        jack_parser_diag_unexpected_token(parser, ';', TOKEN_IDENTIFIER);
+
+        jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_MISSING_VARIABLE_NAME);
+        jackc_diag_emit(&d);
     }
 
     EXPECT_SEMICOLON(parser);
@@ -190,7 +186,8 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             sub_kind = SUB_METHOD;
             break;
         default:
-            // TODO: Invalid subroutine kind
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_SUBROUTINE_KIND);
+            jackc_diag_emit(&d);
             enter_panic_mode(parser);
             return nullptr;
     }
@@ -216,8 +213,10 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             break;
         default:
             enter_panic_mode(parser);
-            // TODO: Invalid return type
-            jack_parser_diag_invalid_variable_type(parser);
+
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_RETURN_TYPE);
+            jackc_diag_emit(&d);
+
             return nullptr;
     }
     jack_parser_advance(parser);
@@ -235,13 +234,16 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
     ast_stmt* stmt_tail = nullptr;
     EXPECT_LEFT_CURLY_BRACE(parser);
 
-    while(!is_rcurl_or_eof(parser)) {
-        if (jack_parser_check(parser, TOKEN_VAR)) {
+    while(
+        !is_rcurl_or_eof(parser)
+        && !is_class_member_start(parser)
+    ) {
+        if (!is_panic_mode(parser) && jack_parser_check(parser, TOKEN_VAR)) {
             locals = ast_var_dec_list_push_front(
                 locals,
                 jack_parser_parse_var_dec(parser)
             );
-        } else if (is_statement_start(parser)) {
+        } else if (!is_panic_mode(parser) && is_statement_start(parser)) {
             stmt_tail = ast_stmt_list_push_back(
                 stmt_tail,
                 jack_parser_parse_statements(parser)
@@ -303,8 +305,9 @@ ast_var_dec* jack_parser_parse_var_dec(jack_parser* parser) {
     // Therefore variable name is missing, but the itself parser is in a valid state
     if (!declarations) {
         parser->had_error = true;
-        // TODO: Missing variable name
-        jack_parser_diag_unexpected_token(parser, ';', TOKEN_IDENTIFIER);
+
+        jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_MISSING_VARIABLE_NAME);
+        jackc_diag_emit(&d);
     }
 
     EXPECT_SEMICOLON(parser);
@@ -331,7 +334,10 @@ ast_type jack_parser_parse_type(jack_parser* parser) {
             break;
         default:
             enter_panic_mode(parser);
-            jack_parser_diag_invalid_variable_type(parser);
+
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_VARIABLE_TYPE);
+            jackc_diag_emit(&d);
+            return type;
     }
     return type;
 }
@@ -617,9 +623,10 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
             break;
         }
         default:
-            // TODO: Proper error
             enter_panic_mode(parser);
-            jack_parser_diag_unexpected_token(parser, TOKEN_INT_LITERAL, cur_token.type);
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_TOKEN_TERM);
+            d.diag.data.invalid_token.got = parser->current.str;
+            jackc_diag_emit(&d);
             break;
     }
     return expr;
@@ -702,7 +709,7 @@ jack_token jack_parser_advance(jack_parser* parser) {
 
     jack_token token = parser->current;
 
-    parser->previous_token_type = token.type;
+    parser->previous = token;
     parser->current = parser->next;
     parser->next = jack_lexer_next_token(parser->lexer);
     return token;
@@ -713,7 +720,25 @@ jack_token jack_parser_expect(jack_parser* parser, int32_t type) {
 
     if (!jack_parser_check(parser, type)) {
         enter_panic_mode(parser);
-        jack_parser_diag_unexpected_token(parser, type, parser->current.type);
+
+        jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_UNEXPECTED_TOKEN);
+        switch (type) {
+            case ';':
+                // For ';' we need to now the location of the previous token to display where the ';' was expected
+                d.diag.span = token_to_span(parser, parser->previous);
+                d.diag.code = DIAG_MISSING_SEMICOLON;
+                d.diag.data.last_valid_token = (typeof(d.diag.data.last_valid_token)) {
+                    .token = parser->previous.str
+                };
+                break;
+            default:
+                d.diag.data.unexpected_token = (typeof(d.diag.data.unexpected_token)) {
+                    .expected = type, .got = parser->current.str
+                };
+                break;
+        }
+        jackc_diag_emit(&d);
+
         return parser->current;
     }
     return jack_parser_advance(parser);
@@ -779,6 +804,8 @@ void jack_parser_sync(jack_parser* parser) {
     while (!is_sync_token(parser)) {
         jack_parser_advance(parser);
     }
+
+    parser->had_error = true;
     exit_panic_mode(parser);
 }
 

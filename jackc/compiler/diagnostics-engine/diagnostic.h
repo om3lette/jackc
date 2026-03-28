@@ -1,0 +1,52 @@
+#ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
+#define JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
+
+#include "jackc_string.h"
+#include <stdint.h>
+
+#define MAX_DIAGNOSTICS 128
+
+typedef struct {
+    uint32_t start;
+    uint32_t end;
+} jackc_span;
+
+typedef enum {
+    DIAG_ERROR,
+    DIAG_WARNING,
+    DIAG_NOTE
+} jackc_diagnostic_severity;
+
+typedef enum {
+    DIAG_UNEXPECTED_TOKEN,
+    DIAG_MISSING_VARIABLE_KIND,
+    DIAG_MISSING_VARIABLE_NAME,
+    DIAG_INVALID_VARIABLE_TYPE,
+    DIAG_INVALID_RETURN_TYPE,
+    DIAG_INVALID_SUBROUTINE_KIND,
+    DIAG_INVALID_TOKEN_CLASS_BODY,
+    DIAG_INVALID_TOKEN_TERM,
+    DIAG_MISSING_SEMICOLON,
+    NUMBER_OF_DIAGNOSTICS,
+} jackc_diagnostic_code;
+
+typedef struct {
+    jackc_span span;
+    jackc_diagnostic_severity severity;
+    jackc_diagnostic_code code;
+
+    union {
+        struct {
+            int32_t expected;
+            jackc_string got;
+        } unexpected_token;
+        struct {
+            jackc_string got;
+        } invalid_token;
+        struct {
+            jackc_string token;
+        } last_valid_token;
+    } data;
+} jackc_diagnostic;
+
+#endif

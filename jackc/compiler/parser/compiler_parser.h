@@ -21,11 +21,11 @@ void jack_sync_context_pop(jack_parser* parser, jack_sync_context context);
 
 struct jack_parser {
     jack_lexer* lexer;
+    jack_token previous;
     jack_token current;
     jack_token next;
 
-    jack_diagnostic_engine* engine;
-    int32_t previous_token_type; // Used for error recovery
+    jackc_diagnostic_engine* engine;
 
     bool had_error;
     bool panic_mode;
@@ -34,7 +34,7 @@ struct jack_parser {
     Allocator* allocator;
 };
 
-[[ nodiscard ]] jack_parser* jack_parser_init(jack_lexer* lexer, jack_diagnostic_engine* engine, Allocator* allocator);
+[[ nodiscard ]] jack_parser* jack_parser_init(jack_lexer* lexer, jackc_diagnostic_engine* engine, Allocator* allocator);
 
 [[ nodiscard ]] ast_class* jack_parser_parse(jack_parser* parser);
 

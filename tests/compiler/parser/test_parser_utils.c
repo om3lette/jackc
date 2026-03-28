@@ -2,11 +2,15 @@
 #include "test_lexer_common.h"
 #include "compiler/ast/ast.h"
 #include "compiler/parser/compiler_parser_internal.h"
+#include "compiler/diagnostics-engine/translations/translation.h"
 #include "core/asserts/jackc_assert.h"
+#include "core/allocators/adapters.h"
 #include "jackc_stdio.h"
 #include "jackc_stdlib.h"
 #include <stdarg.h>
 #include <stdio.h>
+
+extern const jackc_diagnostic_translation diagnostic_translations[];
 
 char* jackc_itoa(int n, char* s, int base) {
     if (base < 2 || base > 36) {
@@ -208,6 +212,18 @@ const char* ast_expression_to_string(Allocator* allocator, const ast_expr* expr)
 
     jackc_assert(false);
     return "";
+}
+
+void test_parser_fixture_init(struct parser_fixture* tau, const char* source) {
+    tau->arena = arena_allocator_adapter();
+    tau->lexer = jack_lexer_init(source);
+    tau->engine = jackc_diag_engine_init(tau->lexer->buffer, __FILE_NAME__, diagnostic_translations, fileno(stdout));
+    tau->parser = nullptr;
+}
+
+void test_parser_fixture_destroy(struct parser_fixture* tau) {
+    arena_allocator_destroy(tau->arena.context);
+    jackc_free(tau->lexer);
 }
 
 size_t var_len(ast_var_dec* var) {

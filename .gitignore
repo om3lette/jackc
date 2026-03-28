@@ -17,3 +17,4 @@ notes.md
 *.asm
 
 tests/compiler/jack-code
+output.txt

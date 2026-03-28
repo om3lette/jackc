@@ -1,20 +1,15 @@
 #include "compiler/ast/ast.h"
 #include "compiler/parser/compiler_parser_internal.h"
-#include "jackc_stdlib.h"
 #include "test_parser_utils.h"
 #include "test_lexer_common.h"
-#include "core/allocators/adapters.h"
 #include "tau.h"
 
 TEST_F_SETUP(parser_fixture) {
-    tau->arena = arena_allocator_adapter();
-    tau->lexer = jack_lexer_init("");
-    tau->engine = jack_diag_engine_init();
+    test_parser_fixture_init(tau, "");
 }
 
 TEST_F_TEARDOWN(parser_fixture) {
-    arena_allocator_destroy(tau->arena.context);
-    jackc_free(tau->lexer);
+    test_parser_fixture_destroy(tau);
 }
 
 typedef struct {
