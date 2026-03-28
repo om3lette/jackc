@@ -4,20 +4,20 @@
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 
-jack_parser* jack_parser_init(jack_lexer* lexer, jackc_diagnostic_engine* engine, Allocator* allocator) {
-    jack_parser* parser = allocator->alloc(sizeof(jack_parser), allocator->context);
+jack_parser jack_parser_init(jack_lexer* lexer, jackc_diagnostic_engine* engine, Allocator* allocator) {
+    jack_parser parser;
 
-    parser->allocator = allocator;
-    parser->engine = engine;
-    parser->lexer = lexer;
+    parser.allocator = allocator;
+    parser.engine = engine;
+    parser.lexer = lexer;
 
-    parser->had_error = false;
-    parser->panic_mode = false;
-    parser->sync_context = 0;
+    parser.had_error = false;
+    parser.panic_mode = false;
+    parser.sync_context = 0;
 
-    parser->current = jack_lexer_next_token(parser->lexer);
-    parser->next = jack_lexer_next_token(parser->lexer);
-    parser->previous = parser->current;
+    parser.current = jack_lexer_next_token(parser.lexer);
+    parser.next = jack_lexer_next_token(parser.lexer);
+    parser.previous = parser.current;
 
     return parser;
 }

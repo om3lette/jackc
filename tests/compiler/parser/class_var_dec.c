@@ -16,9 +16,9 @@ TEST_F_TEARDOWN(parser_fixture) {
 
 static ast_var_dec* parse_class_var(const char* src, struct parser_fixture* tau) {
     test_jack_lexer_new_buffer(tau->lexer, src);
-    jack_parser* parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);
+    jack_parser parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);
     tau->parser = parser;
-    return jack_parser_parse_class_var_dec(parser);
+    return jack_parser_parse_class_var_dec(&parser);
 }
 
 TEST_F(parser_fixture, class_var_dec_static_one) {

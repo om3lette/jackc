@@ -25,8 +25,8 @@ typedef struct {
         const char* const input = tests[idx].input;                                    \
         const char* const expected = tests[idx].expected;                              \
         test_jack_lexer_new_buffer(tau->lexer, input);                                 \
-        jack_parser* parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena); \
-        ast_expr* e = jack_parser_parse_expression(parser, 0);                         \
+        jack_parser parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);  \
+        ast_expr* e = jack_parser_parse_expression(&parser, 0);                        \
         REQUIRE_NO_PANIC(parser);                                                      \
         const char* str = ast_expression_to_string(&tau->arena, e);                    \
         REQUIRE_STREQ(str, expected);                                                  \

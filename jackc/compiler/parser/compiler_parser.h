@@ -34,7 +34,7 @@ struct jack_parser {
     Allocator* allocator;
 };
 
-[[ nodiscard ]] jack_parser* jack_parser_init(jack_lexer* lexer, jackc_diagnostic_engine* engine, Allocator* allocator);
+[[ nodiscard ]] jack_parser jack_parser_init(jack_lexer* lexer, jackc_diagnostic_engine* engine, Allocator* allocator);
 
 [[ nodiscard ]] ast_class* jack_parser_parse(jack_parser* parser);
 
