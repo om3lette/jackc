@@ -46,7 +46,7 @@ typedef struct {
     jackc_diagnostic_engine* engine,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_span span
+    jackc_string str
 );
 void jackc_diag_emit(const jackc_diag_builder* builder);
 void jackc_diag_push(jackc_diagnostic_engine* engine, jackc_diagnostic diagnostic);

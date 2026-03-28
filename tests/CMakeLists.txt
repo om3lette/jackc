@@ -36,6 +36,16 @@ target_link_libraries(compiler_symtab_tests
         compiler
 )
 
+add_executable(function_registry_tests
+    main.c
+    compiler/function-registry/insert.c
+)
+target_link_libraries(function_registry_tests
+    PRIVATE
+        Tau
+        compiler
+)
+
 add_executable(data_structure_tests
     main.c
     data-structures/fixed_hashmap.c
@@ -91,3 +101,4 @@ add_test(NAME data_structure_tests COMMAND data_structure_tests)
 add_test(NAME allocators_tests COMMAND allocators_tests)
 add_test(NAME compiler_parser_tests COMMAND compiler_parser_tests)
 add_test(NAME diagnostics_engine_tests COMMAND diagnostics_engine_tests)
+add_test(NAME function_registry_tests COMMAND function_registry_tests)

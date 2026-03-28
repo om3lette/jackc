@@ -59,5 +59,15 @@
         "args": ["./.tmp/sources", "./.tmp/output"],
         "request": "launch",
         "adapter": "CodeLLDB"
+    },
+    {
+        "label": "Function registry tests",
+        "build": {
+            "command": "just configure && just build",
+            "cwd": "$ZED_WORKTREE_ROOT"
+        },
+        "program": "$ZED_WORKTREE_ROOT/build/tests/function_registry_tests",
+        "request": "launch",
+        "adapter": "CodeLLDB"
     }
 ]

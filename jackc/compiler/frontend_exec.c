@@ -17,9 +17,9 @@ int main(int argc, char** argv) {
 
     Allocator allocator = arena_allocator_adapter();
 
-    int result = jackc_frontend_compile(base_dir_path, &allocator);
+    jackc_frontend_return_code result = jackc_frontend_compile(base_dir_path, &allocator);
 
     LOG_DEBUG("Compilation finished.\n");
     arena_allocator_destroy(allocator.context);
-    return result;
+    return (int)result;
 }

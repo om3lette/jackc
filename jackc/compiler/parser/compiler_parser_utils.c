@@ -44,5 +44,5 @@ bool is_panic_mode(jack_parser* parser) {
 }
 
 jackc_diag_builder diagnostic_begin(const jack_parser* parser, jackc_diagnostic_severity severity, jackc_diagnostic_code code) {
-    return jackc_diag_begin(parser->engine, severity, code, parser->current.span);
+    return jackc_diag_begin(parser->engine, severity, code, parser->current.str);
 }

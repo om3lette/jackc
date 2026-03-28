@@ -234,6 +234,14 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
                 span.start = span.end;
                 jackc_fprintf(engine->output_fd, translation.fmt);
                 break;
+            case DIAG_REDEFINITION_OF_CLASS:
+                jackc_fprintf(
+                    engine->output_fd,
+                    translation.fmt,
+                    diagnostic.span.end - diagnostic.span.start,
+                    engine->source.data + diagnostic.span.start
+                );
+                break;
             default:
                 jackc_fprintf(engine->output_fd, translation.fmt);
                 break;
@@ -278,14 +286,15 @@ jackc_diag_builder jackc_diag_begin(
     jackc_diagnostic_engine* engine,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_span span
+    jackc_string str
 ) {
+    uint32_t span_start = (uint32_t)(str.data - engine->source.data);
     return (jackc_diag_builder){
         .engine = engine,
         .diag = {
             .severity = severity,
             .code = code,
-            .span = span
+            .span = { .start = span_start, .end = (uint32_t)(span_start + str.length) }
         }
     };
 }

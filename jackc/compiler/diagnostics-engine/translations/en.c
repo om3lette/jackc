@@ -12,6 +12,7 @@ const jackc_diagnostic_translation diagnostic_translations[] = {
     { DIAG_INVALID_TOKEN_CLASS_BODY, "Invalid class member declaration: found '%.*s'.", "Expected a class variable or subroutine declaration." },
     { DIAG_INVALID_TOKEN_TERM, "Unexpected token '%.*s' while parsing term.", "Expected start of term: literal, identifier, '(', or unary operator." },
     { DIAG_MISSING_SEMICOLON, "Missing semicolon.", nullptr },
+    { DIAG_REDEFINITION_OF_CLASS, "Redefinition of class '%.*s'.", nullptr },
 };
 
 static_assert(NUMBER_OF_DIAGNOSTICS == sizeof(diagnostic_translations) / sizeof(diagnostic_translations[0]), "Diagnostic translations array size mismatch");

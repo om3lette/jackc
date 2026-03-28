@@ -5,16 +5,12 @@
 #include <tau.h>
 #include <string.h> // memcmp
 
-struct symtab_fixture {
-    sym_table* symtab;
-};
-
 TEST_F_SETUP(symtab_fixture) {
-    tau->symtab = sym_table_init(NULL);
+    test_symtab_common_init(tau);
 }
 
 TEST_F_TEARDOWN(symtab_fixture) {
-    sym_table_free(&tau->symtab);
+    test_symtab_common_teardown(tau);
 }
 
 #define REQUIRE_SYMTAB_TOKEN_EQ(name, expected) do { \
@@ -40,7 +36,7 @@ TEST_F(symtab_fixture, find_multiple_scopes) {
     REQUIRE_SYMTAB_OK(sym_table_insert(tau->symtab, &token));
 
     // Create token "x" in the child scope
-    sym_table* top_symtab = sym_table_push(tau->symtab);
+    sym_table* top_symtab = sym_table_push(tau->symtab, &tau->allocator);
     sym_table_token token2 = create_token(JACK_INT, VAR_LOCAL, "x", "");
     REQUIRE_SYMTAB_OK(sym_table_insert(top_symtab, &token2));
 
@@ -55,7 +51,7 @@ TEST_F(symtab_fixture, exists_local) {
     sym_table_token token = create_token(JACK_INT, VAR_ARG, "x", "");
     REQUIRE_SYMTAB_OK(sym_table_insert(tau->symtab, &token));
 
-    sym_table* top_symtab = sym_table_push(tau->symtab);
+    sym_table* top_symtab = sym_table_push(tau->symtab, &tau->allocator);
 
     require_symtab_token_eq(top_symtab, &token.name, &token);
     REQUIRE_FALSE(sym_table_exists_local(top_symtab, &token.name));

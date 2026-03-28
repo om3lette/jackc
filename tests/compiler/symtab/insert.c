@@ -3,16 +3,12 @@
 #include "utils.h"
 #include <tau.h>
 
-struct symtab_fixture {
-    sym_table* symtab;
-};
-
 TEST_F_SETUP(symtab_fixture) {
-    tau->symtab = sym_table_init(NULL);
+    test_symtab_common_init(tau);
 }
 
 TEST_F_TEARDOWN(symtab_fixture) {
-    sym_table_free(&tau->symtab);
+    test_symtab_common_teardown(tau);
 }
 
 TEST_F(symtab_fixture, insert) {

@@ -8,7 +8,7 @@
 #   ifdef __rars__
 #       define FIXED_HASH_MAP_BUCKETS 128
 #   else
-#       define FIXED_HASH_MAP_BUCKETS 4096
+#       define FIXED_HASH_MAP_BUCKETS 512
 #   endif
 #endif
 static_assert((FIXED_HASH_MAP_BUCKETS & (FIXED_HASH_MAP_BUCKETS - 1)) == 0);

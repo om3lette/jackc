@@ -18,6 +18,7 @@ typedef enum {
 } jackc_diagnostic_severity;
 
 typedef enum {
+    // Parser
     DIAG_UNEXPECTED_TOKEN,
     DIAG_MISSING_VARIABLE_KIND,
     DIAG_MISSING_VARIABLE_NAME,
@@ -27,6 +28,10 @@ typedef enum {
     DIAG_INVALID_TOKEN_CLASS_BODY,
     DIAG_INVALID_TOKEN_TERM,
     DIAG_MISSING_SEMICOLON,
+
+    // Symtab
+    DIAG_REDEFINITION_OF_CLASS,
+
     NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
 

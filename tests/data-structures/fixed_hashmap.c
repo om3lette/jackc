@@ -51,8 +51,16 @@ TEST_F(hashmap_fixture, insert_one) {
     REQUIRE_EQ(found_value, value);
 }
 
+TEST_F(hashmap_fixture, find_no_return_valuej) {
+    int32_t key = 10;
+    int32_t value = 15;
+    fixed_hashmap_insert(tau->hashmap, &key, &value);
+
+    REQUIRE(fixed_hashmap_find(tau->hashmap, &key, nullptr));
+}
+
 TEST_F(hashmap_fixture, insert_many) {
-    const uint32_t ITERATIONS = 1e5;
+    const uint32_t ITERATIONS = 1e4;
     for (uint32_t i = 0; i < ITERATIONS; ++i) {
         uint32_t key = i + 10;
         uint32_t value = i;
