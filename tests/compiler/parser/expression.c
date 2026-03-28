@@ -24,8 +24,8 @@ typedef struct {
         const uint32_t idx = __COUNTER__;                                              \
         const char* const input = tests[idx].input;                                    \
         const char* const expected = tests[idx].expected;                              \
-        test_jack_lexer_new_buffer(tau->lexer, input);                                 \
-        jack_parser parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);  \
+        test_jack_lexer_new_buffer(&tau->lexer, input);                                \
+        jack_parser parser = jack_parser_init(&tau->lexer, &tau->engine, &tau->arena); \
         ast_expr* e = jack_parser_parse_expression(&parser, 0);                        \
         REQUIRE_NO_PANIC(parser);                                                      \
         const char* str = ast_expression_to_string(&tau->arena, e);                    \

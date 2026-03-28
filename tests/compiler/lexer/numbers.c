@@ -1,5 +1,4 @@
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_stdlib.h"
 #include "lexer_test_utils.h"
 #include "test_lexer_common.h"
 #include "tau.h"
@@ -8,12 +7,10 @@ TEST_F_SETUP(lexer_fixture) {
     tau->lexer = jack_lexer_init("");
 }
 
-TEST_F_TEARDOWN(lexer_fixture) {
-    jackc_free(tau->lexer);
-}
+TEST_F_TEARDOWN(lexer_fixture) { (void)tau; }
 
 TEST_F(lexer_fixture, positive_integer) {
-    test_jack_lexer_new_buffer(tau->lexer, "var int g = 123;");
+    test_jack_lexer_new_buffer(&tau->lexer, "var int g = 123;");
     REQUIRE_KEYWORD_TOKEN(TOKEN_VAR);
     REQUIRE_KEYWORD_TOKEN(TOKEN_INT);
     REQUIRE_ID_TOKEN("g");
@@ -24,7 +21,7 @@ TEST_F(lexer_fixture, positive_integer) {
 }
 
 TEST_F(lexer_fixture, zero_integer) {
-    test_jack_lexer_new_buffer(tau->lexer, "var int g = 0;");
+    test_jack_lexer_new_buffer(&tau->lexer, "var int g = 0;");
     REQUIRE_KEYWORD_TOKEN(TOKEN_VAR);
     REQUIRE_KEYWORD_TOKEN(TOKEN_INT);
     REQUIRE_ID_TOKEN("g");
@@ -35,7 +32,7 @@ TEST_F(lexer_fixture, zero_integer) {
 }
 
 TEST_F(lexer_fixture, negative_integer) {
-    test_jack_lexer_new_buffer(tau->lexer, "var int g = -123;");
+    test_jack_lexer_new_buffer(&tau->lexer, "var int g = -123;");
     REQUIRE_KEYWORD_TOKEN(TOKEN_VAR);
     REQUIRE_KEYWORD_TOKEN(TOKEN_INT);
     REQUIRE_ID_TOKEN("g");
@@ -47,7 +44,7 @@ TEST_F(lexer_fixture, negative_integer) {
 }
 
 TEST_F(lexer_fixture, basic_expression) {
-    test_jack_lexer_new_buffer(tau->lexer, "2 + 3 * 4");
+    test_jack_lexer_new_buffer(&tau->lexer, "2 + 3 * 4");
     REQUIRE_INT_TOKEN(2);
     REQUIRE_CHAR_TOKEN('+');
     REQUIRE_INT_TOKEN(3);
@@ -57,11 +54,11 @@ TEST_F(lexer_fixture, basic_expression) {
 }
 
 TEST_F(lexer_fixture, only_integer_input) {
-    test_jack_lexer_new_buffer(tau->lexer, "123");
+    test_jack_lexer_new_buffer(&tau->lexer, "123");
     REQUIRE_INT_TOKEN(123);
     REQUIRE_END_TOKEN();
 
-    test_jack_lexer_new_buffer(tau->lexer, "-123");
+    test_jack_lexer_new_buffer(&tau->lexer, "-123");
     REQUIRE_CHAR_TOKEN('-');
     REQUIRE_INT_TOKEN(123);
     REQUIRE_END_TOKEN();

@@ -74,7 +74,7 @@ typedef struct {
     char c;
 } jack_lexer;
 
-[[nodiscard]] jack_lexer* jack_lexer_init(const char* buffer);
+[[nodiscard]] jack_lexer jack_lexer_init(const char* buffer);
 
 [[nodiscard]] jack_token jack_lexer_next_token(jack_lexer* lexer);
 

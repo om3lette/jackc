@@ -142,11 +142,11 @@ TEST_F(parser_fixture, error_reporting) {
             continue;
         }
 
-        test_jack_lexer_new_buffer(tau->lexer, source);
-        jackc_diag_engine_reset(&tau->engine, tau->lexer->buffer, TEST_FILENAME, fileno(out));
+        test_jack_lexer_new_buffer(&tau->lexer, source);
+        jackc_diag_engine_reset(&tau->engine, tau->lexer.buffer, TEST_FILENAME, fileno(out));
 
         parse_class(source, tau);
-        jackc_diagnostic_engine_report(&tau->engine, tau->lexer->line);
+        jackc_diagnostic_engine_report(&tau->engine, tau->lexer.line);
         fflush(out);
         fclose(out);
 

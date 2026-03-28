@@ -1,5 +1,4 @@
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_stdlib.h"
 #include "lexer_test_utils.h"
 #include "test_lexer_common.h"
 #include "tau.h"
@@ -8,12 +7,10 @@ TEST_F_SETUP(lexer_fixture) {
     tau->lexer = jack_lexer_init("");
 }
 
-TEST_F_TEARDOWN(lexer_fixture) {
-    jackc_free(tau->lexer);
-}
+TEST_F_TEARDOWN(lexer_fixture) { (void)tau; }
 
-#define REQUIRE_COL(c) REQUIRE(tau->lexer->col == (c))
-#define REQUIRE_LINE(l) REQUIRE(tau->lexer->line == (l))
+#define REQUIRE_COL(c) REQUIRE(tau->lexer.col == (c))
+#define REQUIRE_LINE(l) REQUIRE(tau->lexer.line == (l))
 
 TEST_F(lexer_fixture, line_pos_initial_values) {
     REQUIRE_COL(LEXER_DEFAULT_COL);
@@ -21,7 +18,7 @@ TEST_F(lexer_fixture, line_pos_initial_values) {
 }
 
 TEST_F(lexer_fixture, col_single_line) {
-    test_jack_lexer_new_buffer(tau->lexer, "var int g;");
+    test_jack_lexer_new_buffer(&tau->lexer, "var int g;");
 
     REQUIRE_KEYWORD_TOKEN(TOKEN_VAR);
     REQUIRE_COL(LEXER_FIRST_COL + 3);
@@ -43,7 +40,7 @@ TEST_F(lexer_fixture, col_single_line) {
 }
 
 TEST_F(lexer_fixture, line_counting_lf) {
-    test_jack_lexer_new_buffer(tau->lexer, "\nt\nv");
+    test_jack_lexer_new_buffer(&tau->lexer, "\nt\nv");
 
     REQUIRE_ID_TOKEN("t");
     REQUIRE_LINE(LEXER_DEFAULT_LINE + 1);
@@ -53,7 +50,7 @@ TEST_F(lexer_fixture, line_counting_lf) {
 }
 
 TEST_F(lexer_fixture, line_counting_crlf) {
-    test_jack_lexer_new_buffer(tau->lexer, "\r\nt\r\nv");
+    test_jack_lexer_new_buffer(&tau->lexer, "\r\nt\r\nv");
 
     REQUIRE_ID_TOKEN("t");
     REQUIRE_LINE(LEXER_DEFAULT_LINE + 1);
@@ -63,12 +60,11 @@ TEST_F(lexer_fixture, line_counting_crlf) {
 }
 
 TEST_F(lexer_fixture, col_and_line_counting_lf_crlf) {
-    test_jack_lexer_new_buffer(tau->lexer, "\nt t1\r\nv v12");
+    test_jack_lexer_new_buffer(&tau->lexer, "\nt t1\r\nv v12");
 
     REQUIRE_ID_TOKEN("t");
     REQUIRE_COL(LEXER_FIRST_COL + 1);
     REQUIRE_LINE(LEXER_DEFAULT_LINE + 1);
-    REQUIRE(tau->lexer);
 
     REQUIRE_ID_TOKEN("t1");
     REQUIRE_COL(LEXER_FIRST_COL + 4);

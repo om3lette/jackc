@@ -57,7 +57,7 @@
 
 struct parser_fixture {
     Allocator arena;
-    jack_lexer* lexer;
+    jack_lexer lexer;
     jackc_diagnostic_engine engine;
     jack_parser parser;
 };
