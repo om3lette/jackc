@@ -1,5 +1,4 @@
-// TODO: Move to common, use jackc_* instead of syscalls and libc functions
-#include "common/logger.h"
+#include "core/logging/logger.h"
 #include "jackc_stdio.h"
 #include "jackc_stdlib.h"
 

@@ -1,14 +1,22 @@
 #include "compiler_lexer.h"
-#include "common/jackc_assert.h"
+#include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer_internal.h"
 #include "compiler/lexer/compiler_reserved_keywords.h"
 #include "jackc_stdlib.h"
 #include "jackc_string.h"
 
-jackc_lexer* jack_lexer_init(const char* buffer) {
+static inline jack_token eof_token(jack_lexer* lexer) {
+    return jack_lexer_new_str_token(lexer, '\0', jack_lexer_cur_pos(lexer));
+}
+
+static inline bool is_eol(char c) {
+    return c == '\n' || c == '\r' || c == '\0';
+}
+
+jack_lexer* jack_lexer_init(const char* buffer) {
     jackc_assert(buffer != NULL && "Lexer's buffer cannot be NULL");
 
-    jackc_lexer* lexer = jackc_alloc(sizeof(jackc_lexer));
+    jack_lexer* lexer = jackc_alloc(sizeof(jack_lexer));
     lexer->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
 
     lexer->c = LEXER_DEFAULT_CHAR;
@@ -18,7 +26,7 @@ jackc_lexer* jack_lexer_init(const char* buffer) {
     return lexer;
 }
 
-jack_token jack_lexer_next_token(jackc_lexer* lexer) {
+jack_token jack_lexer_next_token(jack_lexer* lexer) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
     jack_lexer_skip_blank_and_comments(lexer);
@@ -30,8 +38,22 @@ jack_token jack_lexer_next_token(jackc_lexer* lexer) {
         do {
             value = value * 10 + lexer->c - '0';
             jack_lexer_read_char(lexer);
-        } while((int8_t)lexer->c >= 0 && lexer->c <= '9');
+        } while(lexer->c >= '0' && lexer->c <= '9' && !is_eol(lexer->c));
         return jack_lexer_new_int_token(lexer, num_start, value);
+    }
+
+    if (lexer->c == '"') {
+        const char* str_start = jack_lexer_cur_pos(lexer) + 1;
+        jack_lexer_read_char(lexer);
+        // TODO: Get "is_end_of_line" function
+        while (lexer->c != '"' && !is_eol(lexer->c)) {
+            jack_lexer_read_char(lexer);
+        }
+        jack_token token = jack_lexer_new_str_token(lexer, TOKEN_STR_LITERAL, str_start);
+        if (lexer->c == '"') {
+            jack_lexer_read_char(lexer);
+        }
+        return token;
     }
 
     // Identifiers
@@ -51,11 +73,15 @@ jack_token jack_lexer_next_token(jackc_lexer* lexer) {
 
     if (c == '\0') {
         // '\0' does not follow common logic as there is no char after it
-        return jack_lexer_new_str_token(lexer, c, jack_lexer_cur_pos(lexer));
+        return eof_token(lexer);
     }
     jackc_assert(c != '\n' && c != '\r' && c != '\0' && "These chars are not meant to be processed by this code block");
 
     c = lexer->c;
     jack_lexer_read_char(lexer);
     return jack_lexer_new_str_token(lexer, c, jack_lexer_cur_pos(lexer) - 1);
+}
+
+bool jack_lexer_has_token(jack_lexer* lexer) {
+    return lexer->c != '\0';
 }

@@ -1,20 +1,20 @@
 #include "compiler_lexer_internal.h"
-#include "common/jackc_assert.h"
+#include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "jackc_string.h"
 
-const char* jack_lexer_pos(const jackc_lexer* lexer, int32_t offset) {
+const char* jack_lexer_pos(const jack_lexer* lexer, int32_t offset) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
     const char* out = lexer->buffer.data + lexer->pos + offset;
     jackc_assert(out >= lexer->buffer.data && out <= lexer->buffer.data + lexer->buffer.length && "Index out of range");
     return lexer->buffer.data + lexer->pos + offset;
 }
 
-inline const char* jack_lexer_cur_pos(const jackc_lexer* lexer) {
+inline const char* jack_lexer_cur_pos(const jack_lexer* lexer) {
     return jack_lexer_pos(lexer, -1);
 }
 
-void jack_lexer_read_char(jackc_lexer* lexer) {
+void jack_lexer_read_char(jack_lexer* lexer) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
     // String length does not include null terminator
     jackc_assert(lexer->pos <= lexer->buffer.length && "Index out of range");
@@ -22,7 +22,7 @@ void jack_lexer_read_char(jackc_lexer* lexer) {
     lexer->c = lexer->buffer.data[lexer->pos++];
 }
 
-[[nodiscard]] bool jack_lexer_read_and_expect(jackc_lexer* lexer, char expected) {
+[[nodiscard]] bool jack_lexer_read_and_expect(jack_lexer* lexer, char expected) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
     char prev_c = lexer->c;
@@ -37,7 +37,7 @@ void jack_lexer_read_char(jackc_lexer* lexer) {
     return is_expected;
 }
 
-jack_token jack_lexer_new_str_token(jackc_lexer* lexer, int32_t type, const char* start) {
+jack_token jack_lexer_new_str_token(jack_lexer* lexer, int32_t type, const char* start) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
     jackc_assert(start <= jack_lexer_cur_pos(lexer) && "Token start is after current position");
 
@@ -51,16 +51,16 @@ jack_token jack_lexer_new_str_token(jackc_lexer* lexer, int32_t type, const char
     return token;
 }
 
-jack_token jack_lexer_new_int_token(jackc_lexer* lexer, const char* start, jack_int value) {
+jack_token jack_lexer_new_int_token(jack_lexer* lexer, const char* start, jack_int value) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
-    jack_token token = jack_lexer_new_str_token(lexer, TOKEN_NUMBER_INT, start);
+    jack_token token = jack_lexer_new_str_token(lexer, TOKEN_INT_LITERAL, start);
     token.value.integer = value;
 
     return token;
 }
 
-void jack_lexer_skip_blank_and_comments(jackc_lexer* lexer) {
+void jack_lexer_skip_blank_and_comments(jack_lexer* lexer) {
     jackc_assert(lexer != NULL && "Lexer is NULL");
 
     bool is_one_line_comment = false;
@@ -86,7 +86,10 @@ void jack_lexer_skip_blank_and_comments(jackc_lexer* lexer) {
             if (!is_one_line_comment) {
                 is_multiline_comment = is_multiline_comment || jack_lexer_read_and_expect(lexer, '*');
             }
-            continue;
+
+            if (is_one_line_comment || is_multiline_comment) continue;
+            // Division operator
+            return;
         }
         else if (lexer->c == '*' && jack_lexer_read_and_expect(lexer, '/')) {
             is_multiline_comment = false;

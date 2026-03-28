@@ -19,6 +19,7 @@ typedef enum {
 } jackc_lexer_return_code;
 
 typedef enum {
+    TOKEN_EOF = 0, // Match '\0'
     TOKEN_CLASS = 256,
     TOKEN_CONSTRUCTOR,
     TOKEN_FUNCTION,
@@ -40,17 +41,17 @@ typedef enum {
     TOKEN_ELSE,
     TOKEN_WHILE,
     TOKEN_RETURN,
-    TOKEN_NUMBER_INT,
+    TOKEN_INT_LITERAL,
+    TOKEN_STR_LITERAL,
     TOKEN_IDENTIFIER,
-    TOKEN_EOF
 } jack_token_type;
 
 typedef enum {
     VAR_STATIC = 0,
     VAR_FIELD,
     VAR_LOCAL,
-    VAR_ARGUMENT,
-} jack_variable_type;
+    VAR_ARG,
+} jack_variable_kind;
 
 typedef union {
     jack_int integer;
@@ -71,12 +72,12 @@ typedef struct {
     jackc_string buffer;
     uint32_t pos, line, col;
     char c;
-} jackc_lexer;
+} jack_lexer;
 
-[[nodiscard]] jackc_lexer* jack_lexer_init(const char* buffer);
+[[nodiscard]] jack_lexer* jack_lexer_init(const char* buffer);
 
-[[nodiscard]] jack_token jack_lexer_next_token(jackc_lexer* lexer);
+[[nodiscard]] jack_token jack_lexer_next_token(jack_lexer* lexer);
 
-// [[nodiscard]] jackc_lexer_return_code jack_lexer_peek();
+[[nodiscard]] bool jack_lexer_has_token(jack_lexer* lexer);
 
 #endif

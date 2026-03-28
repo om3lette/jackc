@@ -1,7 +1,7 @@
 #ifndef JACKC_COMPILER_SYMTABLE_H
 #define JACKC_COMPILER_SYMTABLE_H
 
-#include "common/data-structures/hashmap.h"
+#include "core/data-structures/hashmap.h"
 #include "compiler/symtable/symtable_token.h"
 
 typedef enum {

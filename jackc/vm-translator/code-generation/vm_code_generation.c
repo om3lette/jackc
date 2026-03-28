@@ -1,6 +1,6 @@
 #include "jackc_stdlib.h"
 #include "vm_code_generator.h"
-#include "common/jackc_assert.h"
+#include "core/asserts/jackc_assert.h"
 #include "common/config.h"
 #include "jackc_stdio.h"
 #include "jackc_string.h"

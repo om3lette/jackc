@@ -1,5 +1,6 @@
 .cache
 .DS_STORE
+.VSCodeCounter
 
 .idea
 
@@ -16,3 +17,4 @@ notes.md
 *.asm
 
 tests/compiler/jack-code
+output.txt

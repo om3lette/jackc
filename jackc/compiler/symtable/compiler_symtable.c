@@ -1,7 +1,7 @@
 #include "compiler_symtable.h"
-#include "common/data-structures/allocator.h"
-#include "common/data-structures/hashmap.h"
-#include "common/jackc_assert.h"
+#include "core/allocators/allocators.h"
+#include "core/data-structures/hashmap.h"
+#include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/symtable/symtable_token.h"
 #include "jackc_stdlib.h"
@@ -92,7 +92,7 @@ sym_table_return_code sym_table_insert(sym_table* table, sym_table_token* token)
     if (sym_table_exists_local(table, &token->name)) {
         return SYMTAB_ALREADY_EXISTS;
     }
-    switch (token->var.type) {
+    switch (token->var.kind) {
         case VAR_STATIC:
             token->var.idx = table->static_idx++;
             break;
@@ -102,7 +102,7 @@ sym_table_return_code sym_table_insert(sym_table* table, sym_table_token* token)
         case VAR_LOCAL:
             token->var.idx = table->local_idx++;
             break;
-        case VAR_ARGUMENT:
+        case VAR_ARG:
             token->var.idx = table->argument_idx++;
             break;
         default:

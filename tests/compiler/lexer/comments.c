@@ -1,6 +1,7 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "jackc_stdlib.h"
 #include "lexer_test_utils.h"
+#include "test_lexer_common.h"
 #include "tau.h"
 
 TEST_F_SETUP(lexer_fixture) {

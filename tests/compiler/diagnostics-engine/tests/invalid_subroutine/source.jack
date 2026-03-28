@@ -1,0 +1,6 @@
+class T {
+    function void f() {
+        var int x;
+        function void g() {}
+    }
+}
