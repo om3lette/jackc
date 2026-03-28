@@ -15,3 +15,12 @@ target_link_libraries(compiler
         common
         diagnostics_engine
 )
+
+add_executable(jackc_frontend
+    ${CMAKE_CURRENT_SOURCE_DIR}/frontend.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/frontend_exec.c
+)
+target_link_libraries(jackc_frontend
+    PUBLIC
+        compiler
+)

@@ -7,7 +7,7 @@
 #include "jackc_stdlib.h"
 
 int main(int argc, char** argv) {
-    if (argc != EXPECTED_ARGUMENTS) {
+    if (argc != BACKEND_EXPECTED_ARGUMENTS) {
         jackc_printf("Usage: jackc <base-dir> <save-path>\n");
         jackc_exit(JACKC_EXIT_INVALID_ARGUMENT);
     }

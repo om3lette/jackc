@@ -18,3 +18,4 @@ notes.md
 
 tests/compiler/jack-code
 output.txt
+.tmp
