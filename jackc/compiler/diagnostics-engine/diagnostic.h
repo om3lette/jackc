@@ -25,6 +25,8 @@ typedef enum {
     DIAG_INVALID_RETURN_TYPE,
     DIAG_INVALID_SUBROUTINE_KIND,
     DIAG_INVALID_TOKEN_CLASS_BODY,
+    DIAG_INVALID_TOKEN_TERM,
+    DIAG_MISSING_SEMICOLON,
     NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
 
@@ -41,6 +43,9 @@ typedef struct {
         struct {
             jackc_string got;
         } invalid_token;
+        struct {
+            jackc_string token;
+        } last_valid_token;
     } data;
 } jackc_diagnostic;
 

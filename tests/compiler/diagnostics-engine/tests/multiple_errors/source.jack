@@ -1,4 +1,4 @@
-class t {
+class T {
     var x, y;
 
     function int mult(int x, int y) {

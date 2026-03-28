@@ -1,0 +1,3 @@
+class t {
+    field int x, missing_semicolon
+}

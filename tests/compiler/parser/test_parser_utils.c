@@ -217,7 +217,7 @@ const char* ast_expression_to_string(Allocator* allocator, const ast_expr* expr)
 void test_parser_fixture_init(struct parser_fixture* tau, const char* source) {
     tau->arena = arena_allocator_adapter();
     tau->lexer = jack_lexer_init(source);
-    tau->engine = jack_diag_engine_init(tau->lexer->buffer, __FILE_NAME__, diagnostic_translations, fileno(stdout));
+    tau->engine = jackc_diag_engine_init(tau->lexer->buffer, __FILE_NAME__, diagnostic_translations, fileno(stdout));
     tau->parser = nullptr;
 }
 

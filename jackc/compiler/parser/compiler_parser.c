@@ -17,7 +17,7 @@ jack_parser* jack_parser_init(jack_lexer* lexer, jackc_diagnostic_engine* engine
 
     parser->current = jack_lexer_next_token(parser->lexer);
     parser->next = jack_lexer_next_token(parser->lexer);
-    parser->previous_token_type = TOKEN_EOF;
+    parser->previous = parser->current;
 
     return parser;
 }

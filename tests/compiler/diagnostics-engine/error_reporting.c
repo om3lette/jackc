@@ -1,5 +1,8 @@
+#include "compiler/diagnostics-engine/engine.h"
+#include "core/logging/logger.h"
 #include "jackc_stdlib.h"
 #include "test_parser_utils.h"
+#include "test_lexer_common.h"
 #include "tau.h"
 #include <dirent.h>
 #include <stdio.h>
@@ -47,19 +50,13 @@ static void path_join(char* out, size_t size, const char* a, const char* b) {
 bool next_test_case(const char* base_path, char* out_dir) {
     static DIR* dir = nullptr;
 
-    if (base_path) {
-        if (dir) {
-            closedir(dir);
-        }
-
+    if (!dir) {
         dir = opendir(base_path);
         if (!dir) {
             perror("opendir");
             return false;
         }
     }
-
-    if (!dir) return false;
 
     struct dirent* entry;
 
@@ -110,6 +107,7 @@ TEST_F(parser_fixture, error_reporting) {
     char test_dir[PATH_MAX];
 
     if (!next_test_case(base_path, test_dir)) {
+        REQUIRE(false, "No test cases found");
         return;
     }
 
@@ -125,7 +123,18 @@ TEST_F(parser_fixture, error_reporting) {
         path_join(output_path, sizeof(output_path), test_dir, OUTPUT_FILENAME);
 
         char* source = jackc_read_file_content(source_path);
+        if (!source) {
+            is_success = false;
+            LOG_ERROR("Missing %s for test %s\n", TEST_FILENAME, test_dir);
+            continue;
+        }
         char* expected = jackc_read_file_content(expected_path);
+        if (!expected) {
+            is_success = false;
+            LOG_ERROR("Missing %s for test %s\n", EXPECTED_FILENAME, test_dir);
+            free(source);
+            continue;
+        }
 
         FILE* out = fopen(output_path, "w");
         if (!out) {
@@ -133,10 +142,10 @@ TEST_F(parser_fixture, error_reporting) {
             continue;
         }
 
+        test_jack_lexer_new_buffer(tau->lexer, source);
+        jackc_diag_engine_reset(&tau->engine, tau->lexer->buffer, TEST_FILENAME, fileno(out));
+
         parse_class(source, tau);
-        tau->engine.output_fd = fileno(out);
-        tau->engine.filename = TEST_FILENAME;
-        tau->engine.source = tau->lexer->buffer;
         jackc_diagnostic_engine_report(&tau->engine, tau->lexer->line);
         fflush(out);
         fclose(out);
@@ -144,16 +153,14 @@ TEST_F(parser_fixture, error_reporting) {
         char* actual = jackc_read_file_content(output_path);
         bool result = strcmp(actual, expected) == 0;
         if (!result) {
-            char* test_name = strrchr(source_path, '/');
-            jackc_printf("Test '%s' failed\n", test_name ? test_name + 1 : source_path);
+            LOG_ERROR("Test '%s' result: FAIL\n", source_path);
+            is_success = false;
         }
-        is_success &= result;
 
         free(actual);
         free(source);
         free(expected);
-
-    } while (next_test_case(nullptr, test_dir));
+    } while (next_test_case(base_path, test_dir));
 
     REQUIRE(is_success);
 }

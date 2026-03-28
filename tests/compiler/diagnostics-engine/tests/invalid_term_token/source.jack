@@ -1,0 +1,7 @@
+class TestClass {
+    function void multiply(int x, int y) {
+        var int m;
+        let m = (2 + -) + y;
+        return m;
+    }
+}

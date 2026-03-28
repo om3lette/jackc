@@ -21,11 +21,11 @@ void jack_sync_context_pop(jack_parser* parser, jack_sync_context context);
 
 struct jack_parser {
     jack_lexer* lexer;
+    jack_token previous;
     jack_token current;
     jack_token next;
 
     jackc_diagnostic_engine* engine;
-    int32_t previous_token_type; // Used for error recovery
 
     bool had_error;
     bool panic_mode;

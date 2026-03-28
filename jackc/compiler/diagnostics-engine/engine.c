@@ -1,11 +1,12 @@
 #include "engine.h"
 #include "compiler/diagnostics-engine/diagnostic.h"
+#include "compiler/diagnostics-engine/translations/translation.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_stdio.h"
 #include "jackc_string.h"
 
-jackc_diagnostic_engine jack_diag_engine_init(
+jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
     const char* filename,
     const jackc_diagnostic_translation* translations,
@@ -20,6 +21,21 @@ jackc_diagnostic_engine jack_diag_engine_init(
         .overflow = false
     };
     return engine;
+}
+
+void jackc_diag_engine_reset(
+    jackc_diagnostic_engine* engine,
+    jackc_string source,
+    const char* filename,
+    int output_fd
+) {
+    jackc_assert(engine && "Engine is null");
+
+    engine->source = source;
+    engine->filename = filename;
+    engine->output_fd = output_fd;
+    engine->size = 0;
+    engine->overflow = false;
 }
 
 static char* token_type_to_str(jack_token_type token) {
@@ -119,9 +135,12 @@ static jack_location source_map_resolve(
     return (jack_location){ .line = (uint32_t)l, .col = (uint32_t)(pos - map[l]) };
 }
 
-static void build_source_map(const jackc_string source, uint32_t line_starts[]) {
+static void build_source_map(const jackc_string source, uint32_t line_starts[], uint32_t lines_total) {
     size_t line = 1;
     for (size_t pos = 0; pos < source.length; ++pos) {
+        // Parser exited before consuming all lexer tokens
+        // Not all source lines are parsed, so the map is incomplete
+        if (line >= lines_total) return;
         if (source.data[pos] == '\n') {
             line_starts[line++] = (uint32_t)(pos + 1);
         }
@@ -160,10 +179,24 @@ static void print_prefix_with_line(int fd, uint32_t line, uint32_t max_line_leng
 
 #define PUTCHAR(c) jackc_fprintf(engine->output_fd, "%c", c)
 
+static char* diagnostic_severity_str(jackc_diagnostic_severity severity) {
+    switch (severity) {
+        case DIAG_ERROR:
+            return "error";
+        case DIAG_WARNING:
+            return "warning";
+        case DIAG_NOTE:
+            return "note";
+    }
+
+    jackc_assert(false);
+    return "";
+}
+
 void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t lines_total) {
     uint32_t line_starts[lines_total];
     line_starts[0] = 0;
-    build_source_map(engine->source, line_starts);
+    build_source_map(engine->source, line_starts, lines_total);
 
     uint8_t max_line_length = int_length(lines_total);
 
@@ -172,41 +205,37 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
         jackc_span span = diagnostic.span;
         jack_location loc = source_map_resolve(line_starts, lines_total, span.start);
 
-        char* severity_str = "";
-        switch (diagnostic.severity) {
-            case DIAG_ERROR:
-                severity_str = "error";
-                break;
-            case DIAG_WARNING:
-                severity_str = "warning";
-                break;
-            case DIAG_NOTE:
-                severity_str = "note";
-                break;
-        }
-
+        char* severity_str = diagnostic_severity_str(diagnostic.severity);
         jackc_fprintf(engine->output_fd, "%s: ", severity_str);
-        const char* fmt = engine->translations[diagnostic.code].fmt;
+
+        jackc_diagnostic_translation translation = engine->translations[diagnostic.code];
         switch (diagnostic.code) {
             case DIAG_UNEXPECTED_TOKEN:
                 jackc_fprintf(
                     engine->output_fd,
-                    fmt,
+                    translation.fmt,
                     token_to_str(diagnostic.data.unexpected_token.expected),
                     diagnostic.data.unexpected_token.got.length,
                     diagnostic.data.unexpected_token.got.data
                 );
                 break;
             case DIAG_INVALID_TOKEN_CLASS_BODY:
+            case DIAG_INVALID_TOKEN_TERM:
                 jackc_fprintf(
                     engine->output_fd,
-                    fmt,
+                    translation.fmt,
                     diagnostic.data.invalid_token.got.length,
                     diagnostic.data.invalid_token.got.data
                 );
                 break;
+            case DIAG_MISSING_SEMICOLON:
+                // Move the ^ to the end of the span, where the semicolon was expected
+                loc.col += (span.end - span.start);
+                span.start = span.end;
+                jackc_fprintf(engine->output_fd, translation.fmt);
+                break;
             default:
-                jackc_fprintf(engine->output_fd, fmt);
+                jackc_fprintf(engine->output_fd, translation.fmt);
                 break;
         }
         jackc_fprintf(engine->output_fd, "\n --> %s:%d:%d\n", engine->filename, loc.line + 1, loc.col + 1);
@@ -233,7 +262,15 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
         for (uint32_t span_idx = span.start + 1; span_idx < span.end; ++span_idx) {
             PUTCHAR('~');
         }
-        PUTCHAR('\n');
+
+        if (translation.desc) {
+            jackc_fprintf(engine->output_fd, "\n%s: %s", diagnostic_severity_str(DIAG_NOTE), translation.desc);
+        }
+        jackc_fprintf(engine->output_fd, i != engine->size - 1 ? "\n\n" : "\n");
+    }
+
+    if (engine->overflow) {
+        jackc_fprintf(engine->output_fd, "\n%s: Diagnostic engine overflowed.\n", diagnostic_severity_str(DIAG_WARNING));
     }
 }
 

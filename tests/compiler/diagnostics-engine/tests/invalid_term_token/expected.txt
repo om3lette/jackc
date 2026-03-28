@@ -1,0 +1,6 @@
+error: Unexpected token ')' while parsing term.
+ --> source.jack:4:23
+  |
+4 |         let m = (2 + -) + y;
+  |                       ^
+note: Expected start of term: literal, identifier, '(', or unary operator.

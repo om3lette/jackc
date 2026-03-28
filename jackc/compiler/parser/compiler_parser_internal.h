@@ -40,7 +40,6 @@ typedef uint8_t binding_power;
     RETURN_IF_PANIC(parser); \
 } while (0)
 
-// TODO: Error "Missing semicolon"
 #define EXPECT_SEMICOLON(parser) do { \
     jack_parser_expect(parser, ';'); \
     RETURN_IF_PANIC(parser); \

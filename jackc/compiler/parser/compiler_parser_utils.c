@@ -20,6 +20,11 @@ bool is_class_var_start(jack_parser* parser) {
         || jack_parser_check(parser, TOKEN_FIELD);
 }
 
+bool is_class_member_start(jack_parser* parser) {
+    return is_class_var_start(parser)
+        || is_subroutine_start(parser);
+}
+
 bool is_rcurl_or_eof(jack_parser* parser) {
     return jack_parser_check(parser, '}')
         || jack_parser_check(parser, TOKEN_EOF);

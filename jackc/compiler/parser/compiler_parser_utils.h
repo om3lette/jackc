@@ -6,6 +6,7 @@
 [[ nodiscard ]] bool is_statement_start(jack_parser* parser);
 [[ nodiscard ]] bool is_subroutine_start(jack_parser* parser);
 [[ nodiscard ]] bool is_class_var_start(jack_parser* parser);
+[[ nodiscard ]] bool is_class_member_start(jack_parser* parser);
 [[ nodiscard ]] bool is_rcurl_or_eof(jack_parser* parser);
 
 void enter_panic_mode(jack_parser* parser);
