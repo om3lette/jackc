@@ -38,6 +38,7 @@ sym_table_return_code function_registry_insert(function_registry* registry, cons
 
     for (ast_subroutine* sub = class->subroutines; sub; sub = sub->next) {
         function_signature signature = {
+            .name = sub->name,
             .kind = sub->kind,
             .arguments = sub->params,
             .return_type = &sub->return_type,
@@ -48,7 +49,7 @@ sym_table_return_code function_registry_insert(function_registry* registry, cons
 }
 
 bool function_registry_contains_class(
-    function_registry* registry,
+    const function_registry* registry,
     const jackc_string* class_name,
     class_symbol* out
 ) {
@@ -56,7 +57,7 @@ bool function_registry_contains_class(
 }
 
 bool function_registry_contains(
-    function_registry* registry,
+    const function_registry* registry,
     const jackc_string* class_name,
     const jackc_string* method_name,
     function_signature* found

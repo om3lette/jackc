@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 
     jackc_frontend_return_code result = jackc_frontend_compile(base_dir_path, &allocator);
 
-    LOG_DEBUG("Compilation finished.\n");
+    LOG_DEBUG("Compilation finished with exit code %d.\n", result);
     arena_allocator_destroy(allocator.context);
     return (int)result;
 }

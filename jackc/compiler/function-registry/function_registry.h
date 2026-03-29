@@ -15,6 +15,7 @@ typedef struct {
 } class_symbol;
 
 typedef struct {
+    jackc_string name;
     ast_sub_kind kind;
     ast_var_dec* arguments;
     ast_type* return_type;
@@ -25,13 +26,13 @@ function_registry* function_registry_init(Allocator* allocator);
 sym_table_return_code function_registry_insert(function_registry* registry, const ast_class* class);
 
 bool function_registry_contains_class(
-    function_registry* registry,
+    const function_registry* registry,
     const jackc_string* class_name,
     class_symbol* out
 );
 
 bool function_registry_contains(
-    function_registry* registry,
+    const function_registry* registry,
     const jackc_string* class_name,
     const jackc_string* method_name,
     function_signature* found

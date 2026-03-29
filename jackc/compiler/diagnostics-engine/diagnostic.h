@@ -30,15 +30,30 @@ typedef enum {
     DIAG_MISSING_SEMICOLON,
 
     // Symtab
-    DIAG_REDEFINITION_OF_CLASS,
+    DIAG_REDEFINITION,
+    DIAG_INCOMPLETE_TYPE,
+    DIAG_USE_OF_UNDECLARED_IDENTIFIER,
+    DIAG_CALL_TO_UNDECLARED_SUBROUTINE,
+    DIAG_NON_VOID_SUBROUTINE_SHOULD_RETURN_A_VALUE,
+    DIAG_CALLED_OBJECT_TYPE_IS_NOT_A_CLASS,
+
+    DIAG_EMPTY_IF_STATEMENT,
+    DIAG_INVALID_OPERATION,
+    DIAG_CANNOT_CALL_METHOD_WITHOUT_AN_OBJECT,
+
+    // Notes
+    DIAG_PREVIOUS_DEFINITION_IS_HERE,
 
     NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
 
-typedef struct {
+typedef struct jackc_diagnostic jackc_diagnostic;
+struct jackc_diagnostic {
     jackc_span span;
     jackc_diagnostic_severity severity;
     jackc_diagnostic_code code;
+
+    jackc_diagnostic* note; // Optional note
 
     union {
         struct {
@@ -52,6 +67,6 @@ typedef struct {
             jackc_string token;
         } last_valid_token;
     } data;
-} jackc_diagnostic;
+};
 
 #endif

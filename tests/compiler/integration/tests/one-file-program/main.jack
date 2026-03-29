@@ -1,0 +1,9 @@
+class Main {
+    function void main() {
+        var int x, y;
+        let x = 2;
+        let y = 3;
+
+        return x * y;
+    }
+}

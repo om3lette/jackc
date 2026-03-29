@@ -1,11 +1,10 @@
 #include "compiler/ast/ast.h"
-#include "compiler/ast/symtab_traversal.h"
+#include "compiler/ast/traversals.h"
 #include "compiler/diagnostics-engine/engine.h"
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_internal.h"
-#include "compiler/symtable/compiler_symtable.h"
 #include "core/logging/logger.h"
 #include "jackc_stdio.h"
 #include "jackc_stdlib.h"
@@ -42,13 +41,11 @@ static jackc_parse_result jackc_parse_file(const char* filename, jackc_string so
     return (jackc_parse_result){ .ast = ast, .lines = lexer.line, .had_error = parser.had_error };
 }
 
-static int build_global_symtable(
+static bool build_global_symtable(
     const jack_source* source_files,
-    sym_table* symbol_table,
     function_registry* func_registry
 ) {
-    symtab_traversal_context symtab_ctx = {
-        .symtab = symbol_table,
+    function_registry_traversal_context symtab_ctx = {
         .registry = func_registry,
         .engine = {},
         .had_redeclaration = false
@@ -56,14 +53,31 @@ static int build_global_symtable(
     const jack_source* current_file = source_files;
     while (current_file) {
         symtab_ctx.engine = jackc_diag_engine_init(current_file->content, current_file->filepath, diagnostic_translations, 1);
-        ast_symtab_build_traversal(current_file->ast, &symtab_ctx);
+        ast_function_registry_build_traversal(current_file->ast, &symtab_ctx);
         jackc_diagnostic_engine_report(&symtab_ctx.engine, current_file->lines);
         current_file = current_file->next;
     }
-    if (symtab_ctx.had_redeclaration)
-        return 1;
+    return symtab_ctx.had_redeclaration;
+}
 
-    return 0;
+static bool is_semantically_invalid(
+    const jack_source* source_files,
+    function_registry* registry,
+    Allocator* allocator
+) {
+    bool is_invalid = false;
+    for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
+        semantic_validity_traversal_context ctx = {
+            .class_name = current_file->ast->name,
+            .registry = registry,
+            .engine = jackc_diag_engine_init(current_file->content, current_file->filepath, diagnostic_translations, 1),
+            .allocator = allocator,
+            .is_invalid = false
+        };
+        is_invalid |= ast_semantic_validity_traversal(current_file->ast, &ctx);
+        jackc_diagnostic_engine_report(&ctx.engine, current_file->lines);
+    }
+    return is_invalid;
 }
 
 static void source_file_free(const jack_source* source_files) {
@@ -112,12 +126,15 @@ jackc_frontend_return_code jackc_frontend_compile(const char* base_path, Allocat
     if (failed_to_open_source_file)
         RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_OPEN_SOURCE_FILE);
 
-    // First ast traversal - build symbol table of class names and function signatures
+    // The first AST pass - build symbol table of class names and function signatures
     // Will report Class redeclarations
-    sym_table* symbol_table = sym_table_init(nullptr, allocator);
     function_registry* registry = function_registry_init(allocator);
-    if (build_global_symtable(source_files, symbol_table, registry))
+    if (build_global_symtable(source_files, registry))
         RETURN_WITH_CLEANUP(FRONTEND_SYMBOL_TABLE_BUILD_ERROR);
+
+    // The second AST pass - check that program is semantically valid
+    if (is_semantically_invalid(source_files, registry, allocator))
+        RETURN_WITH_CLEANUP(FRONTEND_SEMANTICALLY_INVALID);
 
     RETURN_WITH_CLEANUP(FRONTEND_OK);
 }

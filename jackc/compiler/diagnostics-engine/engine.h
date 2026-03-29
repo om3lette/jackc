@@ -2,6 +2,7 @@
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_ENGINE_H
 
 #include "compiler/diagnostics-engine/translations/translation.h"
+#include "core/allocators/allocators.h"
 #include "jackc_string.h"
 #include "diagnostic.h"
 #include <stddef.h>
@@ -48,6 +49,13 @@ typedef struct {
     jackc_diagnostic_code code,
     jackc_string str
 );
+void jackc_diag_add_note(
+    jackc_diag_builder* builder,
+    jackc_diagnostic_code code,
+    jackc_string str,
+    Allocator* allocator
+);
+
 void jackc_diag_emit(const jackc_diag_builder* builder);
 void jackc_diag_push(jackc_diagnostic_engine* engine, jackc_diagnostic diagnostic);
 

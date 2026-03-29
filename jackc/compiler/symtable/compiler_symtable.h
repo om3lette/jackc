@@ -10,15 +10,16 @@ typedef enum {
     SYMTAB_ALREADY_EXISTS,
 } sym_table_return_code;
 
-typedef struct {
+typedef struct sym_table sym_table;
+struct sym_table {
     fixed_hash_map* tokens;
-    struct sym_table* prev;
+    sym_table* prev;
     Allocator* allocator;
     uint32_t static_idx;
     uint32_t field_idx;
     uint32_t local_idx;
     uint32_t argument_idx;
-} sym_table;
+};
 
 /**
  * Initializes a new symbol table with the given previous table.
