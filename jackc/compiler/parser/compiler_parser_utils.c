@@ -43,11 +43,6 @@ bool is_panic_mode(jack_parser* parser) {
     return parser->panic_mode;
 }
 
-jackc_span token_to_span(const jack_parser* parser, jack_token token) {
-    uint32_t span_start = (uint32_t)(token.str.data - parser->lexer->buffer.data);
-    return (jackc_span){ .start = span_start, .end = (uint32_t)(span_start + token.str.length) };
-}
-
 jackc_diag_builder diagnostic_begin(const jack_parser* parser, jackc_diagnostic_severity severity, jackc_diagnostic_code code) {
-    return jackc_diag_begin(parser->engine, severity, code, token_to_span(parser, parser->current));
+    return jackc_diag_begin(parser->engine, severity, code, parser->current.str);
 }

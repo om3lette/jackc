@@ -8,7 +8,7 @@
 #   ifdef __rars__
 #       define FIXED_HASH_MAP_BUCKETS 128
 #   else
-#       define FIXED_HASH_MAP_BUCKETS 4096
+#       define FIXED_HASH_MAP_BUCKETS 512
 #   endif
 #endif
 static_assert((FIXED_HASH_MAP_BUCKETS & (FIXED_HASH_MAP_BUCKETS - 1)) == 0);
@@ -52,7 +52,7 @@ fixed_hash_map* _fixed_hashmap_init(size_t key_size, size_t value_size, hash_fn 
 
 void fixed_hashmap_insert(fixed_hash_map* map, const void* key, const void* value);
 
-int fixed_hashmap_find(fixed_hash_map* map, const void* key, void* out);
+int fixed_hashmap_find(const fixed_hash_map* map, const void* key, void* out);
 
 double fixed_hashmap_load_factor(const fixed_hash_map* map);
 

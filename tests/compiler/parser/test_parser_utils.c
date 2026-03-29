@@ -217,13 +217,11 @@ const char* ast_expression_to_string(Allocator* allocator, const ast_expr* expr)
 void test_parser_fixture_init(struct parser_fixture* tau, const char* source) {
     tau->arena = arena_allocator_adapter();
     tau->lexer = jack_lexer_init(source);
-    tau->engine = jackc_diag_engine_init(tau->lexer->buffer, __FILE_NAME__, diagnostic_translations, fileno(stdout));
-    tau->parser = nullptr;
+    tau->engine = jackc_diag_engine_init(tau->lexer.buffer, __FILE_NAME__, diagnostic_translations, fileno(stdout));
 }
 
 void test_parser_fixture_destroy(struct parser_fixture* tau) {
     arena_allocator_destroy(tau->arena.context);
-    jackc_free(tau->lexer);
 }
 
 size_t var_len(ast_var_dec* var) {
@@ -251,10 +249,10 @@ size_t statements_len(ast_stmt* sub) {
 }
 
 static jack_parser* common_init(const char* src, struct parser_fixture* tau) {
-    test_jack_lexer_new_buffer(tau->lexer, src);
-    jack_parser* parser = jack_parser_init(tau->lexer, &tau->engine, &tau->arena);
+    test_jack_lexer_new_buffer(&tau->lexer, src);
+    jack_parser parser = jack_parser_init(&tau->lexer, &tau->engine, &tau->arena);
     tau->parser = parser;
-    return parser;
+    return &tau->parser;
 }
 
 ast_var_dec* parse_var(const char* src, struct parser_fixture* tau) {

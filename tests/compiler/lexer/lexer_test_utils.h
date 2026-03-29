@@ -5,12 +5,12 @@
 #include "compiler/lexer/compiler_reserved_keywords.h" // IWYU pragma: keep
 
 struct lexer_fixture {
-    jack_lexer* lexer;
+    jack_lexer lexer;
     jack_token token;
 };
 
 #define NEXT_TOKEN() do { \
-    tau->token = jack_lexer_next_token(tau->lexer); \
+    tau->token = jack_lexer_next_token(&tau->lexer); \
 } while(0)
 
 #define REQUIRE_END_TOKEN() do { \

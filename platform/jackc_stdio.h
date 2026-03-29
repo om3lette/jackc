@@ -15,10 +15,12 @@
 #define O_TRUNC 01000
 
 #ifdef __rars__
-    #define EXPECTED_ARGUMENTS 2
+    #define FRONTEND_EXPECTED_ARGUMENTS 2
+    #define BACKEND_EXPECTED_ARGUMENTS 2
     #define FIRST_ARG_IDX 0
 #else
-    #define EXPECTED_ARGUMENTS 3
+    #define FRONTEND_EXPECTED_ARGUMENTS 3
+    #define BACKEND_EXPECTED_ARGUMENTS 3
     #define FIRST_ARG_IDX 1
 #endif
 

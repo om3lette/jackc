@@ -3,11 +3,13 @@ include_directories(include)
 add_library(tests_utils STATIC
     compiler/lexer/lexer_test_utils.c
     compiler/parser/test_parser_utils.c
+    utils/test_path_utils.c
 )
 
 add_executable(compiler_lexer_tests
     main.c
     compiler/lexer/eof.c
+    compiler/lexer/identifiers.c
     compiler/lexer/internal.c
     compiler/lexer/numbers.c
     compiler/lexer/comments.c
@@ -31,6 +33,16 @@ add_executable(compiler_symtab_tests
     compiler/symtab/insert.c
 )
 target_link_libraries(compiler_symtab_tests
+    PRIVATE
+        Tau
+        compiler
+)
+
+add_executable(function_registry_tests
+    main.c
+    compiler/function-registry/insert.c
+)
+target_link_libraries(function_registry_tests
     PRIVATE
         Tau
         compiler
@@ -85,9 +97,22 @@ target_link_libraries(diagnostics_engine_tests
         compiler
 )
 
+add_executable(compiler_integration_tests
+    main.c
+    compiler/integration/runner.c
+)
+target_link_libraries(compiler_integration_tests
+    PRIVATE
+        Tau
+        tests_utils
+        compiler
+)
+
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
 add_test(NAME compiler_symtab_tests COMMAND compiler_symtab_tests)
 add_test(NAME data_structure_tests COMMAND data_structure_tests)
 add_test(NAME allocators_tests COMMAND allocators_tests)
 add_test(NAME compiler_parser_tests COMMAND compiler_parser_tests)
 add_test(NAME diagnostics_engine_tests COMMAND diagnostics_engine_tests)
+add_test(NAME function_registry_tests COMMAND function_registry_tests)
+add_test(NAME compiler_integration_tests COMMAND compiler_integration_tests)

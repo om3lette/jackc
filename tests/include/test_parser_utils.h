@@ -39,16 +39,16 @@
 } while (0)
 
 #define REQUIRE_NO_PANIC(parser) do { \
-    REQUIRE(!parser->panic_mode); \
+    REQUIRE(!parser.panic_mode); \
 } while (0)
 
 #define REQUIRE_PANIC(parser, errors_cnt) do { \
-    REQUIRE(parser->panic_mode); \
+    REQUIRE(parser.panic_mode); \
     REQUIRE_ERRORS(parser, errors_cnt); \
 } while (0)
 
 #define REQUIRE_ERRORS(parser, count) do { \
-    REQUIRE_EQ(parser->engine->size, count); \
+    REQUIRE_EQ(parser.engine->size, count); \
 } while (0)
 
 #define REQUIRE_NO_ERRORS(parser) do { \
@@ -57,9 +57,9 @@
 
 struct parser_fixture {
     Allocator arena;
-    jack_lexer* lexer;
+    jack_lexer lexer;
     jackc_diagnostic_engine engine;
-    jack_parser* parser;
+    jack_parser parser;
 };
 
 void test_parser_fixture_init(struct parser_fixture* tau, const char* source);

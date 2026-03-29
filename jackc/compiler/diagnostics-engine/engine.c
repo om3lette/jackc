@@ -2,8 +2,10 @@
 #include "compiler/diagnostics-engine/diagnostic.h"
 #include "compiler/diagnostics-engine/translations/translation.h"
 #include "compiler/lexer/compiler_lexer.h"
+#include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_stdio.h"
+#include "jackc_stdlib.h"
 #include "jackc_string.h"
 
 jackc_diagnostic_engine jackc_diag_engine_init(
@@ -193,79 +195,119 @@ static char* diagnostic_severity_str(jackc_diagnostic_severity severity) {
     return "";
 }
 
+static void diagnostic_engine_report_one(
+    jackc_diagnostic_engine* engine,
+    const jackc_diagnostic* diagnostic,
+    uint32_t max_line_length,
+    uint32_t line_starts[],
+    uint32_t lines_total
+) {
+    jackc_span span = diagnostic->span;
+    jack_location loc = source_map_resolve(line_starts, lines_total, span.start);
+
+    char* severity_str = diagnostic_severity_str(diagnostic->severity);
+    jackc_fprintf(engine->output_fd, "%s: ", severity_str);
+
+    jackc_diagnostic_translation translation = engine->translations[diagnostic->code];
+
+    switch (diagnostic->code) {
+        case DIAG_UNEXPECTED_TOKEN:
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                token_to_str(diagnostic->data.unexpected_token.expected),
+                diagnostic->data.unexpected_token.got.length,
+                diagnostic->data.unexpected_token.got.data
+            );
+            break;
+        case DIAG_INVALID_TOKEN_CLASS_BODY:
+        case DIAG_INVALID_TOKEN_TERM:
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                diagnostic->data.invalid_token.got.length,
+                diagnostic->data.invalid_token.got.data
+            );
+            break;
+        case DIAG_MISSING_SEMICOLON:
+            // Move the ^ to the end of the span, where the semicolon was expected
+            loc.col += (span.end - span.start);
+            span.start = span.end;
+            jackc_fprintf(engine->output_fd, translation.fmt);
+            break;
+        case DIAG_REDEFINITION:
+        case DIAG_INCOMPLETE_TYPE:
+        case DIAG_USE_OF_UNDECLARED_IDENTIFIER:
+        case DIAG_CALL_TO_UNDECLARED_SUBROUTINE:
+        case DIAG_CANNOT_CALL_METHOD_WITHOUT_AN_OBJECT:
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                diagnostic->span.end - diagnostic->span.start,
+                engine->source.data + diagnostic->span.start
+            );
+            break;
+        default:
+            jackc_fprintf(engine->output_fd, translation.fmt);
+            break;
+    }
+    jackc_fprintf(engine->output_fd, "\n --> %s:%d:%d\n", engine->filename, loc.line + 1, loc.col + 1);
+
+    print_prefix(engine->output_fd, max_line_length, true);
+    print_prefix_with_line(engine->output_fd, loc.line + 1, max_line_length);
+
+    size_t cur_pos = line_starts[loc.line];
+    while (
+        cur_pos < engine->source.length
+        && engine->source.data[cur_pos] != '\r'
+        && engine->source.data[cur_pos] != '\n'
+    ) {
+        // Replace tabs with spaces to ensure consistent indentation
+        // ^~~ printer does not handle tabs
+        char current_char = engine->source.data[cur_pos];
+        PUTCHAR(current_char == '\t' ? ' ' : current_char);
+        ++cur_pos;
+    }
+
+    PUTCHAR('\n');
+    print_prefix(engine->output_fd, max_line_length, false);
+    for (uint32_t col = 0; col < loc.col; ++col) {
+        PUTCHAR(' ');
+    }
+    PUTCHAR('^');
+    for (uint32_t span_idx = span.start + 1; span_idx < span.end; ++span_idx) {
+        PUTCHAR('~');
+    }
+
+    if (translation.desc) {
+        jackc_fprintf(engine->output_fd, "\n%s: %s", diagnostic_severity_str(DIAG_NOTE), translation.desc);
+    }
+    if (diagnostic->note) {
+        // Only one note per diagnostic struct is supported
+        PUTCHAR('\n');
+        diagnostic_engine_report_one(
+            engine,
+            diagnostic->note,
+            max_line_length, line_starts, lines_total
+        );
+    }
+}
+
 void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t lines_total) {
+    uint8_t max_line_length = int_length(lines_total);
+
     uint32_t line_starts[lines_total];
     line_starts[0] = 0;
     build_source_map(engine->source, line_starts, lines_total);
 
-    uint8_t max_line_length = int_length(lines_total);
-
     for (size_t i = 0; i < engine->size; i++) {
-        jackc_diagnostic diagnostic = engine->diagnostics[i];
-        jackc_span span = diagnostic.span;
-        jack_location loc = source_map_resolve(line_starts, lines_total, span.start);
-
-        char* severity_str = diagnostic_severity_str(diagnostic.severity);
-        jackc_fprintf(engine->output_fd, "%s: ", severity_str);
-
-        jackc_diagnostic_translation translation = engine->translations[diagnostic.code];
-        switch (diagnostic.code) {
-            case DIAG_UNEXPECTED_TOKEN:
-                jackc_fprintf(
-                    engine->output_fd,
-                    translation.fmt,
-                    token_to_str(diagnostic.data.unexpected_token.expected),
-                    diagnostic.data.unexpected_token.got.length,
-                    diagnostic.data.unexpected_token.got.data
-                );
-                break;
-            case DIAG_INVALID_TOKEN_CLASS_BODY:
-            case DIAG_INVALID_TOKEN_TERM:
-                jackc_fprintf(
-                    engine->output_fd,
-                    translation.fmt,
-                    diagnostic.data.invalid_token.got.length,
-                    diagnostic.data.invalid_token.got.data
-                );
-                break;
-            case DIAG_MISSING_SEMICOLON:
-                // Move the ^ to the end of the span, where the semicolon was expected
-                loc.col += (span.end - span.start);
-                span.start = span.end;
-                jackc_fprintf(engine->output_fd, translation.fmt);
-                break;
-            default:
-                jackc_fprintf(engine->output_fd, translation.fmt);
-                break;
-        }
-        jackc_fprintf(engine->output_fd, "\n --> %s:%d:%d\n", engine->filename, loc.line + 1, loc.col + 1);
-
-        print_prefix(engine->output_fd, max_line_length, true);
-        print_prefix_with_line(engine->output_fd, loc.line + 1, max_line_length);
-
-        size_t cur_pos = line_starts[loc.line];
-        while (
-            cur_pos < engine->source.length
-            && engine->source.data[cur_pos] != '\r'
-            && engine->source.data[cur_pos] != '\n'
-        ) {
-            PUTCHAR(engine->source.data[cur_pos]);
-            ++cur_pos;
-        }
-
-        PUTCHAR('\n');
-        print_prefix(engine->output_fd, max_line_length, false);
-        for (uint32_t col = 0; col < loc.col; ++col) {
-            PUTCHAR(' ');
-        }
-        PUTCHAR('^');
-        for (uint32_t span_idx = span.start + 1; span_idx < span.end; ++span_idx) {
-            PUTCHAR('~');
-        }
-
-        if (translation.desc) {
-            jackc_fprintf(engine->output_fd, "\n%s: %s", diagnostic_severity_str(DIAG_NOTE), translation.desc);
-        }
+        diagnostic_engine_report_one(
+            engine,
+            &engine->diagnostics[i],
+            max_line_length,
+            line_starts,
+            lines_total
+        );
         jackc_fprintf(engine->output_fd, i != engine->size - 1 ? "\n\n" : "\n");
     }
 
@@ -274,20 +316,43 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
     }
 }
 
+static jackc_diagnostic create_diagnostic(
+    const jackc_string* source,
+    jackc_diagnostic_severity severity,
+    jackc_diagnostic_code code,
+    jackc_string str
+) {
+    uint32_t span_start = (uint32_t)(str.data - source->data);
+    return (jackc_diagnostic) {
+        .severity = severity,
+        .code = code,
+        .span = { .start = span_start, .end = (uint32_t)(span_start + str.length) },
+        .note = nullptr
+    };
+}
+
 jackc_diag_builder jackc_diag_begin(
     jackc_diagnostic_engine* engine,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_span span
+    jackc_string str
 ) {
     return (jackc_diag_builder){
         .engine = engine,
-        .diag = {
-            .severity = severity,
-            .code = code,
-            .span = span
-        }
+        .diag = create_diagnostic(&engine->source, severity, code, str)
     };
+}
+void jackc_diag_add_note(
+    jackc_diag_builder* builder,
+    jackc_diagnostic_code code,
+    jackc_string str,
+    Allocator* allocator
+) {
+    if (builder->diag.note) return;
+    jackc_diagnostic d = create_diagnostic(&builder->engine->source, DIAG_NOTE, code, str);
+
+    builder->diag.note = allocator->alloc(sizeof(jackc_diagnostic), allocator->context);
+    jackc_memcpy(builder->diag.note, &d, sizeof(jackc_diagnostic));
 }
 
 void jackc_diag_emit(const jackc_diag_builder* builder) {

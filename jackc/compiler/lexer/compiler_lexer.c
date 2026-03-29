@@ -2,7 +2,6 @@
 #include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer_internal.h"
 #include "compiler/lexer/compiler_reserved_keywords.h"
-#include "jackc_stdlib.h"
 #include "jackc_string.h"
 
 static inline jack_token eof_token(jack_lexer* lexer) {
@@ -13,16 +12,15 @@ static inline bool is_eol(char c) {
     return c == '\n' || c == '\r' || c == '\0';
 }
 
-jack_lexer* jack_lexer_init(const char* buffer) {
+jack_lexer jack_lexer_init(const char* buffer) {
     jackc_assert(buffer != NULL && "Lexer's buffer cannot be NULL");
 
-    jack_lexer* lexer = jackc_alloc(sizeof(jack_lexer));
-    lexer->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
+    jack_lexer lexer;
+    lexer.buffer = jackc_string_create(buffer, jackc_strlen(buffer));
 
-    lexer->c = LEXER_DEFAULT_CHAR;
-    lexer->line = LEXER_DEFAULT_LINE;
-    lexer->col = LEXER_DEFAULT_COL;
-    lexer->pos = 0;
+    lexer.c = LEXER_DEFAULT_CHAR;
+    lexer.line = LEXER_DEFAULT_LINE;
+    lexer.pos = 0;
     return lexer;
 }
 
@@ -58,7 +56,7 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
 
     // Identifiers
     char c = jackc_tolower(lexer->c);
-    if (c >= 'a' && c <= 'z') {
+    if ((c >= 'a' && c <= 'z') || c == '_') {
         // Lexer is pointing to the char after 'c'. Subtract 1 to get the start position
         const char* start_ptr = jack_lexer_cur_pos(lexer);
         do {

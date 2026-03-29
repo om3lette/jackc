@@ -4,35 +4,8 @@
 #include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/symtable/symtable_token.h"
-#include "jackc_stdlib.h"
+#include "core/hash.h"
 #include "jackc_string.h"
-
-static void* allocator_alloc(size_t bytes, void *context) {
-    (void)context;
-    return jackc_alloc(bytes);
-}
-
-static void allocator_free(void *ptr, size_t bytes, void *context) {
-    (void)context; (void) bytes;
-    jackc_free(ptr);
-}
-
-static uint32_t oat_hash(const char *s, size_t len) {
-    const unsigned char* p = (const unsigned char*) s;
-    uint32_t h = 0;
-
-    while(len--) {
-        h += *p++;
-        h += (h << 10);
-        h ^= (h >> 6);
-    }
-
-    h += (h << 3);
-    h ^= (h >> 11);
-    h += (h << 15);
-
-    return h;
-}
 
 static hash_t symtab_key_hasher(const void* key) {
     const jackc_string* kkey = key;
@@ -43,13 +16,10 @@ static int symtab_token_comparator(const void* a, const void* b) {
     return jackc_string_cmp(a, b);
 }
 
-sym_table* sym_table_init(sym_table* prev) {
-    Allocator* allocator = jackc_alloc(sizeof(Allocator));
-    allocator->alloc = allocator_alloc;
-    allocator->free = allocator_free;
-    allocator->context = NULL;
+sym_table* sym_table_init(sym_table* prev, Allocator* allocator) {
+    sym_table* symtab = allocator->alloc(sizeof(sym_table), allocator->context);
 
-    sym_table* symtab = jackc_alloc(sizeof(sym_table));
+    symtab->allocator = allocator;
     symtab->prev = (struct sym_table*)prev;
     symtab->tokens = fixed_hashmap_init(
         jackc_string,
@@ -75,8 +45,8 @@ void sym_table_free(sym_table** symtab) {
     *symtab = NULL;
 }
 
-sym_table* sym_table_push(sym_table* current) {
-    return sym_table_init(current);
+sym_table* sym_table_push(sym_table* current, Allocator* allocator) {
+    return sym_table_init(current, allocator);
 }
 
 sym_table* sym_table_pop(sym_table* current) {
@@ -84,7 +54,7 @@ sym_table* sym_table_pop(sym_table* current) {
 
     sym_table* prev = (sym_table*)current->prev;
     fixed_hashmap_free(&current->tokens, true);
-    jackc_free(current);
+    current->allocator->free(current, sizeof(sym_table), current->allocator->context);
     return prev;
 }
 

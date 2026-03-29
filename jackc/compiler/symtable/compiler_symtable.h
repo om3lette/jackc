@@ -1,6 +1,7 @@
 #ifndef JACKC_COMPILER_SYMTABLE_H
 #define JACKC_COMPILER_SYMTABLE_H
 
+#include "core/allocators/allocators.h"
 #include "core/data-structures/hashmap.h"
 #include "compiler/symtable/symtable_token.h"
 
@@ -9,22 +10,25 @@ typedef enum {
     SYMTAB_ALREADY_EXISTS,
 } sym_table_return_code;
 
-typedef struct {
+typedef struct sym_table sym_table;
+struct sym_table {
     fixed_hash_map* tokens;
-    struct sym_table* prev;
+    sym_table* prev;
+    Allocator* allocator;
     uint32_t static_idx;
     uint32_t field_idx;
     uint32_t local_idx;
     uint32_t argument_idx;
-} sym_table;
+};
 
 /**
  * Initializes a new symbol table with the given previous table.
  *
  * @param prev The previous symbol table, or NULL if this is the top-level table.
+ * @param allocator The allocator to use for memory allocation.
  * @return A new symbol table.
  */
-[[ nodiscard ]] sym_table* sym_table_init(sym_table* prev);
+[[ nodiscard ]] sym_table* sym_table_init(sym_table* prev, Allocator* allocator);
 
 /**
  * Frees the given symbol table and all its children.
@@ -39,7 +43,7 @@ void sym_table_free(sym_table** symtab);
  * @param current The current symbol table.
  * @return The new top symbol table.
  */
-[[ nodiscard ]] sym_table* sym_table_push(sym_table* current);
+[[ nodiscard ]] sym_table* sym_table_push(sym_table* current, Allocator* allocator);
 
 /**
  * Pops the top symbol table from the stack, returning the new top.

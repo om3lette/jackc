@@ -54,7 +54,7 @@ void fixed_hashmap_insert(fixed_hash_map* map, const void* key, const void* valu
     ++map->inserted;
 }
 
-int fixed_hashmap_find(fixed_hash_map* map, const void* key, void* out) {
+int fixed_hashmap_find(const fixed_hash_map* map, const void* key, void* out) {
     jackc_assert(map && "Fixed hashmap is null");
     jackc_assert(key && "Key is null");
 
@@ -63,7 +63,7 @@ int fixed_hashmap_find(fixed_hash_map* map, const void* key, void* out) {
 
     while (node) {
         if (map->comparator(key, _key_ptr(node)) == 0) {
-            jackc_memcpy(out, _value_ptr(map, node), map->value_size);
+            if (out) jackc_memcpy(out, _value_ptr(map, node), map->value_size);
             return 1;
         }
         node = node->next;

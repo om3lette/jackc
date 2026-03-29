@@ -8,44 +8,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include "test_path_utils.h"
 
-#define PATH_MAX 4096
 #define TEST_FILENAME "source.jack"
 #define EXPECTED_FILENAME "expected.txt"
 #define OUTPUT_FILENAME "output.txt"
-
-static void path_dirname(char* out, size_t size, const char* path) {
-    const char* last_slash = strrchr(path, '/');
-
-    // Does not support Windows paths with backslashes
-    if (!last_slash) {
-        out[0] = '\0';
-        return;
-    }
-
-    size_t len = (size_t)(last_slash - path);
-    if (len >= size) len = size - 1;
-
-    memcpy(out, path, len);
-    out[len] = '\0';
-}
-
-static void get_test_root(char* out, size_t size) {
-    char dir[PATH_MAX];
-
-    path_dirname(dir, sizeof(dir), __FILE__);
-    snprintf(out, size, "%s/tests", dir);
-}
-
-static void path_join(char* out, size_t size, const char* a, const char* b) {
-    if (!a) a = "";
-    if (!b) b = "";
-
-    int written = snprintf(out, size, "%s/%s", a, b);
-    if (written < 0 || (size_t)written >= size) {
-        out[size - 1] = '\0';
-    }
-}
 
 bool next_test_case(const char* base_path, char* out_dir) {
     static DIR* dir = nullptr;
@@ -102,7 +69,7 @@ TEST_F(parser_fixture, error_reporting) {
     (void)tau;
 
     char base_path[PATH_MAX];
-    get_test_root(base_path, sizeof(base_path));
+    get_test_root(__FILE__, base_path, sizeof(base_path));
 
     char test_dir[PATH_MAX];
 
@@ -112,6 +79,8 @@ TEST_F(parser_fixture, error_reporting) {
     }
 
     bool is_success = true;
+    uint32_t tests_total = 0;
+    uint32_t tests_passed = 0;
 
     do {
         char source_path[PATH_MAX];
@@ -142,16 +111,18 @@ TEST_F(parser_fixture, error_reporting) {
             continue;
         }
 
-        test_jack_lexer_new_buffer(tau->lexer, source);
-        jackc_diag_engine_reset(&tau->engine, tau->lexer->buffer, TEST_FILENAME, fileno(out));
+        test_jack_lexer_new_buffer(&tau->lexer, source);
+        jackc_diag_engine_reset(&tau->engine, tau->lexer.buffer, TEST_FILENAME, fileno(out));
 
         parse_class(source, tau);
-        jackc_diagnostic_engine_report(&tau->engine, tau->lexer->line);
+        jackc_diagnostic_engine_report(&tau->engine, tau->lexer.line);
         fflush(out);
         fclose(out);
 
         char* actual = jackc_read_file_content(output_path);
         bool result = strcmp(actual, expected) == 0;
+        ++tests_total;
+        tests_passed += result;
         if (!result) {
             LOG_ERROR("Test '%s' result: FAIL\n", source_path);
             is_success = false;
@@ -162,5 +133,6 @@ TEST_F(parser_fixture, error_reporting) {
         free(expected);
     } while (next_test_case(base_path, test_dir));
 
+    LOG_INFO("%d/%d tests passed\n", tests_passed, tests_total);
     REQUIRE(is_success);
 }

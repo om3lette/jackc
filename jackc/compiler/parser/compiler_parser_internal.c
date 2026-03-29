@@ -71,7 +71,7 @@ static ast_var_dec* jack_parser_parse_variables(
         }
 
         declarations = ast_variable_declaration(
-            parser->allocator, &var_name.loc, &var_name.str, kind, *type, declarations
+            parser->allocator, &var_name.str, kind, *type, declarations
         );
     }
 
@@ -124,7 +124,6 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
 
     return ast_class_create(
         parser->allocator,
-        &class_name.loc,
         &class_name.str,
         class_vars,
         subroutines
@@ -191,7 +190,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             enter_panic_mode(parser);
             return nullptr;
     }
-    jack_token subroutine_kind_token = jack_parser_advance(parser);
+    jack_parser_advance(parser);
 
     ast_type type;
     switch (parser->current.type) {
@@ -266,7 +265,6 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
 
     return ast_subroutine_create(
         parser->allocator,
-        &subroutine_kind_token.loc,
         sub_kind,
         &type,
         &subroutine_name.str,
@@ -385,7 +383,7 @@ ast_stmt* jack_parser_parse_statements(jack_parser* parser) {
 }
 
 ast_stmt* jack_parser_parse_let(jack_parser* parser) {
-    jack_token let_token = jack_parser_expect(parser, TOKEN_LET);
+    jack_parser_expect(parser, TOKEN_LET);
     RETURN_IF_PANIC(parser);
 
     jack_token var_token = jack_parser_expect(parser, TOKEN_IDENTIFIER);
@@ -406,7 +404,6 @@ ast_stmt* jack_parser_parse_let(jack_parser* parser) {
     EXPECT_SEMICOLON(parser);
     return ast_stmt_let(
         parser->allocator,
-        &let_token.loc,
         &var_token.str,
         index,
         value
@@ -414,7 +411,7 @@ ast_stmt* jack_parser_parse_let(jack_parser* parser) {
 }
 
 ast_stmt* jack_parser_parse_if(jack_parser* parser) {
-    jack_token if_token = jack_parser_expect(parser, TOKEN_IF);
+    jack_parser_expect(parser, TOKEN_IF);
     RETURN_IF_PANIC(parser);
 
     EXPECT_LEFT_PAREN(parser);
@@ -438,7 +435,6 @@ ast_stmt* jack_parser_parse_if(jack_parser* parser) {
 
     return ast_stmt_if(
         parser->allocator,
-        &if_token.loc,
         condition,
         true_branch,
         false_branch
@@ -446,7 +442,7 @@ ast_stmt* jack_parser_parse_if(jack_parser* parser) {
 }
 
 ast_stmt* jack_parser_parse_while(jack_parser* parser) {
-    jack_token while_token = jack_parser_expect(parser, TOKEN_WHILE);
+    jack_parser_expect(parser, TOKEN_WHILE);
     RETURN_IF_PANIC(parser);
 
     EXPECT_LEFT_PAREN(parser);
@@ -460,12 +456,12 @@ ast_stmt* jack_parser_parse_while(jack_parser* parser) {
     EXPECT_RIGHT_CURLY_BRACE(parser);
 
     return ast_stmt_while(
-        parser->allocator, &while_token.loc, condition, body
+        parser->allocator, condition, body
     );
 }
 
 ast_stmt* jack_parser_parse_do(jack_parser* parser) {
-    jack_token do_token = jack_parser_expect(parser, TOKEN_DO);
+    jack_parser_expect(parser, TOKEN_DO);
     RETURN_IF_PANIC(parser);
 
     ast_expr* body = jack_parser_parse_subroutine_call(parser);
@@ -473,12 +469,12 @@ ast_stmt* jack_parser_parse_do(jack_parser* parser) {
 
     EXPECT_SEMICOLON(parser);
     return ast_stmt_do(
-        parser->allocator, &do_token.loc, &body->call
+        parser->allocator, &body->call
     );
 }
 
 ast_stmt* jack_parser_parse_return(jack_parser* parser) {
-    jack_token return_token = jack_parser_expect(parser, TOKEN_RETURN);
+    jack_parser_expect(parser, TOKEN_RETURN);
     RETURN_IF_PANIC(parser);
 
     ast_expr* return_value = nullptr;
@@ -490,7 +486,7 @@ ast_stmt* jack_parser_parse_return(jack_parser* parser) {
 
     EXPECT_SEMICOLON(parser);
     return ast_stmt_return(
-        parser->allocator, &return_token.loc, return_value
+        parser->allocator, return_value
     );
 }
 
@@ -546,7 +542,7 @@ ast_expr* jack_parser_parse_expression(jack_parser* parser, binding_power min_bp
         ast_expr* rhs = jack_parser_parse_expression(parser, rbp);
         RETURN_IF_PANIC(parser);
 
-        lhs = ast_expr_binary(parser->allocator, &op_token.loc, lhs, op, rhs);
+        lhs = ast_expr_binary(parser->allocator, lhs, op, rhs);
     }
 
     return lhs;
@@ -558,17 +554,16 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
 
     switch (cur_token.type) {
         case TOKEN_INT_LITERAL: {
-            expr = ast_expr_int(parser->allocator, &cur_token.loc, cur_token.value.integer);
+            expr = ast_expr_int(parser->allocator, cur_token.value.integer);
             jack_parser_advance(parser);
             break;
         }
-        case '"': {
+        case TOKEN_STR_LITERAL: {
             // '"'String literal'"'
-            jack_parser_advance(parser);
             jack_token string_literal = jack_parser_expect(parser, TOKEN_STR_LITERAL);
             RETURN_IF_PANIC(parser);
 
-            expr = ast_expr_string(parser->allocator, &string_literal.loc, &string_literal.str);
+            expr = ast_expr_string(parser->allocator, &string_literal.str);
             break;
         }
         case TOKEN_TRUE:
@@ -578,7 +573,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
             ast_keyword_const keyword = jack_parser_token_type_to_keyword(parser, cur_token.type);
             RETURN_IF_PANIC(parser);
 
-            expr = ast_expr_keyword(parser->allocator, &cur_token.loc, keyword);
+            expr = ast_expr_keyword(parser->allocator, keyword);
             jack_parser_advance(parser);
             break;
         }
@@ -592,11 +587,11 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
                 ast_expr* index = jack_parser_parse_array_index(parser);
                 RETURN_IF_PANIC(parser);
 
-                expr = ast_expr_array_access(parser->allocator, &cur_token.loc, &var_name.str, index);
+                expr = ast_expr_array_access(parser->allocator, &var_name.str, index);
             } else {
                 // varName
                 jack_token var_name = jack_parser_advance(parser);
-                expr = ast_expr_var(parser->allocator, &cur_token.loc, &var_name.str);
+                expr = ast_expr_var(parser->allocator, &var_name.str);
             }
             break;
         }
@@ -619,7 +614,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
             ast_unary_op op_type = jack_parser_token_type_to_unary_op(parser, op.type);
             RETURN_IF_PANIC(parser);
 
-            expr = ast_expr_unary(parser->allocator, &op.loc, op_type, operand);
+            expr = ast_expr_unary(parser->allocator, op_type, operand);
             break;
         }
         default:
@@ -658,7 +653,6 @@ ast_expr* jack_parser_parse_subroutine_call(jack_parser* parser) {
 
         return ast_expr_call(
             parser->allocator,
-            &first.loc,
             &first.str,
             &subroutine.str,
             args
@@ -671,7 +665,6 @@ ast_expr* jack_parser_parse_subroutine_call(jack_parser* parser) {
 
     return ast_expr_call(
         parser->allocator,
-        &first.loc,
         nullptr,
         &first.str,
         args
@@ -725,7 +718,7 @@ jack_token jack_parser_expect(jack_parser* parser, int32_t type) {
         switch (type) {
             case ';':
                 // For ';' we need to now the location of the previous token to display where the ';' was expected
-                d.diag.span = token_to_span(parser, parser->previous);
+                d.diag.span = parser->previous.span;
                 d.diag.code = DIAG_MISSING_SEMICOLON;
                 d.diag.data.last_valid_token = (typeof(d.diag.data.last_valid_token)) {
                     .token = parser->previous.str

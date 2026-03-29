@@ -65,10 +65,6 @@ ast_stmt* ast_stmt_list_push_back(
     ast_stmt* stmt
 );
 
-typedef struct {
-    jack_location loc;
-} ast_base;
-
 // ==================
 // Expressions
 // ==================
@@ -93,7 +89,6 @@ typedef struct {
 } ast_call;
 
 struct ast_expr {
-    ast_base base;
     ast_expr_kind kind;
 
     union {
@@ -124,31 +119,26 @@ struct ast_expr {
 
 ast_expr* ast_expr_int(
     Allocator* allocator,
-    jack_location* loc,
     int32_t value
 );
 
 ast_expr* ast_expr_string(
     Allocator* allocator,
-    jack_location* loc,
     const jackc_string* value
 );
 
 ast_expr* ast_expr_keyword(
     Allocator* allocator,
-    jack_location* loc,
     ast_keyword_const keyword
 );
 
 ast_expr* ast_expr_var(
     Allocator* allocator,
-    jack_location* loc,
     const jackc_string* name
 );
 
 ast_expr* ast_expr_binary(
     Allocator* allocator,
-    jack_location* loc,
     ast_expr* left,
     ast_binary_op op,
     ast_expr* right
@@ -156,14 +146,12 @@ ast_expr* ast_expr_binary(
 
 ast_expr* ast_expr_unary(
     Allocator* allocator,
-    jack_location* loc,
     ast_unary_op op,
     ast_expr* operand
 );
 
 ast_expr* ast_expr_call(
     Allocator* allocator,
-    jack_location* loc,
     const jackc_string* receiver,
     const jackc_string* subroutine_name,
     ast_expr_list* args
@@ -171,7 +159,6 @@ ast_expr* ast_expr_call(
 
 ast_expr* ast_expr_array_access(
     Allocator* allocator,
-    jack_location* loc,
     const jackc_string* var_name,
     ast_expr* index
 );
@@ -189,7 +176,6 @@ typedef enum {
 } ast_stmt_kind;
 
 struct ast_stmt {
-    ast_base base;
     ast_stmt_kind kind;
     ast_stmt* next; // For lists of statements
 
@@ -224,7 +210,6 @@ struct ast_stmt {
 
 ast_stmt* ast_stmt_let(
     Allocator* a,
-    jack_location* loc,
     const jackc_string* var_name,
     ast_expr* index,
     ast_expr* value
@@ -232,7 +217,6 @@ ast_stmt* ast_stmt_let(
 
 ast_stmt* ast_stmt_if(
     Allocator* a,
-    jack_location* loc,
     ast_expr* cond,
     ast_stmt* true_branch,
     ast_stmt* false_branch
@@ -240,27 +224,23 @@ ast_stmt* ast_stmt_if(
 
 ast_stmt* ast_stmt_while(
     Allocator* a,
-    jack_location* loc,
     ast_expr* cond,
     ast_stmt* body
 );
 
 ast_stmt* ast_stmt_do(
     Allocator* a,
-    jack_location* loc,
     ast_call* subroutine_call
 );
 
 ast_stmt* ast_stmt_return(
     Allocator* a,
-    jack_location* loc,
     ast_expr* value
 );
 
 typedef struct ast_var_dec ast_var_dec;
 
 struct ast_var_dec {
-    ast_base base;
     jack_variable_kind kind;
     ast_type type;
     jackc_string name;
@@ -274,7 +254,6 @@ ast_var_dec* ast_var_dec_list_push_front(
 
 ast_var_dec* ast_variable_declaration(
     Allocator* allocator,
-    jack_location* loc,
     const jackc_string* name,
     jack_variable_kind kind,
     ast_type type,
@@ -291,7 +270,6 @@ typedef enum {
 typedef struct ast_subroutine ast_subroutine;
 
 struct ast_subroutine {
-    ast_base base;
     ast_sub_kind kind;
     ast_type return_type;
     jackc_string name;
@@ -305,7 +283,6 @@ struct ast_subroutine {
 
 ast_subroutine* ast_subroutine_create(
     Allocator* allocator,
-    jack_location* loc,
     ast_sub_kind kind,
     const ast_type* return_type,
     const jackc_string* name,
@@ -322,7 +299,6 @@ ast_subroutine* ast_subroutine_push_front(
 
 // The Root Node
 typedef struct {
-    ast_base base;
     jackc_string name;
     ast_var_dec* class_vars;      // Linked list of VAR_STATIC and VAR_FIELD
     ast_subroutine* subroutines;  // Linked list of methods/funcs/constructors
@@ -330,7 +306,6 @@ typedef struct {
 
 ast_class* ast_class_create(
     Allocator* allocator,
-    jack_location* loc,
     const jackc_string* name,
     ast_var_dec* class_vars,
     ast_subroutine* subroutines
