@@ -9,6 +9,7 @@ add_library(tests_utils STATIC
 add_executable(compiler_lexer_tests
     main.c
     compiler/lexer/eof.c
+    compiler/lexer/identifiers.c
     compiler/lexer/internal.c
     compiler/lexer/numbers.c
     compiler/lexer/comments.c

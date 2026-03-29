@@ -36,6 +36,7 @@ TEST_F_TEARDOWN(integration_fixture) {
 REGISTER_TEST(one_file_program, "one-file-program", FRONTEND_OK)
 REGISTER_TEST(multi_file_program, "multi-file-program", FRONTEND_OK)
 REGISTER_TEST(var_shadowing_class, "var-shadowing-class", FRONTEND_OK)
+REGISTER_TEST(method_call_inside_constructor, "method-call-inside-constructor", FRONTEND_OK)
 
 REGISTER_TEST(method_call_with_no_instance, "method-call-with-no-instance", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(var_shadowing_subroutine, "var-shadowing-subroutine", FRONTEND_SEMANTICALLY_INVALID)

@@ -139,7 +139,10 @@ static bool function_registry_find_or_diagnostic(
 
 static void visit_subroutine_call(const ast_call* call, semantic_validity_traversal_context* ctx) {
     jackc_string receiver_class = ctx->class_name;
-    bool is_receiver_an_instance = (ctx->sub_signature.kind == SUB_METHOD) && call->implicit_this_receiver;
+    bool is_receiver_an_instance = (
+        ctx->sub_signature.kind == SUB_METHOD
+        || ctx->sub_signature.kind == SUB_CONSTRUCTOR
+    ) && call->implicit_this_receiver;
 
     if (!call->implicit_this_receiver) {
         // var Solver x; x.solve()
@@ -222,18 +225,29 @@ static void visit_statements(const ast_stmt* stmts, semantic_validity_traversal_
 static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_context* ctx) {
     switch (stmt->kind) {
         case STMT_LET:
+            is_valid_var_name_or_diagnostic(ctx, &stmt->let_stmt.var_name);
+
             sym_table_token token;
-            // FIXME: Introduce span / jackc_string to AST
-            if (symtab_find_or_diagnostic(ctx, stmt->let_stmt.var_name, &token) && token.type == JACK_CLASS) {
-                // Assignment to class type
-                jackc_diag_builder d = jackc_diag_begin(
-                    &ctx->engine,
-                    DIAG_ERROR,
-                    DIAG_INVALID_OPERATION,
-                    stmt->let_stmt.var_name
-                );
-                jackc_diag_emit(&d);
-                INVALID_STATE(ctx);
+            if (
+                symtab_find_or_diagnostic(ctx, stmt->let_stmt.var_name, &token)
+                && token.type == JACK_CLASS
+            ) {
+                bool is_string_class = jackc_streq(&token.class_name, "String");
+                if (
+                    (is_string_class && stmt->let_stmt.value->kind != EXPR_STRING)
+                    || (!is_string_class && stmt->let_stmt.value->kind == EXPR_STRING)
+                ) {
+                    // FIXME: Introduce span / jackc_string to AST
+                    // Invalid string operation
+                    jackc_diag_builder d = jackc_diag_begin(
+                        &ctx->engine,
+                        DIAG_ERROR,
+                        DIAG_INVALID_OPERATION,
+                        stmt->let_stmt.var_name
+                    );
+                    jackc_diag_emit(&d);
+                    INVALID_STATE(ctx);
+                }
             }
             if (stmt->let_stmt.index) visit_expression(stmt->let_stmt.index, ctx);
             visit_expression(stmt->let_stmt.value, ctx);

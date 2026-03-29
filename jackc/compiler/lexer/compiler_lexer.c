@@ -56,7 +56,7 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
 
     // Identifiers
     char c = jackc_tolower(lexer->c);
-    if (c >= 'a' && c <= 'z') {
+    if ((c >= 'a' && c <= 'z') || c == '_') {
         // Lexer is pointing to the char after 'c'. Subtract 1 to get the start position
         const char* start_ptr = jack_lexer_cur_pos(lexer);
         do {

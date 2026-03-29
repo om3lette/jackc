@@ -558,9 +558,8 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
             jack_parser_advance(parser);
             break;
         }
-        case '"': {
+        case TOKEN_STR_LITERAL: {
             // '"'String literal'"'
-            jack_parser_advance(parser);
             jack_token string_literal = jack_parser_expect(parser, TOKEN_STR_LITERAL);
             RETURN_IF_PANIC(parser);
 

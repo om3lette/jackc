@@ -19,6 +19,15 @@ TEST_F(parser_fixture, let_statement) {
     REQUIRE_EQ(stmt->let_stmt.value->int_val, 5);
 }
 
+TEST_F(parser_fixture, let_statement_string_literal) {
+    ast_stmt* stmt = parse_statements("let a = \"hello\";", tau);
+
+    REQUIRE_NO_ERRORS(tau->parser);
+    REQUIRE_STMT(stmt, STMT_LET);
+    REQUIRE_JACK_STREQ(stmt->let_stmt.var_name, "a");
+    REQUIRE_JACK_STREQ(stmt->let_stmt.value->string_val, "hello");
+}
+
 TEST_F(parser_fixture, let_statement_expression_assignment) {
     ast_stmt* stmt = parse_statements("let a = c + 10 * 3;", tau);
 

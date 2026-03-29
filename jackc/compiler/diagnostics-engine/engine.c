@@ -262,7 +262,10 @@ static void diagnostic_engine_report_one(
         && engine->source.data[cur_pos] != '\r'
         && engine->source.data[cur_pos] != '\n'
     ) {
-        PUTCHAR(engine->source.data[cur_pos]);
+        // Replace tabs with spaces to ensure consistent indentation
+        // ^~~ printer does not handle tabs
+        char current_char = engine->source.data[cur_pos];
+        PUTCHAR(current_char == '\t' ? ' ' : current_char);
         ++cur_pos;
     }
 
