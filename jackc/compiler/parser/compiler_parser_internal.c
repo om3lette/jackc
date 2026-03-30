@@ -39,6 +39,7 @@ static ast_var_dec* jack_parser_parse_variables(
 
     bool is_first = true;
     ast_var_dec* declarations = nullptr;
+    ast_var_dec* declarations_tail = nullptr;
 
     while (
         !is_rcurl_or_eof(parser)
@@ -70,9 +71,16 @@ static ast_var_dec* jack_parser_parse_variables(
             continue;
         }
 
-        declarations = ast_variable_declaration(
-            parser->allocator, &var_name.str, kind, *type, declarations
+        ast_var_dec* new_node = ast_variable_declaration(
+            parser->allocator, &var_name.str, kind, *type, NULL
         );
+        if (!declarations) {
+            declarations = new_node;
+            declarations_tail = new_node;
+        } else {
+            declarations_tail->next = new_node;
+            declarations_tail = new_node;
+        }
     }
 
     return declarations;
@@ -89,19 +97,28 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
     jack_sync_context_push(parser, SYNC_CLASS_BODY);
 
     ast_var_dec* class_vars = nullptr;
+    ast_var_dec* class_vars_tail = nullptr;
     ast_subroutine* subroutines = nullptr;
+    ast_subroutine* subroutines_tail = nullptr;
 
     while (!is_rcurl_or_eof(parser)) {
         if (!is_panic_mode(parser) && is_class_var_start(parser)) {
-            class_vars = ast_var_dec_list_push_front(
-                class_vars,
+            class_vars_tail = ast_var_dec_list_push_back(
+                class_vars_tail,
                 jack_parser_parse_class_var_dec(parser)
             );
+            if (!class_vars)
+                class_vars = class_vars_tail;
+            // Move the tail to the end of parsed list
+            while (class_vars_tail && class_vars_tail->next)
+                class_vars_tail = class_vars_tail->next;
         } else if (!is_panic_mode(parser) && is_subroutine_start(parser)) {
-            subroutines = ast_subroutine_push_front(
-                subroutines,
+            subroutines_tail = ast_subroutine_push_back(
+                subroutines_tail,
                 jack_parser_parse_subroutine(parser)
             );
+            if (!subroutines)
+                subroutines = subroutines_tail;
         } else {
             jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_TOKEN_CLASS_BODY);
             d.diag.data.invalid_token.got = parser->current.str;
@@ -229,6 +246,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
 
 
     ast_var_dec* locals = nullptr;
+    ast_var_dec* locals_tail = nullptr;
     ast_stmt* body = nullptr;
     ast_stmt* stmt_tail = nullptr;
     EXPECT_LEFT_CURLY_BRACE(parser);
@@ -238,10 +256,14 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
         && !is_class_member_start(parser)
     ) {
         if (!is_panic_mode(parser) && jack_parser_check(parser, TOKEN_VAR)) {
-            locals = ast_var_dec_list_push_front(
-                locals,
+            locals_tail = ast_var_dec_list_push_back(
+                locals_tail,
                 jack_parser_parse_var_dec(parser)
             );
+            if (!locals)
+                locals = locals_tail;
+            while (locals_tail && locals_tail->next)
+                locals_tail = locals_tail->next;
         } else if (!is_panic_mode(parser) && is_statement_start(parser)) {
             stmt_tail = ast_stmt_list_push_back(
                 stmt_tail,
@@ -252,13 +274,6 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
         } else {
             jack_parser_sync(parser);
         }
-    }
-    jack_sync_context_push(parser, SYNC_VAR_DEC);
-    while (jack_parser_check(parser, TOKEN_VAR)) {
-        locals = ast_var_dec_list_push_front(
-            locals,
-            jack_parser_parse_var_dec(parser)
-        );
     }
     jack_sync_context_pop(parser, SYNC_SUBROUTINE);
     EXPECT_RIGHT_CURLY_BRACE(parser);

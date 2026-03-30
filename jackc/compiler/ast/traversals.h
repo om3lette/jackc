@@ -5,6 +5,7 @@
 #include "compiler/diagnostics-engine/engine.h"
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/symtable/compiler_symtable.h"
+#include "core/allocators/allocators.h"
 
 typedef struct {
     function_registry* registry;
@@ -30,5 +31,23 @@ typedef struct {
 } semantic_validity_traversal_context;
 
 bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_traversal_context* ctx);
+
+typedef struct {
+    int fd;
+    bool had_error;
+
+    sym_table* symtab;
+    const function_registry* registry;
+    Allocator* allocator;
+
+    jackc_string class_name;
+    uint16_t n_fields;
+    function_signature subroutine_signature;
+
+    uint32_t if_label_index;
+    uint32_t while_label_index;
+} vm_code_generation_traversal_context;
+
+void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_traversal_context* ctx);
 
 #endif

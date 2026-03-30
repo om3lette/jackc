@@ -4,6 +4,7 @@
 #include "compiler/ast/ast.h"
 #include "compiler/symtable/compiler_symtable.h"
 #include "core/data-structures/hashmap.h"
+#include <stdint.h>
 
 typedef struct {
     fixed_hash_map* classes;
@@ -17,6 +18,8 @@ typedef struct {
 typedef struct {
     jackc_string name;
     ast_sub_kind kind;
+    uint16_t n_args;
+    uint16_t n_locals;
     ast_var_dec* arguments;
     ast_type* return_type;
 } function_signature;

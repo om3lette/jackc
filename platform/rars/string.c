@@ -21,3 +21,10 @@ void jackc_strcpy(char* dest, const char* src) {
     }
     *dest = '\0';
 }
+
+char* jackc_strrchr(const char* s, char c) {
+    size_t i = jackc_strlen(s);
+    for (; s[i] != c && i > 0; --i) {}
+
+    return s[i] == c ? (char*)s + i : nullptr;
+}

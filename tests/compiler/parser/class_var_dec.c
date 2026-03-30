@@ -46,9 +46,9 @@ TEST_F(parser_fixture, class_var_dec_many) {
     ast_var_dec* var = parse_class_var("field char x, y, z;", tau);
 
     REQUIRE_NO_ERRORS(tau->parser);
-    REQUIRE_VAR(var, VAR_FIELD, TYPE_CHAR, "z");
+    REQUIRE_VAR(var, VAR_FIELD, TYPE_CHAR, "x");
     REQUIRE_VAR(var->next, VAR_FIELD, TYPE_CHAR, "y");
-    REQUIRE_VAR(var->next->next, VAR_FIELD, TYPE_CHAR, "x");
+    REQUIRE_VAR(var->next->next, VAR_FIELD, TYPE_CHAR, "z");
 }
 
 TEST_F(parser_fixture, class_var_dec_missing_identifier) {

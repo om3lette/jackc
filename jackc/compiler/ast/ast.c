@@ -228,14 +228,14 @@ ast_var_dec* ast_variable_declaration(
     return var;
 }
 
-ast_var_dec* ast_var_dec_list_push_front(
-    ast_var_dec* head,
+ast_var_dec* ast_var_dec_list_push_back(
+    ast_var_dec* tail,
     ast_var_dec* stmt
 ) {
-    if (!stmt) return head;
-    if (!head) return stmt;
+    if (!stmt) return tail;
+    if (!tail) return stmt;
 
-    stmt->next = head;
+    tail->next = stmt;
     return stmt;
 }
 
@@ -262,14 +262,14 @@ ast_subroutine* ast_subroutine_create(
     return subroutine;
 }
 
-ast_subroutine* ast_subroutine_push_front(
-    ast_subroutine* head,
+ast_subroutine* ast_subroutine_push_back(
+    ast_subroutine* tail,
     ast_subroutine* subroutine
 ) {
-    if (!subroutine) return head;
-    if (!head) return subroutine;
+    if (!subroutine) return tail;
+    if (!tail) return subroutine;
 
-    subroutine->next = head;
+    tail->next = subroutine;
     return subroutine;
 }
 

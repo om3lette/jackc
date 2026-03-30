@@ -11,7 +11,8 @@ typedef enum {
     FRONTEND_FAILED_TO_OPEN_SOURCE_FILE,
     FRONTEND_SYMBOL_TABLE_BUILD_ERROR,
     FRONTEND_NO_SOURCE_FILES,
-    FRONTEND_SEMANTICALLY_INVALID
+    FRONTEND_SEMANTICALLY_INVALID,
+    FRONTEND_FAILED_TO_GENERATE_VM_CODE
 } jackc_frontend_return_code;
 
 typedef struct {
@@ -28,6 +29,11 @@ typedef struct jack_ast_collection {
     struct jack_ast_collection* next;
 } jack_source;
 
-jackc_frontend_return_code jackc_frontend_compile(const char* base_path, Allocator* allocator);
+jackc_frontend_return_code jackc_frontend_compile(
+    const char* base_path,
+    const char* output_dir,
+    Allocator* allocator,
+    bool skip_vm_code_gen
+);
 
 #endif

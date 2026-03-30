@@ -14,6 +14,9 @@ add_library(compiler STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/ast.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/symtab_traversal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/semantic_validity_traversal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/code-gen/std_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/code-gen/vm_code_gen_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/code-gen/vm_code_gen_traversal.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/function-registry/function_registry.c
 
