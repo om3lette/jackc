@@ -194,6 +194,12 @@ static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const j
         case C_OR:
             jackc_strcpy(op, "or");
             break;
+        case C_DIV:
+            jackc_strcpy(op, "div");
+            break;
+        case C_MUL:
+            jackc_strcpy(op, "mul");
+            break;
         default:
             jackc_assert(false && "Invalid 3 argument arithmetic command");
             break;
@@ -208,13 +214,6 @@ static void vm_code_gen_return(int fd, const jackc_config_t* cfg) {
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n");
     vm_code_gen_stack_dealloc(fd, 1, cfg);
-
-    // jackc_fprintf(
-    //     fd,
-    //     "\taddi %s, %s, %d\n"
-    //     "\tret\n",
-    //     JACK_SP_REG, SEGMENT_LCL_REG, gene-word_to_bytes(1)
-    // );
 
     jackc_fprintf(
         fd,
@@ -365,6 +364,8 @@ void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* pa
         case C_SUB:
         case C_AND:
         case C_OR:
+        case C_DIV:
+        case C_MUL:
             vm_code_gen_arithmetic_3_args(fd, parser->cmd, cfg);
             break;
         case C_NEG:

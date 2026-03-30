@@ -7,6 +7,8 @@
 
 typedef enum {
     FRONTEND_OK = 0,
+    // 1-9 is reserved for shared exit codes
+    FRONTEND_INVALID_ARGUMENT = 10,
     FRONTEND_SYNTAX_ERROR,
     FRONTEND_FAILED_TO_OPEN_SOURCE_FILE,
     FRONTEND_SYMBOL_TABLE_BUILD_ERROR,

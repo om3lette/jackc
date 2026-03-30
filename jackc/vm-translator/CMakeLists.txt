@@ -4,9 +4,17 @@ add_library(vm-translator STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/code-generation/vm_code_generator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/code-generation/vm_code_generation.c
     ${CMAKE_CURRENT_SOURCE_DIR}/code-generation/vm_code_gen_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/backend.c
 )
-
 target_link_libraries(vm-translator
     PUBLIC
         common
+)
+
+add_executable(jackc_backend
+    ${CMAKE_CURRENT_SOURCE_DIR}/backend_exec.c
+)
+target_link_libraries(jackc_backend
+    PRIVATE
+        vm-translator
 )

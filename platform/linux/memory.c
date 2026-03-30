@@ -12,12 +12,12 @@
  */
 void* jackc_alloc(size_t size) {
     if (size == 0) {
-        jackc_exit(JACKC_EXIT_MEMORY_ERROR);
+        jackc_exit(JACKC_EXIT_ALLOCATION_ERROR);
     }
 
     void* ptr = malloc(size);
     if (!ptr) {
-        jackc_exit(JACKC_EXIT_MEMORY_ERROR);
+        jackc_exit(JACKC_EXIT_ALLOCATION_ERROR);
     }
     return ptr;
 }

@@ -110,7 +110,7 @@ static bool generate_vm_code(
             "%s/%.*s_%d.vm",
             out_base_dir,
             filename_end - filename_start, filename_start,
-            file_idx
+            file_idx++
         );
         int fd = jackc_open(out_file_path, O_CREAT | O_WRONLY | O_TRUNC);
         if (fd < 0) {
