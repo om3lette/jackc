@@ -28,6 +28,7 @@ typedef enum {
     DIAG_INVALID_TOKEN_CLASS_BODY,
     DIAG_INVALID_TOKEN_TERM,
     DIAG_MISSING_SEMICOLON,
+    DIAG_MIXING_DECLARATIONS_AND_CODE,
 
     // Symtab
     DIAG_REDEFINITION,
@@ -40,9 +41,10 @@ typedef enum {
     DIAG_EMPTY_IF_STATEMENT,
     DIAG_INVALID_OPERATION,
     DIAG_CANNOT_CALL_METHOD_WITHOUT_AN_OBJECT,
+    DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME,
 
     // Notes
-    DIAG_PREVIOUS_DEFINITION_IS_HERE,
+    DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE,
 
     NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
@@ -66,6 +68,9 @@ struct jackc_diagnostic {
         struct {
             jackc_string token;
         } last_valid_token;
+        struct {
+            jackc_string filename;
+        } expected_class_name;
     } data;
 };
 

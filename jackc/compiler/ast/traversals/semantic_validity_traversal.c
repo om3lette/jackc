@@ -58,7 +58,7 @@ static bool sym_table_insert_with_diagnostic(semantic_validity_traversal_context
             sym_table_token previous_definition;
             jackc_assert(sym_table_find(ctx->symtab, &token->name, &previous_definition));
 
-            jackc_diag_add_note(&d, DIAG_PREVIOUS_DEFINITION_IS_HERE, previous_definition.name, ctx->allocator);
+            jackc_diag_add_note(&d, DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, previous_definition.name, ctx->allocator);
             jackc_diag_emit(&d);
             INVALID_STATE(ctx);
             return true;
@@ -111,7 +111,7 @@ static bool is_valid_var_name_or_diagnostic(semantic_validity_traversal_context*
     function_signature signature;
     if (function_registry_contains(ctx->registry, &ctx->class_name, var_name, &signature)) {
         jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_ERROR, DIAG_REDEFINITION, *var_name);
-        jackc_diag_add_note(&d, DIAG_PREVIOUS_DEFINITION_IS_HERE, signature.name, ctx->allocator);
+        jackc_diag_add_note(&d, DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, signature.name, ctx->allocator);
         jackc_diag_emit(&d);
         INVALID_STATE(ctx);
         return false;
@@ -225,15 +225,16 @@ static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_co
         case STMT_LET:
             is_valid_var_name_or_diagnostic(ctx, &stmt->let_stmt.var_name);
 
-            sym_table_token token;
-            if (
-                symtab_find_or_diagnostic(ctx, stmt->let_stmt.var_name, &token)
-                && token.type == JACK_CLASS
-            ) {
-                bool is_string_class = jackc_streq(&token.class_name, "String");
+            if (stmt->let_stmt.value->kind == EXPR_STRING) {
+                sym_table_token token;
+                // Already validated
+                symtab_find_or_diagnostic(ctx, stmt->let_stmt.var_name, &token);
                 if (
-                    (is_string_class && stmt->let_stmt.value->kind != EXPR_STRING)
-                    || (!is_string_class && stmt->let_stmt.value->kind == EXPR_STRING)
+                    token.type != JACK_CLASS
+                    ||(
+                        !jackc_streq(&token.class_name, "String")
+                        && !(jackc_streq(&token.class_name, "Array") && stmt->let_stmt.index)
+                    )
                 ) {
                     // FIXME: Introduce span / jackc_string to AST
                     // Invalid string operation

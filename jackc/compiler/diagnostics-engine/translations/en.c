@@ -11,6 +11,8 @@ const jackc_diagnostic_translation diagnostic_translations[] = {
     { DIAG_INVALID_TOKEN_CLASS_BODY, "Invalid class member declaration: found '%.*s'.", "Expected a class variable or subroutine declaration." },
     { DIAG_INVALID_TOKEN_TERM, "Unexpected token '%.*s' while parsing term.", "Expected start of term: literal, identifier, '(', or unary operator." },
     { DIAG_MISSING_SEMICOLON, "Missing semicolon.", nullptr },
+    { DIAG_MIXING_DECLARATIONS_AND_CODE, "Mixing declarations and code", nullptr },
+
     { DIAG_REDEFINITION, "Redefinition of '%.*s'.", nullptr },
     { DIAG_INCOMPLETE_TYPE, "Variable '%.*s' has incomplete type.", nullptr },
     { DIAG_USE_OF_UNDECLARED_IDENTIFIER, "Undeclared identifier '%.*s'.", nullptr },
@@ -21,8 +23,9 @@ const jackc_diagnostic_translation diagnostic_translations[] = {
     { DIAG_EMPTY_IF_STATEMENT, "Empty if statement body", nullptr },
     { DIAG_INVALID_OPERATION, "Invalid operation.", nullptr },
     { DIAG_CANNOT_CALL_METHOD_WITHOUT_AN_OBJECT, "Cannot call method '%.*s' without an object", nullptr },
+    { DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, "The class name '%.*s' does not match the filename '%.*s'.", nullptr },
 
-    { DIAG_PREVIOUS_DEFINITION_IS_HERE, "Previous definition is here", nullptr }
+    { DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, "Previous definition is here", nullptr },
 };
 
 static_assert(NUMBER_OF_DIAGNOSTICS == sizeof(diagnostic_translations) / sizeof(diagnostic_translations[0]), "Diagnostic translations array size mismatch");

@@ -1,5 +1,6 @@
 #include "compiler/ast/ast.h"
 #include "compiler/ast/traversals.h"
+#include "compiler/diagnostics-engine/diagnostic.h"
 #include "compiler/diagnostics-engine/engine.h"
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/lexer/compiler_lexer.h"
@@ -78,8 +79,25 @@ static bool is_semantically_invalid(
             .is_invalid = false
         };
         is_invalid |= ast_semantic_validity_traversal(current_file->ast, &ctx);
+
+        jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
+        if (!filename.data) {
+            LOG_ERROR("Failed to extract filename from %s\n", current_file->filepath);
+            is_invalid = true;
+            continue;
+        }
+        if (jackc_string_cmp(&filename, &current_file->ast->name) != 0) {
+            jackc_diag_builder d = jackc_diag_begin(
+                &ctx.engine, DIAG_ERROR, DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, current_file->ast->name
+            );
+            d.diag.data.expected_class_name.filename = filename;
+            jackc_diag_emit(&d);
+            is_invalid = true;
+        }
+
         jackc_diagnostic_engine_report(&ctx.engine, current_file->lines);
     }
+
     return is_invalid;
 }
 
@@ -95,15 +113,10 @@ static bool generate_vm_code(
     char out_file_path[4096];
     bool had_error = false;
 
-    for (const jack_source* source_file = source_files; source_file; source_file = source_file->next) {
-        const char* filename_start = jackc_strrchr(source_file->filepath, '/');
-        if (!filename_start) {
-            had_error = true;
-            continue;
-        }
-        ++filename_start; // Discard '/'
-        const char* filename_end = jackc_strrchr(filename_start, '.');
-        if (!filename_end) {
+    for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
+        jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
+        if (!filename.data) {
+            LOG_ERROR("Failed to extract filename from %s\n", current_file->filepath);
             had_error = true;
             continue;
         }
@@ -111,7 +124,7 @@ static bool generate_vm_code(
             out_file_path,
             "%s/%.*s_%d.vm",
             out_base_dir,
-            filename_end - filename_start, filename_start,
+            filename.length, filename.data,
             file_idx++
         );
         int fd = jackc_open(out_file_path, O_CREAT | O_WRONLY | O_TRUNC);
@@ -128,7 +141,7 @@ static bool generate_vm_code(
             .if_label_index = 0,
             .while_label_index = 0
         };
-        vm_code_genetation_traversal(source_file->ast, &ctx);
+        vm_code_genetation_traversal(current_file->ast, &ctx);
         had_error |= ctx.had_error;
 
         jackc_close(fd);
@@ -163,7 +176,6 @@ jackc_frontend_return_code jackc_frontend_compile(
     jack_source* source_files = nullptr;
 
     while ((source_file_path = jackc_next_source_file(base_path, ".jack"))) {
-        LOG_DEBUG("Parsing file %s...\n", source_file_path);
         const char* file_content_raw = jackc_read_file_content(source_file_path);
 
         if (!file_content_raw) {

@@ -235,6 +235,16 @@ static void diagnostic_engine_report_one(
             span.start = span.end;
             jackc_fprintf(engine->output_fd, translation.fmt);
             break;
+        case DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME:
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                diagnostic->span.end - diagnostic->span.start,
+                engine->source.data + diagnostic->span.start,
+                diagnostic->data.expected_class_name.filename.length,
+                diagnostic->data.expected_class_name.filename.data
+            );
+            break;
         case DIAG_REDEFINITION:
         case DIAG_INCOMPLETE_TYPE:
         case DIAG_USE_OF_UNDECLARED_IDENTIFIER:

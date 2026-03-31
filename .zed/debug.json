@@ -2,7 +2,7 @@
     {
         "label": "Compiler lexer tests",
         "build": {
-            "command": "just configure && just build",
+            "command": "just build",
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/tests/compiler_lexer_tests",
@@ -12,7 +12,7 @@
     {
         "label": "Data structures tests",
         "build": {
-            "command": "just configure && just build",
+            "command": "just build",
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/tests/data_structure_tests",
@@ -22,7 +22,7 @@
     {
         "label": "Symbol table tests",
         "build": {
-            "command": "just configure && just build",
+            "command": "just build",
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/tests/compiler_symtab_tests",
@@ -32,7 +32,7 @@
     {
         "label": "Parser tests",
         "build": {
-            "command": "just configure && just build",
+            "command": "just build -p release",
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/tests/compiler_parser_tests",
@@ -42,7 +42,7 @@
     {
         "label": "Diagnostics engine tests",
         "build": {
-            "command": "just configure && just build",
+            "command": "just build",
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/tests/diagnostics_engine_tests",
@@ -52,7 +52,7 @@
     {
         "label": "jackc frontend",
         "build": {
-            "command": "just configure && just build",
+            "command": "just build",
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/jackc/compiler/jackc_frontend",
@@ -63,7 +63,7 @@
     {
         "label": "Function registry tests",
         "build": {
-            "command": "just configure && just build",
+            "command": "just build",
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/tests/function_registry_tests",

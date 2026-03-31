@@ -1,6 +1,8 @@
 #ifndef JACKC_FILE_UTILS_H
 #define JACKC_FILE_UTILS_H
 
+#include "std/jackc_string.h"
+
 const char* jackc_next_source_file(const char* base_path, const char* extension);
 
 /**
@@ -11,5 +13,9 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
  * @param path Path to file.
  */
 char* jackc_read_file_content(const char* file_path);
+
+const char* jackc_find_filename(const char* path);
+
+jackc_string jackc_find_filename_no_ext(const char* path);
 
 #endif
