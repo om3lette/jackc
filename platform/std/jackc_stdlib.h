@@ -44,7 +44,6 @@ void jackc_vprintf(const char* format, va_list args);
  */
 void* jackc_alloc(size_t size);
 
-
 /**
  * Terminates program execution with `code` status code.
  *

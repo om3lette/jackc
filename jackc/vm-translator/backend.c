@@ -1,8 +1,10 @@
 #include "vm-translator/backend.h"
-#include "jackc_stdio.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_syscalls.h"
 #include "vm-translator/code-generation/vm_code_generator.h"
 #include "vm-translator/parser/vm_parser.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdlib.h"
+#include "core/jackc_file_utils.h"
 
 jackc_backend_return_code jackc_backend_compile(
     const char* base_path,

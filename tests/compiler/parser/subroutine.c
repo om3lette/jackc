@@ -1,5 +1,5 @@
 #include "compiler/ast/ast.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include "test_parser_utils.h"
 #include "tau.h"
 

@@ -1,5 +1,5 @@
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
+#include "core/logging/logger.h"
+#include "std/jackc_stdlib.h"
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -33,12 +33,11 @@ static char* join_path(const char* dir, const char* file) {
     return full_path;
 }
 
-// TODO: Return a proper error code on failure to replace logging
 const char* jackc_next_source_file(const char* base_path, const char* extension) {
     if (stack_top == -1) {
         DIR* d = opendir(base_path);
         if (!d) {
-            // LOG_ERROR("Failed to open base directory %s\n", base_path);
+            LOG_ERROR("Failed to open base directory %s\n", base_path);
             return NULL;
         }
 
@@ -67,7 +66,7 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
 
         struct stat s;
         if (stat(full_path, &s) == -1) {
-            // LOG_ERROR("Failed to stat %s\n", full_path);
+            LOG_ERROR("Failed to stat %s\n", full_path);
             jackc_free(full_path);
             continue;
         }
@@ -82,7 +81,7 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
                     continue;
                 }
             } else {
-                // LOG_ERROR("Max directory depth reached\n");
+                LOG_ERROR("Max directory depth reached\n");
             }
             jackc_free(full_path);
         } else if (S_ISREG(s.st_mode)) {
@@ -95,61 +94,4 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
     }
 
     return NULL;
-}
-
-void jackc_putchar(char c) {
-    putchar(c);
-}
-
-void jackc_printf(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}
-
-void jackc_vprintf(const char* format, va_list args) {
-    vprintf(format, args);
-}
-
-void jackc_vfprintf(int fd, const char* format, va_list args) {
-    vdprintf(fd, format, args);
-}
-
-void jackc_fprintf(int fd, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    jackc_vfprintf(fd, format, args);
-    va_end(args);
-}
-
-int jackc_open(const char* path, int flags) {
-    return open(path, flags, 0644);
-}
-
-long jackc_read(int fd, void* buf, size_t n) {
-    return read(fd, buf, n);
-}
-
-long jackc_write(int fd, const void* buf, size_t n) {
-    return write(fd, buf, n);
-}
-
-long jackc_lseek(int fd, long offset, int whence) {
-    return lseek(fd, offset, whence);
-}
-
-void jackc_vsprintf(char* buffer, const char* format, va_list args) {
-    vsprintf(buffer, format, args);
-}
-
-void jackc_sprintf(char* buffer, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    jackc_vsprintf(buffer, format, args);
-    va_end(args);
-}
-
-int jackc_close(int fd) {
-    return close(fd);
 }

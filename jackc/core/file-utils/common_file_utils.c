@@ -1,17 +1,18 @@
 #include "core/logging/logger.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
+#include "std/jackc_syscalls.h"
+#include "core/jackc_file_utils.h"
 
 char* jackc_read_file_content(const char* file_path) {
     int fd = jackc_open(file_path, O_RDONLY);
     if (fd < 0) {
         return NULL;
     }
-    LOG_DEBUG("Opened file: %s\n", file_path);
 
     long file_size = jackc_lseek(fd, 0L, JACKC_SEEK_END);
     if (file_size < 0) {
-        LOG_ERROR("Failed to reach end of file.\n");
+        // LOG_ERROR("Failed to reach end of file.\n");
         jackc_close(fd);
         return NULL;
     }
@@ -20,7 +21,6 @@ char* jackc_read_file_content(const char* file_path) {
         jackc_close(fd);
         return NULL;
     }
-    LOG_DEBUG("Calculated size: %d bytes.\n", file_size);
 
     char* content_buffer = jackc_alloc((size_t)(file_size + 1));
 
@@ -36,6 +36,5 @@ char* jackc_read_file_content(const char* file_path) {
         return NULL;
     }
 
-    LOG_DEBUG("Saved the content to a buffer.\n");
     return content_buffer;
 }

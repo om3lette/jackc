@@ -1,60 +1,9 @@
-#include "jackc_stdio.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
-#include "jackc_string.h"
 #include "rars/rars_syscalls.h"
+#include "std/jackc_string.h"
 #include <stdarg.h>
-
-char* file_content = NULL;
-
-const char* jackc_next_source_file(const char* base_path, const char* extension) {
-    (void)extension;
-
-    // RARS does not support directory traversal so this has to be done manually
-    // This function will only parse the file located at base_path
-    if (!file_content) file_content = jackc_read_file_content(base_path);
-    if (!file_content) return NULL;
-
-    const char* const line_start = file_content;
-    while (*file_content != '\0' && *file_content != '\n') {
-        ++file_content;
-    }
-
-    // Reached EOF
-    if (*file_content == '\0') return NULL;
-    *file_content++ = '\0';
-
-    return line_start;
-}
 
 void jackc_putchar(char c) {
     rars_print_char(c);
-}
-
-int jackc_open(const char *path, int flags) {
-    file_mode mode = O_RDONLY;
-
-    if (flags & O_WRONLY) mode = WRITE_CREATE_MODE;
-    else if (flags & O_APPEND) mode = WRITE_APPEND_MODE;
-
-    return rars_open_file(path, mode);
-}
-
-long jackc_read(int fd, void* buf, size_t n) {
-    return rars_read(fd, buf, n);
-}
-
-long jackc_write(int fd, const void *buf, size_t n) {
-    return rars_write(fd, buf, n);
-}
-
-int jackc_close(int fd) {
-    rars_close_file(fd);
-    return 0;
-}
-
-long jackc_lseek(int fd, long offset, int whence) {
-    return rars_lseek(fd, offset, whence);
 }
 
 static void str_reverse(char* begin, char* end) {

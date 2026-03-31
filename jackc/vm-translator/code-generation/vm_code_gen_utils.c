@@ -1,5 +1,5 @@
-#include "jackc_stdio.h"
-#include "common/config.h"
+#include "std/jackc_stdio.h"
+#include "core/config.h"
 #include "vm_code_gen_utils.h"
 #include "vm-translator/constants.h"
 #include <stdint.h>

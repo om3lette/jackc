@@ -2,7 +2,7 @@
 #define JACKC_COMPILER_LEXER_H
 
 #include "compiler/diagnostics-engine/diagnostic.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 
 typedef int32_t jack_int;

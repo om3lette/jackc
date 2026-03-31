@@ -1,4 +1,4 @@
-#include "common/config.h"
+#include "core/config.h"
 
 jackc_config jackc_config_create(bool is_stack_growing_upwards, uint32_t upward_stack_size) {
     return (jackc_config) {

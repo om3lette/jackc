@@ -1,7 +1,7 @@
 #include "hashmap.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdlib.h"
 
 fixed_hash_map* _fixed_hashmap_init(size_t key_size, size_t value_size, hash_fn hasher, cmp_fn comparator, Allocator* allocator) {
     jackc_assert(hasher && "Hash function is null");

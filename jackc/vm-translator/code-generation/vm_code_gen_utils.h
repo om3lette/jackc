@@ -1,7 +1,7 @@
 #ifndef JACKC_VM_TRANSLATOR_CODE_GEN_UTILS_H
 #define JACKC_VM_TRANSLATOR_CODE_GEN_UTILS_H
 
-#include "common/config.h"
+#include "core/config.h"
 #include "vm-translator/parser/vm_parser.h"
 
 #define VM_CODE_GEN_HELP_COMMENT(fd, fmt, ...) \

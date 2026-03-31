@@ -1,5 +1,5 @@
-#include "jackc_stdlib.h"
-#include "jackc_string.h"
+#include "std/jackc_stdlib.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 
 int jackc_string_cmp(const jackc_string* str1, const jackc_string* str2) {

@@ -1,7 +1,7 @@
 #ifndef JACKC_VM_PARSER_H
 #define JACKC_VM_PARSER_H
 
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 #include <stddef.h>
 

@@ -63,10 +63,10 @@ if (CMAKE_CROSSCOMPILING)
                 -DNDEBUG
                 -D__rars__
                 -S
-                $<TARGET_PROPERTY:common,SOURCES>
+                $<TARGET_PROPERTY:platform_impl,SOURCES>
+                $<TARGET_PROPERTY:jackc_std,SOURCES>
                 $<TARGET_PROPERTY:core,SOURCES>
                 $<TARGET_PROPERTY:vm-translator,SOURCES>
-                $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc_backend,SOURCES>
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
         COMMAND
@@ -74,9 +74,10 @@ if (CMAKE_CROSSCOMPILING)
                 ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
                 ${CMAKE_CURRENT_BINARY_DIR}/jackc_backend.s
         DEPENDS
-            common
-            vm-translator
             platform_impl
+            core
+            jackc_std
+            vm-translator
             jackc_backend
         COMMAND_EXPAND_LISTS
         VERBATIM
@@ -93,11 +94,11 @@ if (CMAKE_CROSSCOMPILING)
                 -DNDEBUG
                 -D__rars__
                 -S
-                $<TARGET_PROPERTY:common,SOURCES>
+                $<TARGET_PROPERTY:platform_impl,SOURCES>
+                $<TARGET_PROPERTY:jackc_std,SOURCES>
                 $<TARGET_PROPERTY:core,SOURCES>
                 $<TARGET_PROPERTY:diagnostics_engine,SOURCES>
                 $<TARGET_PROPERTY:compiler,SOURCES>
-                $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc_frontend,SOURCES>
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend
         COMMAND
@@ -105,9 +106,10 @@ if (CMAKE_CROSSCOMPILING)
                 ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend
                 ${CMAKE_CURRENT_BINARY_DIR}/jackc_frontend.s
         DEPENDS
-            common
-            compiler
             platform_impl
+            core
+            jackc_std
+            compiler
             jackc
         COMMAND_EXPAND_LISTS
         VERBATIM

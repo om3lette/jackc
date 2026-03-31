@@ -7,9 +7,11 @@
 #include "compiler/parser/compiler_parser_internal.h"
 #include "core/allocators/allocators.h"
 #include "core/logging/logger.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
-#include "jackc_string.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
+#include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
+#include "core/jackc_file_utils.h"
 #include "frontend.h"
 
 extern const jackc_diagnostic_translation diagnostic_translations[];

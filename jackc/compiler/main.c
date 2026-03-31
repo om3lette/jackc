@@ -1,7 +1,7 @@
 #include "core/allocators/allocators.h"
 #include "core/allocators/adapters.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
 #include "frontend.h"
 
 int main(int argc, char** argv) {

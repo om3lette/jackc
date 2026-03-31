@@ -6,7 +6,7 @@
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_utils.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 
 static ast_expr* jack_parser_parse_array_index(jack_parser* parser) {

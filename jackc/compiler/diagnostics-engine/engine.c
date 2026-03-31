@@ -4,9 +4,9 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
-#include "jackc_string.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
+#include "std/jackc_string.h"
 
 jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,

@@ -1,7 +1,7 @@
 #ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 
 #define MAX_DIAGNOSTICS 128

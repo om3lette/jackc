@@ -1,6 +1,6 @@
 #include "ast.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 static ast_expr* ast_expr_common_init(
     Allocator* allocator,

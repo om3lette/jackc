@@ -1,7 +1,7 @@
 #ifndef JACKC_BACKEND_H
 #define JACKC_BACKEND_H
 
-#include "common/config.h"
+#include "core/config.h"
 #include <stdint.h>
 
 #define OUT_FILENAME "out.asm"

@@ -3,7 +3,7 @@
 
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 typedef enum {
     JACK_INT = 0,

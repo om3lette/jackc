@@ -7,7 +7,7 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 #define INVALID_STATE(_ctx) _ctx->is_invalid = true
 

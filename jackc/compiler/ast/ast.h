@@ -3,7 +3,7 @@
 
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/allocators/allocators.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stddef.h>
 #include <stdint.h>
 

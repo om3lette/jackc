@@ -1,6 +1,6 @@
-#include "common/config.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
+#include "core/config.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
 #include "vm-translator/backend.h"
 
 int main(int argc, char** argv) {

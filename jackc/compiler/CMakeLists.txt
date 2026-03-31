@@ -24,7 +24,7 @@ add_library(compiler STATIC
 )
 target_link_libraries(compiler
     PUBLIC
-        common
+        core
         diagnostics_engine
 )
 

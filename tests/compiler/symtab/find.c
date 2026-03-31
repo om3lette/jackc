@@ -1,6 +1,6 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include "utils.h"
 #include <tau.h>
 #include <string.h> // memcmp
