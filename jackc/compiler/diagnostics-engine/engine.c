@@ -96,12 +96,12 @@ static char* token_type_to_str(jack_token_type token) {
     return nullptr;
 }
 
+char char_to_str_buf[2];
 static const char* token_to_str(int32_t token) {
     if (token < 256) {
-        static char buf[2];
-        buf[0] = (char)token;
-        buf[1] = '\0';
-        return buf;
+        char_to_str_buf[0] = (char)token;
+        char_to_str_buf[1] = '\0';
+        return char_to_str_buf;
     }
     const char* str = token_type_to_str((jack_token_type)token);
     if (!str) {

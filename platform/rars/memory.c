@@ -33,7 +33,20 @@ void* jackc_memcpy(void* dest, const void* src, size_t n) {
     return dest;
 }
 
-// GCC can add implicit calls to memcpy. Not meant to be used directly.
-__attribute__((weak)) void* memcpy(void* dest, const void* src, size_t n) {
+void* jackc_memset(void* dest, int c, size_t n) {
+    if (n != 0) {
+		unsigned char *d = dest;
+		do {
+		    *d++ = (unsigned char)c;
+		} while (--n != 0);
+	}
+	return dest;
+}
+
+// GCC can add implicit calls to memcpy / memset. Not meant to be used directly.
+void* memcpy(void* dest, const void* src, size_t n) {
     return jackc_memcpy(dest, src, n);
+}
+void* memset(void* dest, int c, size_t n) {
+    return jackc_memset(dest, c, n);
 }

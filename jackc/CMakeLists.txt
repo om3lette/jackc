@@ -4,7 +4,7 @@ add_subdirectory(vm-translator)
 add_subdirectory(compiler)
 
 add_executable(jackc
-    main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
 )
 target_link_libraries(jackc
     PRIVATE

@@ -51,7 +51,7 @@ add_subdirectory(jackc)
 if (CMAKE_CROSSCOMPILING)
     set(ASM_DIR ${CMAKE_BINARY_DIR}/asm)
     add_custom_command(
-        OUTPUT jackc.s
+        OUTPUT jackc_backend.s
         COMMAND
             ${CMAKE_C_COMPILER}
                 -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
@@ -60,25 +60,59 @@ if (CMAKE_CROSSCOMPILING)
                 -D__rars__
                 -S
                 $<TARGET_PROPERTY:common,SOURCES>
+                $<TARGET_PROPERTY:core,SOURCES>
                 $<TARGET_PROPERTY:vm-translator,SOURCES>
-                $<TARGET_PROPERTY:compiler,SOURCES>
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
-                $<TARGET_PROPERTY:jackc,SOURCES>
+                $<TARGET_PROPERTY:jackc_backend,SOURCES>
         COMMAND
             python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-merger.py
                 ${CMAKE_CURRENT_BINARY_DIR}
                 ${ASM_DIR}
-                jackc-merged.s
+                merged/jackc_backend-merged.s
         COMMAND
             python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
-                jackc-merged.s
-                jackc.s
+                merged/jackc_backend-merged.s
+                out/jackc_backend.s
         COMMAND
             python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/error-fixer.py
-                jackc.s
+                out/jackc_backend.s
         DEPENDS
             common
             vm-translator
+            platform_impl
+            jackc_backend
+        COMMAND_EXPAND_LISTS
+        VERBATIM
+    )
+    add_custom_command(
+        OUTPUT jackc_frontend.s
+        COMMAND
+            ${CMAKE_C_COMPILER}
+                -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
+                -I${CMAKE_CURRENT_SOURCE_DIR}/platform
+                -DNDEBUG
+                -D__rars__
+                -S
+                $<TARGET_PROPERTY:common,SOURCES>
+                $<TARGET_PROPERTY:core,SOURCES>
+                $<TARGET_PROPERTY:diagnostics_engine,SOURCES>
+                $<TARGET_PROPERTY:compiler,SOURCES>
+                $<TARGET_PROPERTY:platform_impl,SOURCES>
+                $<TARGET_PROPERTY:jackc_frontend,SOURCES>
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-merger.py
+                ${CMAKE_CURRENT_BINARY_DIR}
+                ${ASM_DIR}
+                merged/jackc_frontend-merged.s
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
+                merged/jackc_frontend-merged.s
+                out/jackc_frontend.s
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/error-fixer.py
+                out/jackc_frontend.s
+        DEPENDS
+            common
             compiler
             platform_impl
             jackc
@@ -87,7 +121,8 @@ if (CMAKE_CROSSCOMPILING)
     )
 
     add_custom_target(rars-build ALL
-        DEPENDS jackc.s
+        DEPENDS jackc_backend.s
+        DEPENDS jackc_frontend.s
     )
 endif()
 

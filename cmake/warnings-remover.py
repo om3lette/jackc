@@ -15,6 +15,7 @@ source_path: Path = Path(sys.argv[1])
 source_file: TextIOWrapper = open(source_path, "r", encoding="utf-8")
 
 out_path: Path = Path(sys.argv[2])
+out_path.parent.mkdir(exist_ok=True)
 out_file: TextIOWrapper = open(out_path, "w", encoding="utf-8")
 
 PROGRAM_NAME: str = Path(__file__).stem.replace("-", " ").capitalize()
@@ -30,6 +31,8 @@ unsupported_directives: list[str] = [
     "size",
     "option",
     "weak",
+    "local",
+    "comm"
 ]
 unsupported_directives_regex: re.Pattern[str] = re.compile(
     rf"^\s*\.({'|'.join(unsupported_directives)})", flags=re.MULTILINE

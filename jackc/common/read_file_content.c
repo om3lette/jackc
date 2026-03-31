@@ -20,7 +20,7 @@ char* jackc_read_file_content(const char* file_path) {
         jackc_close(fd);
         return NULL;
     }
-    LOG_DEBUG("Calculated size: %ld bytes.\n", file_size);
+    LOG_DEBUG("Calculated size: %d bytes.\n", file_size);
 
     char* content_buffer = jackc_alloc((size_t)(file_size + 1));
 

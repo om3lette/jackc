@@ -12,7 +12,7 @@ target_link_libraries(vm-translator
 )
 
 add_executable(jackc_backend
-    ${CMAKE_CURRENT_SOURCE_DIR}/backend_exec.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
 )
 target_link_libraries(jackc_backend
     PRIVATE

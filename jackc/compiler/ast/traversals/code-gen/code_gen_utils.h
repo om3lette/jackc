@@ -1,5 +1,5 @@
-#ifndef JACKC_VM_CODE_GEN_UTILS_H
-#define JACKC_VM_CODE_GEN_UTILS_H
+#ifndef JACKC_CODE_GEN_UTILS_H
+#define JACKC_CODE_GEN_UTILS_H
 
 #include "compiler/ast/ast.h"
 #include "compiler/function-registry/function_registry.h"

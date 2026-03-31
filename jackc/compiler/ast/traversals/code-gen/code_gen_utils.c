@@ -1,5 +1,5 @@
-// #include "vm_code_gen_utils.h"
-#include "compiler/ast/traversals/code-gen/vm_code_gen_utils.h"
+#include "code_gen_utils.h"
+#include "compiler/ast/traversals/code-gen/code_gen_utils.h"
 #include "compiler/ast/ast.h"
 #include "compiler/ast/traversals/code-gen/std_utils.h"
 #include "compiler/function-registry/function_registry.h"

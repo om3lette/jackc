@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
     Allocator arena = arena_allocator_adapter();
     jackc_frontend_return_code frontend_ret_code = jackc_frontend_compile(base_dir_path, out_dir_path, &arena, false);
     if (frontend_ret_code != FRONTEND_OK) {
+        jackc_printf("Frontend failed with exit code: %d\n", frontend_ret_code);
         jackc_exit((int)frontend_ret_code);
     }
     // TODO: Unhardcode config values

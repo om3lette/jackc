@@ -1,7 +1,7 @@
 #include "compiler/ast/ast.h"
 #include "compiler/ast/traversals.h"
 #include "compiler/ast/traversals/code-gen/std_utils.h"
-#include "compiler/ast/traversals/code-gen/vm_code_gen_utils.h"
+#include "compiler/ast/traversals/code-gen/code_gen_utils.h"
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/symtable/compiler_symtable.h"

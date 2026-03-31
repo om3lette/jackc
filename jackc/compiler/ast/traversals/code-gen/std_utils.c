@@ -1,6 +1,6 @@
 #include "std_utils.h"
 #include "vm-translator/parser/vm_parser.h"
-#include "vm_code_gen_utils.h"
+#include "code_gen_utils.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_stdio.h"
 

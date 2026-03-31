@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv) {
     if (argc != BACKEND_EXPECTED_ARGUMENTS) {
-        jackc_printf("Usage: jackc <base-dir> <save-path>\n");
+        jackc_printf("Usage: jackc_backend <base-dir> <save-path>\n");
         jackc_exit(BACKEND_INVALID_ARGUMENT);
     }
     const char* base_dir_path = argv[FIRST_ARG_IDX];

@@ -16,12 +16,11 @@ PROGRAM_NAME: str = Path(__file__).stem.replace("-", " ").capitalize()
 print(f"\n{PROGRAM_NAME.center(80, '=')}")
 
 
-def replace_unsupported_sw_syntax(s: str) -> str:
+def replace_unsupported_syntax(s: str) -> str:
     print("Fixing unsupported sw syntax...")
-    pattern = r"sw\s+([a-z0-9]+)\s*,\s*%lo\(([^)]+)\)\(([a-z0-9]+)\)"
-    replacement = r"addi \3, \3, %lo(\2)\n\tsw \1, 0(\3)"
+    pattern = r"(sw|sh|sb)\s+([a-z0-9]+)\s*,\s*%lo\(([^)]+)\)\(([a-z0-9]+)\)"
+    replacement = r"addi \4, \4, %lo(\3)\n\t\1 \2, 0(\4)"
     return re.sub(pattern, replacement, s)
-
 
 def replace_unsupported_sections(s: str) -> str:
     section_mapping: list[tuple[str, str]] = [
@@ -36,7 +35,7 @@ def replace_unsupported_sections(s: str) -> str:
     return s
 
 
-file_content = replace_unsupported_sw_syntax(file_content)
+file_content = replace_unsupported_syntax(file_content)
 file_content = replace_unsupported_sections(file_content)
 
 file_path.write_text(file_content)
