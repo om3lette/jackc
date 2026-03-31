@@ -1,11 +1,7 @@
-# Configure projects using preset
-[arg("preset", long="preset", short="p")]
-configure preset="debug":
-    cmake --preset {{preset}}
-
-# Build project using preset
+# Configure build project using preset
 [arg("preset", long="preset", short="p")]
 build preset="debug":
+    cmake --preset {{preset}}
     cmake --build --preset {{preset}}
 
 # Configure and build for RARS
