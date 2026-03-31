@@ -68,18 +68,9 @@ typedef enum {
  *
  * @param buffer The input file buffer to parse.
  */
-[[ nodiscard ]] jackc_parser* jackc_parser_init(const char* buffer);
+[[ nodiscard ]] jackc_parser jackc_parser_init(const char* buffer);
 
 void jackc_parser_update_source(jackc_parser* parser, const char* buffer);
-
-/**
- * Frees the memory allocated for a jackc_parser instance.
- *
- * Invalidates the pointer.
- *
- * @param parser The parser instance to free.
- */
-void jackc_parser_free(jackc_parser* parser);
 
 /**
  * Checks if there are more lines to parse.

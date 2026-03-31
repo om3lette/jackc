@@ -21,8 +21,8 @@ int main(int argc, char** argv) {
         jackc_exit((int)frontend_ret_code);
     }
     // TODO: Unhardcode config values
-    const jackc_config_t* jackc_config = jackc_config_create(false, 256 * 1024);
-    jackc_backend_return_code backend_ret_code = jackc_backend_compile(out_dir_path, out_dir_path, jackc_config);
+    jackc_config config = jackc_config_create(false, 256 * 1024);
+    jackc_backend_return_code backend_ret_code = jackc_backend_compile(out_dir_path, out_dir_path, &config);
 
     arena_allocator_destroy(arena.context);
     jackc_exit((int)backend_ret_code);

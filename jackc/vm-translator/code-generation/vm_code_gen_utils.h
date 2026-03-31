@@ -18,14 +18,14 @@
 
 char* vm_segment_type_to_string(jackc_vm_segment_type segment_type);
 
-void vm_code_gen_stack_alloc(int fd, int words, const jackc_config_t* ctx);
+void vm_code_gen_stack_alloc(int fd, int words, const jackc_config* ctx);
 
-void vm_code_gen_stack_dealloc(int fd, int words, const jackc_config_t* ctx);
+void vm_code_gen_stack_dealloc(int fd, int words, const jackc_config* ctx);
 
-void vm_code_gen_pop(int fd, const char* dest_reg, bool deallocate, const jackc_config_t* ctx);
+void vm_code_gen_pop(int fd, const char* dest_reg, bool deallocate, const jackc_config* ctx);
 
-void vm_code_gen_pop_idx(int fd, const char* dest_reg, int idx, bool deallocate, const jackc_config_t* ctx);
+void vm_code_gen_pop_idx(int fd, const char* dest_reg, int idx, bool deallocate, const jackc_config* ctx);
 
-void vm_code_gen_push(int fd, const char* dest_reg, bool allocate, const jackc_config_t* ctx);
+void vm_code_gen_push(int fd, const char* dest_reg, bool allocate, const jackc_config* ctx);
 
 #endif

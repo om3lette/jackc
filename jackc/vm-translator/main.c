@@ -12,6 +12,6 @@ int main(int argc, char** argv) {
     const char* out_dir_path = argv[FIRST_ARG_IDX + 1];
 
     // TODO: Unhardcode config variables
-    const jackc_config_t* const jackc_config = jackc_config_create(false, 256 * 1024);
-    return (int)jackc_backend_compile(base_dir_path, out_dir_path, jackc_config);
+    jackc_config config = jackc_config_create(false, 256 * 1024);
+    return (int)jackc_backend_compile(base_dir_path, out_dir_path, &config);
 }
