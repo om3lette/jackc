@@ -1,11 +1,10 @@
 #include "vm_parser.h"
-#include "core/exit_code.h"
 #include "core/logging/logger.h"
 #include "core/asserts/jackc_assert.h"
 #include "jackc_stdlib.h"
 #include "jackc_string.h"
+#include "vm-translator/backend.h"
 #include "vm-translator/parser/vm_parser_utils.h"
-#include <inttypes.h>
 #include <stdio.h>
 
 /**
@@ -106,6 +105,8 @@ jackc_vm_cmd_type jackc_vm_cmd_type_from_string(const jackc_string str) {
     if (jackc_streq(&str, "add")) return C_ADD;
     if (jackc_streq(&str, "sub")) return C_SUB;
     if (jackc_streq(&str, "neg")) return C_NEG;
+    if (jackc_streq(&str, "mul")) return C_MUL;
+    if (jackc_streq(&str, "div")) return C_DIV;
     if (jackc_streq(&str, "eq")) return C_EQ;
     if (jackc_streq(&str, "gt")) return C_GT;
     if (jackc_streq(&str, "lt")) return C_LT;
@@ -162,7 +163,7 @@ void jackc_vm_parse_arg1(jackc_parser* parser) {
     size_t token_size = 0;
 
     char c = jackc_tolower(vm_parser_peek(parser));
-    while ((c >= 'a' && c <= 'z') || c == '_' || c == '.') {
+    while ((c >= 'a' && c <= 'z') || c == '_' || c == '.' || (c >= '0' && c <= '9')) {
         ++parser->position;
         ++token_size;
         c = jackc_tolower(vm_parser_peek(parser));
@@ -294,5 +295,5 @@ void jackc_vm_parser_panic(const jackc_parser* parser, const char* msg, const ch
     }
     jackc_printf("\n\n%s at %s:%d\n", msg, c_file, c_line);
 
-    jackc_exit(JACKC_ASSERTION_ERROR);
+    jackc_exit(BACKEND_INVALID_SYNTAX);
 }

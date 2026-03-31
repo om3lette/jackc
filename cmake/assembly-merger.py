@@ -13,6 +13,7 @@ if len(sys.argv) != 4:
 bin_dir: Path = Path(sys.argv[1])
 asm_dir: Path = Path(sys.argv[2])
 merged_path: Path = Path(sys.argv[3])
+merged_path.parent.mkdir(exist_ok=True)
 asm_dir.mkdir(exist_ok=True)
 
 PROGRAM_NAME: str = Path(__file__).stem.replace("-", " ").capitalize()
@@ -38,19 +39,40 @@ print(f"Found: {source_files_cnt} source files:")
 for i, source_file in enumerate(source_files, 1):
     print(f"{i}) {source_file.name}")
 
-
 def process_file(asm_path: Path):
     assert asm_path.suffix == ".s"
 
     with open(asm_path, "r") as asm_file:
-        # Replace .L<idx> label with .L_<filename>_<idx>
-        new_content: str = re.sub(
-            r"\.L([A-Za-z0-9_]+)", rf".L_{asm_path.stem}_\1", asm_file.read()
-        )
-        # Replace __func__.<idx> with __func__.<filename>.<idx>
+        content = asm_file.read()
+
+    # Collect all .globl symbols - these should NOT be renamed
+    global_symbols = set(re.findall(r'\.(?:globl|global)\s+(\w+)', content))
+    # Collect all label definitions (symbol:) that are NOT global
+    local_labels: set[str] = set(re.findall(r'^(\w+):', content, re.MULTILINE)) - global_symbols
+
+    exclude_patterns: set[str] = {'main', 'data', 'text', 'bss', 'rodata'}
+    local_labels -= exclude_patterns
+
+    new_content = content
+
+    # Rename local labels to avoid collisions: label -> __local_<filename>_label
+    for label in local_labels:
+        # Replace both definition (label:) and references to the label
         new_content = re.sub(
-            r"__func__\.([0-9]+)", rf"__func__.{asm_path.stem}.\1", new_content
+            rf'\b{re.escape(label)}\b',
+            f'__local_{asm_path.stem}_{label}',
+            new_content
         )
+
+    # Replace .L<idx> label with .L_<filename>_<idx>
+    new_content = re.sub(
+        r"\.L([A-Za-z0-9_]+)", rf".L_{asm_path.stem}_\1", new_content
+    )
+
+    # Replace __func__.<idx> with __func__.<filename>.<idx>
+    new_content = re.sub(
+        r"__func__\.([0-9]+)", rf"__func__.{asm_path.stem}.\1", new_content
+    )
 
     return new_content
 

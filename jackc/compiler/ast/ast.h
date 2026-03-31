@@ -247,7 +247,7 @@ struct ast_var_dec {
     struct ast_var_dec* next; // Linked list of declarations
 };
 
-ast_var_dec* ast_var_dec_list_push_front(
+ast_var_dec* ast_var_dec_list_push_back(
     ast_var_dec* tail,
     ast_var_dec* stmt
 );
@@ -292,7 +292,7 @@ ast_subroutine* ast_subroutine_create(
     ast_subroutine* next
 );
 
-ast_subroutine* ast_subroutine_push_front(
+ast_subroutine* ast_subroutine_push_back(
     ast_subroutine* tail,
     ast_subroutine* subroutine
 );

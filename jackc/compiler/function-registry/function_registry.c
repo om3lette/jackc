@@ -37,9 +37,19 @@ sym_table_return_code function_registry_insert(function_registry* registry, cons
     fixed_hashmap_insert(registry->classes, &class->name, &symbol);
 
     for (ast_subroutine* sub = class->subroutines; sub; sub = sub->next) {
+        uint16_t n_args = 0;
+        for (const ast_var_dec* arg = sub->params; arg; arg = arg->next) {
+            ++n_args;
+        }
+        uint16_t n_locals = 0;
+        for (const ast_var_dec* local = sub->locals; local; local = local->next) {
+            ++n_locals;
+        }
         function_signature signature = {
             .name = sub->name,
             .kind = sub->kind,
+            .n_args = n_args,
+            .n_locals = n_locals,
             .arguments = sub->params,
             .return_type = &sub->return_type,
         };

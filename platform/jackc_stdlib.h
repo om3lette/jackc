@@ -56,4 +56,6 @@ void jackc_free(void* ptr);
 
 void* jackc_memcpy(void* dest, const void* src, size_t n);
 
+void* jackc_memset(void *dest, int c, size_t n);
+
 #endif

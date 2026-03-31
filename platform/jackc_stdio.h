@@ -17,10 +17,12 @@
 #ifdef __rars__
     #define FRONTEND_EXPECTED_ARGUMENTS 2
     #define BACKEND_EXPECTED_ARGUMENTS 2
+    #define JACKC_EXPECTED_ARGUMENTS 2
     #define FIRST_ARG_IDX 0
 #else
     #define FRONTEND_EXPECTED_ARGUMENTS 3
     #define BACKEND_EXPECTED_ARGUMENTS 3
+    #define JACKC_EXPECTED_ARGUMENTS 3
     #define FIRST_ARG_IDX 1
 #endif
 

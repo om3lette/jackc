@@ -12,6 +12,8 @@ typedef enum {
     C_UNKNOWN = 0,
     C_ADD,
     C_SUB,
+    C_DIV,
+    C_MUL,
     C_NEG,
     C_AND,
     C_OR,

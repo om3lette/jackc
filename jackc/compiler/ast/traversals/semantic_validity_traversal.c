@@ -20,8 +20,6 @@
  * @return true if an error occured, false otherwise
  */
 static bool ast_type_to_jack_type(const ast_type* type, jack_type* out) {
-    if (type->kind == TYPE_VOID) return true;
-
     switch (type->kind) {
         case TYPE_INT:
             *out = JACK_INT;

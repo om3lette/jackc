@@ -5,6 +5,7 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_internal.h"
+#include "core/allocators/allocators.h"
 #include "core/logging/logger.h"
 #include "jackc_stdio.h"
 #include "jackc_stdlib.h"
@@ -80,6 +81,60 @@ static bool is_semantically_invalid(
     return is_invalid;
 }
 
+static bool generate_vm_code(
+    const char* out_base_dir,
+    const jack_source* source_files,
+    const function_registry* registry,
+    Allocator* allocator
+) {
+    // There is no reliable way to create directories while running in RARS
+    // The solution is to flatten the directory structure for .vm files
+    uint32_t file_idx = 0;
+    char out_file_path[4096];
+    bool had_error = false;
+
+    for (const jack_source* source_file = source_files; source_file; source_file = source_file->next) {
+        const char* filename_start = jackc_strrchr(source_file->filepath, '/');
+        if (!filename_start) {
+            had_error = true;
+            continue;
+        }
+        ++filename_start; // Discard '/'
+        const char* filename_end = jackc_strrchr(filename_start, '.');
+        if (!filename_end) {
+            had_error = true;
+            continue;
+        }
+        jackc_sprintf(
+            out_file_path,
+            "%s/%.*s_%d.vm",
+            out_base_dir,
+            filename_end - filename_start, filename_start,
+            file_idx++
+        );
+        int fd = jackc_open(out_file_path, O_CREAT | O_WRONLY | O_TRUNC);
+        if (fd < 0) {
+            had_error = true;
+            continue;
+        }
+
+        vm_code_generation_traversal_context ctx = (vm_code_generation_traversal_context){
+            .fd = fd,
+            .had_error = false,
+            .registry = registry,
+            .allocator = allocator,
+            .if_label_index = 0,
+            .while_label_index = 0
+        };
+        vm_code_genetation_traversal(source_file->ast, &ctx);
+        had_error |= ctx.had_error;
+
+        jackc_close(fd);
+    }
+
+    return had_error;
+}
+
 static void source_file_free(const jack_source* source_files) {
     while (source_files) {
         jackc_free((void*)source_files->content.data);
@@ -93,7 +148,12 @@ static void source_file_free(const jack_source* source_files) {
     return _code; \
 } while (0);
 
-jackc_frontend_return_code jackc_frontend_compile(const char* base_path, Allocator* allocator) {
+jackc_frontend_return_code jackc_frontend_compile(
+    const char* base_path,
+    const char* output_dir,
+    Allocator* allocator,
+    bool skip_vm_code_gen
+) {
     const char* source_file_path = nullptr;
 
     bool had_syntax_error = false;
@@ -118,7 +178,7 @@ jackc_frontend_return_code jackc_frontend_compile(const char* base_path, Allocat
 
         source_files = jack_source_add(source_files, result.ast, source_file_path, file_content, result.lines, allocator);
     }
-    // TODO: Proper return codes
+
     if (!source_files)
         RETURN_WITH_CLEANUP(FRONTEND_NO_SOURCE_FILES);
     if (had_syntax_error)
@@ -135,6 +195,12 @@ jackc_frontend_return_code jackc_frontend_compile(const char* base_path, Allocat
     // The second AST pass - check that program is semantically valid
     if (is_semantically_invalid(source_files, registry, allocator))
         RETURN_WITH_CLEANUP(FRONTEND_SEMANTICALLY_INVALID);
+
+    if (!skip_vm_code_gen) {
+        // The third AST pass - knowing that the code is valid, generate the vm code
+        if (generate_vm_code(output_dir, source_files, registry, allocator))
+            RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_GENERATE_VM_CODE);
+    }
 
     RETURN_WITH_CLEANUP(FRONTEND_OK);
 }
