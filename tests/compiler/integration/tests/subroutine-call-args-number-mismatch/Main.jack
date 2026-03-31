@@ -1,0 +1,10 @@
+class Main {
+    function void main() {
+        do sum(1);
+        do sum(1, 2, 3);
+    }
+
+    function int sum(int x, int y) {
+        return x + y;
+    }
+}

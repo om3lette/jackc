@@ -51,3 +51,4 @@ REGISTER_TEST(var_shadowing_subroutine, "var-shadowing-subroutine", FRONTEND_SEM
 REGISTER_TEST(missing_subroutine, "missing-subroutine", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(class_filename_mismatch, "class-filename-mismatch", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(string_literal_assignment_to_non_string, "string-literal-assignment-to-non-string", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(subroutine_call_args_number_mismatch, "subroutine-call-args-number-mismatch", FRONTEND_SEMANTICALLY_INVALID)

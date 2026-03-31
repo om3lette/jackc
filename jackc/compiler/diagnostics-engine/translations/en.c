@@ -19,6 +19,8 @@ const jackc_diagnostic_translation diagnostic_translations[] = {
     { DIAG_CALL_TO_UNDECLARED_SUBROUTINE, "Call to undeclared subroutine '%.*s'.", nullptr },
     { DIAG_NON_VOID_SUBROUTINE_SHOULD_RETURN_A_VALUE, "Non 'void' subroutine should return a value.", nullptr },
     { DIAG_CALLED_OBJECT_TYPE_IS_NOT_A_CLASS, "Called object is not of class type.", nullptr },
+    { DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL, "Too few arguments to subroutine call, expected %d, have %d", nullptr },
+    { DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL, "Too many arguments to subroutine call, expected %d, have %d", nullptr },
 
     { DIAG_EMPTY_IF_STATEMENT, "Empty if statement body", nullptr },
     { DIAG_INVALID_OPERATION, "Invalid operation.", nullptr },
@@ -26,6 +28,7 @@ const jackc_diagnostic_translation diagnostic_translations[] = {
     { DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, "The class name '%.*s' does not match the filename '%.*s'.", nullptr },
 
     { DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, "Previous definition is here", nullptr },
+    { DIAG_NOTE_DECLATED_HERE, "Declared here", nullptr }
 };
 
 static_assert(NUMBER_OF_DIAGNOSTICS == sizeof(diagnostic_translations) / sizeof(diagnostic_translations[0]), "Diagnostic translations array size mismatch");

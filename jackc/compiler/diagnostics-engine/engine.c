@@ -235,6 +235,15 @@ static void diagnostic_engine_report_one(
             span.start = span.end;
             jackc_fprintf(engine->output_fd, translation.fmt);
             break;
+        case DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL:
+        case DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL:
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                diagnostic->data.subroutine_n_args_mismatch.expected,
+                diagnostic->data.subroutine_n_args_mismatch.got
+            );
+            break;
         case DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME:
             jackc_fprintf(
                 engine->output_fd,

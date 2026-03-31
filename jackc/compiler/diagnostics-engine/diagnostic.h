@@ -37,6 +37,8 @@ typedef enum {
     DIAG_CALL_TO_UNDECLARED_SUBROUTINE,
     DIAG_NON_VOID_SUBROUTINE_SHOULD_RETURN_A_VALUE,
     DIAG_CALLED_OBJECT_TYPE_IS_NOT_A_CLASS,
+    DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL,
+    DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL,
 
     DIAG_EMPTY_IF_STATEMENT,
     DIAG_INVALID_OPERATION,
@@ -45,6 +47,7 @@ typedef enum {
 
     // Notes
     DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE,
+    DIAG_NOTE_DECLATED_HERE,
 
     NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
@@ -71,6 +74,10 @@ struct jackc_diagnostic {
         struct {
             jackc_string filename;
         } expected_class_name;
+        struct {
+            uint16_t got;
+            uint16_t expected;
+        } subroutine_n_args_mismatch;
     } data;
 };
 

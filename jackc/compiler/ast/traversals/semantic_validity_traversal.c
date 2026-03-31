@@ -189,6 +189,30 @@ static void visit_subroutine_call(const ast_call* call, semantic_validity_traver
         jackc_diag_emit(&d);
         INVALID_STATE(ctx);
     }
+
+    uint16_t n_args = 0;
+    for (ast_expr_list* arg = call->args; arg; arg = arg->next) {
+        ++n_args;
+    }
+    if (n_args != signature.n_args) {
+        jackc_diag_builder d = jackc_diag_begin(
+            &ctx->engine,
+            DIAG_ERROR,
+            n_args < signature.n_args
+                ? DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL
+                : DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL,
+            call->subroutine_name
+        );
+        d.diag.data.subroutine_n_args_mismatch = (typeof(d.diag.data.subroutine_n_args_mismatch)) {
+            .expected = signature.n_args,
+            .got = n_args
+        };
+        // Diagnostics engine is only aware of the current source file
+        if (jackc_string_cmp(&receiver_class, &ctx->class_name) == 0)
+            jackc_diag_add_note(&d, DIAG_NOTE_DECLATED_HERE, signature.name, ctx->allocator);
+        jackc_diag_emit(&d);
+        INVALID_STATE(ctx);
+    }
 }
 
 static void visit_expression(const ast_expr* expr, semantic_validity_traversal_context* ctx) {
