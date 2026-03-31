@@ -49,9 +49,13 @@ add_subdirectory(jackc)
 
 # Cross compilation
 if (CMAKE_CROSSCOMPILING)
-    set(ASM_DIR ${CMAKE_BINARY_DIR}/asm)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/backend)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend)
+
     add_custom_command(
         OUTPUT jackc_backend.s
+        COMMAND
+            ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/backend_build/*.s
         COMMAND
             ${CMAKE_C_COMPILER}
                 -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
@@ -64,18 +68,11 @@ if (CMAKE_CROSSCOMPILING)
                 $<TARGET_PROPERTY:vm-translator,SOURCES>
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc_backend,SOURCES>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
         COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-merger.py
-                ${CMAKE_CURRENT_BINARY_DIR}
-                ${ASM_DIR}
-                merged/jackc_backend-merged.s
-        COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
-                merged/jackc_backend-merged.s
-                out/jackc_backend.s
-        COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/error-fixer.py
-                out/jackc_backend.s
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-helper.py
+                ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
+                ${CMAKE_CURRENT_BINARY_DIR}/jackc_backend.s
         DEPENDS
             common
             vm-translator
@@ -84,8 +81,11 @@ if (CMAKE_CROSSCOMPILING)
         COMMAND_EXPAND_LISTS
         VERBATIM
     )
+
     add_custom_command(
         OUTPUT jackc_frontend.s
+        COMMAND
+            ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/frontend_build/*.s
         COMMAND
             ${CMAKE_C_COMPILER}
                 -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
@@ -99,18 +99,11 @@ if (CMAKE_CROSSCOMPILING)
                 $<TARGET_PROPERTY:compiler,SOURCES>
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc_frontend,SOURCES>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend
         COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-merger.py
-                ${CMAKE_CURRENT_BINARY_DIR}
-                ${ASM_DIR}
-                merged/jackc_frontend-merged.s
-        COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
-                merged/jackc_frontend-merged.s
-                out/jackc_frontend.s
-        COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/error-fixer.py
-                out/jackc_frontend.s
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-helper.py
+                ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend
+                ${CMAKE_CURRENT_BINARY_DIR}/jackc_frontend.s
         DEPENDS
             common
             compiler
