@@ -5,8 +5,8 @@
 #include "compiler/diagnostics-engine/translations/translation.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/allocators/adapters.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
 #include <stdarg.h>
 #include <stdio.h>
 

@@ -1,4 +1,4 @@
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 
 int jackc_strcmp(const char* str1, const char* str2) {

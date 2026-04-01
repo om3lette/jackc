@@ -3,7 +3,7 @@
 
 #include "compiler/diagnostics-engine/translations/translation.h"
 #include "core/allocators/allocators.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include "diagnostic.h"
 #include <stddef.h>
 #include <stdint.h>

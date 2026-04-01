@@ -4,7 +4,7 @@
 #include "compiler/ast/traversals/code-gen/std_utils.h"
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_stdio.h"
+#include "std/jackc_stdio.h"
 #include "vm-translator/parser/vm_parser.h"
 
 jackc_vm_segment_type vm_segment_from_variable_kind(jack_variable_kind kind) {

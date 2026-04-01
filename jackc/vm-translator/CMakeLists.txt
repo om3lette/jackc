@@ -8,7 +8,7 @@ add_library(vm-translator STATIC
 )
 target_link_libraries(vm-translator
     PUBLIC
-        common
+        core
 )
 
 add_executable(jackc_backend

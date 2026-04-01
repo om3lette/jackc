@@ -28,7 +28,16 @@ typedef struct {
     Allocator* allocator;
 
     bool is_invalid;
+    bool has_constructor;
+    bool has_dispose_method;
 } semantic_validity_traversal_context;
+
+semantic_validity_traversal_context semantic_validity_traversal_context_init(
+    const jackc_string* class_name,
+    const function_registry* registry,
+    jackc_diagnostic_engine* engine,
+    Allocator* allocator
+);
 
 bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_traversal_context* ctx);
 

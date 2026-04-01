@@ -1,17 +1,19 @@
 #include "core/logging/logger.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
+#include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
+#include "core/jackc_file_utils.h"
 
 char* jackc_read_file_content(const char* file_path) {
     int fd = jackc_open(file_path, O_RDONLY);
     if (fd < 0) {
         return NULL;
     }
-    LOG_DEBUG("Opened file: %s\n", file_path);
 
     long file_size = jackc_lseek(fd, 0L, JACKC_SEEK_END);
     if (file_size < 0) {
-        LOG_ERROR("Failed to reach end of file.\n");
+        // LOG_ERROR("Failed to reach end of file.\n");
         jackc_close(fd);
         return NULL;
     }
@@ -20,7 +22,6 @@ char* jackc_read_file_content(const char* file_path) {
         jackc_close(fd);
         return NULL;
     }
-    LOG_DEBUG("Calculated size: %d bytes.\n", file_size);
 
     char* content_buffer = jackc_alloc((size_t)(file_size + 1));
 
@@ -36,6 +37,24 @@ char* jackc_read_file_content(const char* file_path) {
         return NULL;
     }
 
-    LOG_DEBUG("Saved the content to a buffer.\n");
     return content_buffer;
+}
+
+const char* jackc_find_filename(const char* path) {
+    const char* last_sep = path;
+    for (const char* p = path; *p; ++p) {
+        if (*p == '/' || *p == '\\') {
+            last_sep = p + 1;
+        }
+    }
+    return last_sep;
+}
+
+jackc_string jackc_find_filename_no_ext(const char* path) {
+    const char* filename_start = jackc_find_filename(path);
+    const char* filename_end = jackc_strrchr(filename_start, '.');
+    if (!filename_start || !filename_end) {
+        return jackc_string_empty();
+    }
+    return jackc_string_create(filename_start, (size_t)(filename_end - filename_start));
 }

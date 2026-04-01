@@ -1,6 +1,6 @@
 #include "jackc_assert.h"
 #include "core/exit_code.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdlib.h"
 #include "core/logging/logger.h"
 
 void jackc_assert_fail(const char* expr, const char* file, int line) {

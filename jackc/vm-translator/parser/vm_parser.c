@@ -1,8 +1,8 @@
 #include "vm_parser.h"
 #include "core/logging/logger.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_stdlib.h"
-#include "jackc_string.h"
+#include "std/jackc_stdlib.h"
+#include "std/jackc_string.h"
 #include "vm-translator/backend.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 #include <stdio.h>
@@ -46,18 +46,18 @@ static const uint16_t vm_cmd_to_args[] = {
 /**
  * Implementation of jackc_parser_init function.
  */
-jackc_parser* jackc_parser_init(const char *buffer) {
-    jackc_parser* parser = jackc_alloc(sizeof(jackc_parser));
-    parser->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
-    parser->line_start = parser->buffer.data;
-    parser->line_idx = 1;
-    parser->position = 0;
+jackc_parser jackc_parser_init(const char *buffer) {
+    jackc_parser parser;
+    parser.buffer = jackc_string_create(buffer, jackc_strlen(buffer));
+    parser.line_start = parser.buffer.data;
+    parser.line_idx = 1;
+    parser.position = 0;
 
-    parser->arg1 = jackc_string_empty();
-    parser->arg2 = 0;
+    parser.arg1 = jackc_string_empty();
+    parser.arg2 = 0;
 
-    parser->is_arg1_set = false;
-    parser->is_arg2_set = false;
+    parser.is_arg1_set = false;
+    parser.is_arg2_set = false;
 
     return parser;
 }

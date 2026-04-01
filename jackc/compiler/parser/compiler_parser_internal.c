@@ -6,7 +6,7 @@
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_utils.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 
 static ast_expr* jack_parser_parse_array_index(jack_parser* parser) {
@@ -100,9 +100,15 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
     ast_var_dec* class_vars_tail = nullptr;
     ast_subroutine* subroutines = nullptr;
     ast_subroutine* subroutines_tail = nullptr;
+    bool seen_subroutine = false;
 
     while (!is_rcurl_or_eof(parser)) {
         if (!is_panic_mode(parser) && is_class_var_start(parser)) {
+            if (seen_subroutine) {
+                parser->had_error = true;
+                jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_MIXING_DECLARATIONS_AND_CODE);
+                jackc_diag_emit(&d);
+            }
             class_vars_tail = ast_var_dec_list_push_back(
                 class_vars_tail,
                 jack_parser_parse_class_var_dec(parser)
@@ -113,6 +119,7 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
             while (class_vars_tail && class_vars_tail->next)
                 class_vars_tail = class_vars_tail->next;
         } else if (!is_panic_mode(parser) && is_subroutine_start(parser)) {
+            seen_subroutine = true;
             subroutines_tail = ast_subroutine_push_back(
                 subroutines_tail,
                 jack_parser_parse_subroutine(parser)
@@ -249,6 +256,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
     ast_var_dec* locals_tail = nullptr;
     ast_stmt* body = nullptr;
     ast_stmt* stmt_tail = nullptr;
+    bool seen_statement = false;
     EXPECT_LEFT_CURLY_BRACE(parser);
 
     while(
@@ -256,6 +264,11 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
         && !is_class_member_start(parser)
     ) {
         if (!is_panic_mode(parser) && jack_parser_check(parser, TOKEN_VAR)) {
+            if (seen_statement) {
+                parser->had_error = true;
+                jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_MIXING_DECLARATIONS_AND_CODE);
+                jackc_diag_emit(&d);
+            }
             locals_tail = ast_var_dec_list_push_back(
                 locals_tail,
                 jack_parser_parse_var_dec(parser)
@@ -265,6 +278,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             while (locals_tail && locals_tail->next)
                 locals_tail = locals_tail->next;
         } else if (!is_panic_mode(parser) && is_statement_start(parser)) {
+            seen_statement = true;
             stmt_tail = ast_stmt_list_push_back(
                 stmt_tail,
                 jack_parser_parse_statements(parser)

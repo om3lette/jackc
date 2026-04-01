@@ -1,6 +1,6 @@
 #include "compiler/diagnostics-engine/engine.h"
 #include "core/logging/logger.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdlib.h"
 #include "test_parser_utils.h"
 #include "test_lexer_common.h"
 #include "tau.h"

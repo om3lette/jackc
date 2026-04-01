@@ -2,7 +2,7 @@
 #include "vm-translator/parser/vm_parser.h"
 #include "code_gen_utils.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_stdio.h"
+#include "std/jackc_stdio.h"
 
 static std_subroutine std_subroutines[] = {
     [STD_STRING_NEW] = { "new", 1 },

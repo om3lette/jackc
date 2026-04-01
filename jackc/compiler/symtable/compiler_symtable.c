@@ -5,7 +5,7 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/hash.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 static hash_t symtab_key_hasher(const void* key) {
     const jackc_string* kkey = key;

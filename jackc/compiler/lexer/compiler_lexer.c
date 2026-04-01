@@ -2,7 +2,7 @@
 #include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer_internal.h"
 #include "compiler/lexer/compiler_reserved_keywords.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 static inline jack_token eof_token(jack_lexer* lexer) {
     return jack_lexer_new_str_token(lexer, '\0', jack_lexer_cur_pos(lexer));

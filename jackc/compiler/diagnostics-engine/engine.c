@@ -4,9 +4,9 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_stdio.h"
-#include "jackc_stdlib.h"
-#include "jackc_string.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_stdlib.h"
+#include "std/jackc_string.h"
 
 jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
@@ -234,6 +234,25 @@ static void diagnostic_engine_report_one(
             loc.col += (span.end - span.start);
             span.start = span.end;
             jackc_fprintf(engine->output_fd, translation.fmt);
+            break;
+        case DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL:
+        case DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL:
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                diagnostic->data.subroutine_n_args_mismatch.expected,
+                diagnostic->data.subroutine_n_args_mismatch.got
+            );
+            break;
+        case DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME:
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                diagnostic->span.end - diagnostic->span.start,
+                engine->source.data + diagnostic->span.start,
+                diagnostic->data.expected_class_name.filename.length,
+                diagnostic->data.expected_class_name.filename.data
+            );
             break;
         case DIAG_REDEFINITION:
         case DIAG_INCOMPLETE_TYPE:

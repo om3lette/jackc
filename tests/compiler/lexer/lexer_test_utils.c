@@ -1,7 +1,7 @@
 #include "lexer_test_utils.h"
 #include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 bool is_token_equal_str(const jack_token* token, int token_type, const char* token_value) {
     return token->type == token_type && jackc_streq(&token->str, token_value);

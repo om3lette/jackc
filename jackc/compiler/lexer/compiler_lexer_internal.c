@@ -1,7 +1,7 @@
 #include "compiler_lexer_internal.h"
 #include "core/asserts/jackc_assert.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 const char* jack_lexer_pos(const jack_lexer* lexer, int32_t offset) {
     jackc_assert(lexer != NULL && "Lexer is NULL");

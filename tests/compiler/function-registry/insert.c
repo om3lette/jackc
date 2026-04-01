@@ -1,6 +1,6 @@
 #include "compiler/ast/ast.h"
 #include "compiler/function-registry/function_registry.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include "utils.h"
 #include "tau.h"
 

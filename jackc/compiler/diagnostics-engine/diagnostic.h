@@ -1,7 +1,7 @@
 #ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 
 #define MAX_DIAGNOSTICS 128
@@ -28,6 +28,7 @@ typedef enum {
     DIAG_INVALID_TOKEN_CLASS_BODY,
     DIAG_INVALID_TOKEN_TERM,
     DIAG_MISSING_SEMICOLON,
+    DIAG_MIXING_DECLARATIONS_AND_CODE,
 
     // Symtab
     DIAG_REDEFINITION,
@@ -36,13 +37,20 @@ typedef enum {
     DIAG_CALL_TO_UNDECLARED_SUBROUTINE,
     DIAG_NON_VOID_SUBROUTINE_SHOULD_RETURN_A_VALUE,
     DIAG_CALLED_OBJECT_TYPE_IS_NOT_A_CLASS,
+    DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL,
+    DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL,
 
     DIAG_EMPTY_IF_STATEMENT,
     DIAG_INVALID_OPERATION,
     DIAG_CANNOT_CALL_METHOD_WITHOUT_AN_OBJECT,
+    DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME,
 
     // Notes
-    DIAG_PREVIOUS_DEFINITION_IS_HERE,
+    DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE,
+    DIAG_NOTE_DECLATED_HERE,
+
+    // Warnings
+    DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE,
 
     NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
@@ -66,6 +74,13 @@ struct jackc_diagnostic {
         struct {
             jackc_string token;
         } last_valid_token;
+        struct {
+            jackc_string filename;
+        } expected_class_name;
+        struct {
+            uint16_t got;
+            uint16_t expected;
+        } subroutine_n_args_mismatch;
     } data;
 };
 

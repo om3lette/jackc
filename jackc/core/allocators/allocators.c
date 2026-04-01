@@ -1,6 +1,6 @@
 #include "allocators.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_stdlib.h"
+#include "std/jackc_stdlib.h"
 
 arena_allocator* arena_allocator_init() {
     arena_allocator* allocator = jackc_alloc(sizeof(arena_allocator));

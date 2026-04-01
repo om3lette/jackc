@@ -7,7 +7,7 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 
 #define INVALID_STATE(_ctx) _ctx->is_invalid = true
 
@@ -58,7 +58,7 @@ static bool sym_table_insert_with_diagnostic(semantic_validity_traversal_context
             sym_table_token previous_definition;
             jackc_assert(sym_table_find(ctx->symtab, &token->name, &previous_definition));
 
-            jackc_diag_add_note(&d, DIAG_PREVIOUS_DEFINITION_IS_HERE, previous_definition.name, ctx->allocator);
+            jackc_diag_add_note(&d, DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, previous_definition.name, ctx->allocator);
             jackc_diag_emit(&d);
             INVALID_STATE(ctx);
             return true;
@@ -111,7 +111,7 @@ static bool is_valid_var_name_or_diagnostic(semantic_validity_traversal_context*
     function_signature signature;
     if (function_registry_contains(ctx->registry, &ctx->class_name, var_name, &signature)) {
         jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_ERROR, DIAG_REDEFINITION, *var_name);
-        jackc_diag_add_note(&d, DIAG_PREVIOUS_DEFINITION_IS_HERE, signature.name, ctx->allocator);
+        jackc_diag_add_note(&d, DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, signature.name, ctx->allocator);
         jackc_diag_emit(&d);
         INVALID_STATE(ctx);
         return false;
@@ -189,6 +189,30 @@ static void visit_subroutine_call(const ast_call* call, semantic_validity_traver
         jackc_diag_emit(&d);
         INVALID_STATE(ctx);
     }
+
+    uint16_t n_args = 0;
+    for (ast_expr_list* arg = call->args; arg; arg = arg->next) {
+        ++n_args;
+    }
+    if (n_args != signature.n_args) {
+        jackc_diag_builder d = jackc_diag_begin(
+            &ctx->engine,
+            DIAG_ERROR,
+            n_args < signature.n_args
+                ? DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL
+                : DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL,
+            call->subroutine_name
+        );
+        d.diag.data.subroutine_n_args_mismatch = (typeof(d.diag.data.subroutine_n_args_mismatch)) {
+            .expected = signature.n_args,
+            .got = n_args
+        };
+        // Diagnostics engine is only aware of the current source file
+        if (jackc_string_cmp(&receiver_class, &ctx->class_name) == 0)
+            jackc_diag_add_note(&d, DIAG_NOTE_DECLATED_HERE, signature.name, ctx->allocator);
+        jackc_diag_emit(&d);
+        INVALID_STATE(ctx);
+    }
 }
 
 static void visit_expression(const ast_expr* expr, semantic_validity_traversal_context* ctx) {
@@ -225,15 +249,16 @@ static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_co
         case STMT_LET:
             is_valid_var_name_or_diagnostic(ctx, &stmt->let_stmt.var_name);
 
-            sym_table_token token;
-            if (
-                symtab_find_or_diagnostic(ctx, stmt->let_stmt.var_name, &token)
-                && token.type == JACK_CLASS
-            ) {
-                bool is_string_class = jackc_streq(&token.class_name, "String");
+            if (stmt->let_stmt.value->kind == EXPR_STRING) {
+                sym_table_token token;
+                // Already validated
+                symtab_find_or_diagnostic(ctx, stmt->let_stmt.var_name, &token);
                 if (
-                    (is_string_class && stmt->let_stmt.value->kind != EXPR_STRING)
-                    || (!is_string_class && stmt->let_stmt.value->kind == EXPR_STRING)
+                    token.type != JACK_CLASS
+                    ||(
+                        !jackc_streq(&token.class_name, "String")
+                        && !(jackc_streq(&token.class_name, "Array") && stmt->let_stmt.index)
+                    )
                 ) {
                     // FIXME: Introduce span / jackc_string to AST
                     // Invalid string operation
@@ -302,6 +327,8 @@ static void visit_subroutine_dec(const ast_subroutine* sub, semantic_validity_tr
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
 
     ctx->subroutine_name = sub->name;
+    ctx->has_constructor |= sub->kind == SUB_CONSTRUCTOR;
+    ctx->has_dispose_method |= jackc_streq(&sub->name, "dispose");
     if (!function_registry_find_or_diagnostic(ctx, &ctx->class_name, &ctx->subroutine_name, &ctx->sub_signature))
         return;
 
@@ -336,6 +363,11 @@ bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_t
         visit_subroutine_dec(sub, ctx);
     }
     ctx->symtab = sym_table_pop(ctx->symtab);
+
+    if (ctx->has_constructor && !ctx->has_dispose_method) {
+        jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_WARNING, DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE, class->name);
+        jackc_diag_emit(&d);
+    }
 
     return ctx->is_invalid;
 }

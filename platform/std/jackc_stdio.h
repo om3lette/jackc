@@ -4,16 +4,6 @@
 #include <stddef.h>
 #include <stdarg.h>
 
-#define JACKC_SEEK_SET	0	/* Seek from beginning of file.  */
-#define JACKC_SEEK_CUR	1	/* Seek from current position.  */
-#define JACKC_SEEK_END	2	/* Seek from end of file.  */
-
-#define O_CREAT 0100
-#define O_RDONLY 00
-#define O_WRONLY 01
-#define O_APPEND 0200
-#define O_TRUNC 01000
-
 #ifdef __rars__
     #define FRONTEND_EXPECTED_ARGUMENTS 2
     #define BACKEND_EXPECTED_ARGUMENTS 2
@@ -25,8 +15,6 @@
     #define JACKC_EXPECTED_ARGUMENTS 3
     #define FIRST_ARG_IDX 1
 #endif
-
-const char* jackc_next_source_file(const char* base_path, const char* extension);
 
 void jackc_vfprintf(int fd, const char* format, va_list args);
 

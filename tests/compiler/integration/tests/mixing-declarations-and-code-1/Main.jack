@@ -1,0 +1,7 @@
+class Main {
+    static int x;
+
+    function void main() {}
+
+    field int y;
+}
