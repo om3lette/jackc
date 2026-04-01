@@ -13,10 +13,19 @@
 #### Cross compilation
 
 - `riscv-gnu-toolchain` for cross compilation
-- [OPTIONAL] `python3` for generating a single `jackc.s` source file for usage in [RARS](https://github.com/TheThirdOne/rars)
+- `python3` for generating a single `jackc.s` source file for usage in [RARS](https://github.com/TheThirdOne/rars)
 
 
-Use
+### Just 
+
+If you have `just` installed the following command will produce a release build:
+
+```bash
+just build -p release
+```
+See `just -l` for more recipes
+
+### Without Just
 
 ```bash
 cmake --preset <PRESET> && cmake --build --preset <PRESET>
@@ -36,20 +45,64 @@ To configure and build the project.
 
 ## How to run
 
+| capability\executable | jackc | jackc_frontend | jackc_backend |
+|-----------------------|-------|----------------|---------------|
+| jack -> vm-code       |   +   |       +        |      -        |
+| vm-code -> asm        |   +   |       -        |      +        |
+| RARS support          |   -   |       +*       |      +*       |
+
+\* -- use risc-v assembly build. See RARS section for details
+
+### Native
+
 Run an executable
 
 ```bash
-<BUILD_DIR>/jackc/jackc
+<BUILD_DIR>/jackc/jackc <SOURCE_DIR> <OUTPUT_DIR>
 ```
 
 ### RARS
 
 1. Get [RARS](https://github.com/TheThirdOne/rars)
-2. Build the project using the `rars` preset
-3. Run `scripts/locate-vm-files.sh` to generate a list of VM files
-4. Run `java -jar rars.jar <YOUR_PATH>/jackc.s pa <YOUR_PATH>/jack-vm-sources.txt <YOUR_PATH>/out.s` to produce assembly from the `.vm` files
-5. Run `java -jar rars.jar <YOUR_PATH>/out.s` to launch the compiled program
+2. Build the project using the `rars` preset (or using `just rars`)
+3. Move `jackc_backend.s`, `jackc_frontend.s` from `build-riscv` to the CWD
 
-`locate-vm-files.sh` is needed because RARS is unable to read directories. Only open or write to files. This way the heavy lifting is done by the script and the compiler running in RARS just needs to parse the output.
+#### "One" step compilation
 
-Steps 4 and 5 assume that `rars.jar` is located in the current working directory.
+```bash
+./scripts/jackc <PATH_TO_RARS_JAR> <SOURCES_DIR> <OUTPUT_DIR>
+```
+This is a shortcut for what is described below
+
+#### Two step compilation
+
+RARS has no functionality to edit or view directories content, therefore this functionality has to be substituted. Note that a standalone executable has no such weakness and will retrieve all source files by itself.
+
+1. Run `./scripts/locate-jack-files.sh <SOURCES_DIR>` to generate a list of `.jack` files to compile
+2. Execute `jackc_frontend.s`
+```bash
+java -jar <PATH_TO_RARS_JAR> jackc_frontend.s pa jack-sources.txt <VM_OUT_DIR>
+```
+This will generate a `.vm` file for every `.jack` source file.
+
+3. Run `./scripts/locate-vm-files.sh <VM_OUT_DIR>` to generate a list of VM files
+4. Execute `jackc_backend.s`
+```bash
+java -jar <PATH_TO_RARS_JAR> jackc_backend.s pa jack-vm-sources.txt <ASM_OUT_DIR>
+```
+This will produce a single assembly file for the program.
+
+[!IMPORTANT]
+> `jackc` does not yet implement standard library for Jack so the following lines need to be added to the produced file after `j Sys.init` in `_start`:
+```asm
+Sys.init:
+    call Main.main
+    li a7, 93
+    li a0, 0
+    ecall
+```
+
+5. We can finally run the program!
+```bash
+java -jar <PATH_TO_RARS_JAR> <ASM_OUT_DIR>/out.s`
+```
