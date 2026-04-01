@@ -14,10 +14,13 @@ int main(int argc, char** argv) {
 
     Allocator allocator = arena_allocator_adapter();
 
-    jackc_frontend_return_code result = jackc_frontend_compile(
+    jackc_frontend_return_code return_code = jackc_frontend_compile(
         base_dir_path, out_dir_path, &allocator, false
     );
 
+    if (return_code != FRONTEND_OK) {
+        jackc_printf("Frontend failed with exit code: %d\n", return_code);
+    }
     arena_allocator_destroy(allocator.context);
-    return (int)result;
+    jackc_exit((int)return_code);
 }

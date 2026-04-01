@@ -52,8 +52,7 @@ if (CMAKE_CROSSCOMPILING)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/backend)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend)
 
-    add_custom_command(
-        OUTPUT jackc_backend.s
+    add_custom_target(jackc_backend.s ALL
         COMMAND
             ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/backend_build/*.s
         COMMAND
@@ -73,18 +72,11 @@ if (CMAKE_CROSSCOMPILING)
             python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-helper.py
                 ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
                 ${CMAKE_CURRENT_BINARY_DIR}/jackc_backend.s
-        DEPENDS
-            platform_impl
-            core
-            jackc_std
-            vm-translator
-            jackc_backend
         COMMAND_EXPAND_LISTS
         VERBATIM
     )
 
-    add_custom_command(
-        OUTPUT jackc_frontend.s
+    add_custom_target(jackc_frontend.s ALL
         COMMAND
             ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/frontend_build/*.s
         COMMAND
@@ -105,19 +97,8 @@ if (CMAKE_CROSSCOMPILING)
             python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-helper.py
                 ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend
                 ${CMAKE_CURRENT_BINARY_DIR}/jackc_frontend.s
-        DEPENDS
-            platform_impl
-            core
-            jackc_std
-            compiler
-            jackc
         COMMAND_EXPAND_LISTS
         VERBATIM
-    )
-
-    add_custom_target(rars-build ALL
-        DEPENDS jackc_backend.s
-        DEPENDS jackc_frontend.s
     )
 endif()
 

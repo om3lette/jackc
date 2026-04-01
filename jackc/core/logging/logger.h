@@ -9,7 +9,11 @@ typedef enum {
     LOG_LEVEL_FATAL
 } jackc_log_level_t;
 
-bool jackc_should_log(jackc_log_level_t log_level);
+#ifndef NDEBUG
+#   define LOG_LEVEL LOG_LEVEL_DEBUG
+#else
+#   define LOG_LEVEL LOG_LEVEL_INFO
+#endif
 
 void jackc_log(const char* fmt, jackc_log_level_t log_level, const char* msg, ...);
 

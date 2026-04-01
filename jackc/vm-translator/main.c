@@ -13,5 +13,10 @@ int main(int argc, char** argv) {
 
     // TODO: Unhardcode config variables
     jackc_config config = jackc_config_create(false, 256 * 1024);
-    return (int)jackc_backend_compile(base_dir_path, out_dir_path, &config);
+
+    jackc_backend_return_code return_code = jackc_backend_compile(base_dir_path, out_dir_path, &config);
+    if (return_code != BACKEND_OK) {
+        jackc_printf("Backend failed with exit code: %d\n", return_code);
+    }
+    jackc_exit((int)return_code);
 }
