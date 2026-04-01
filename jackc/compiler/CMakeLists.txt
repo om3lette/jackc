@@ -12,6 +12,7 @@ add_library(compiler STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/symtable/compiler_symtable.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/ast.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/symtab_traversal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/semantic_validity_traversal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/code-gen/std_utils.c

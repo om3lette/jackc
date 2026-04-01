@@ -28,7 +28,9 @@ const jackc_diagnostic_translation diagnostic_translations[] = {
     { DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, "The class name '%.*s' does not match the filename '%.*s'.", nullptr },
 
     { DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, "Previous definition is here", nullptr },
-    { DIAG_NOTE_DECLATED_HERE, "Declared here", nullptr }
+    { DIAG_NOTE_DECLATED_HERE, "Declared here", nullptr },
+
+    { DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE, "No 'dispose' method for non static class", "Will cause memory leaks" },
 };
 
 static_assert(NUMBER_OF_DIAGNOSTICS == sizeof(diagnostic_translations) / sizeof(diagnostic_translations[0]), "Diagnostic translations array size mismatch");

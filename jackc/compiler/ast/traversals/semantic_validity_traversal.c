@@ -327,6 +327,8 @@ static void visit_subroutine_dec(const ast_subroutine* sub, semantic_validity_tr
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
 
     ctx->subroutine_name = sub->name;
+    ctx->has_constructor |= sub->kind == SUB_CONSTRUCTOR;
+    ctx->has_dispose_method |= jackc_streq(&sub->name, "dispose");
     if (!function_registry_find_or_diagnostic(ctx, &ctx->class_name, &ctx->subroutine_name, &ctx->sub_signature))
         return;
 
@@ -361,6 +363,11 @@ bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_t
         visit_subroutine_dec(sub, ctx);
     }
     ctx->symtab = sym_table_pop(ctx->symtab);
+
+    if (ctx->has_constructor && !ctx->has_dispose_method) {
+        jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_WARNING, DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE, class->name);
+        jackc_diag_emit(&d);
+    }
 
     return ctx->is_invalid;
 }

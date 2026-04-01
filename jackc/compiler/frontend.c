@@ -71,13 +71,10 @@ static bool is_semantically_invalid(
 ) {
     bool is_invalid = false;
     for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
-        semantic_validity_traversal_context ctx = {
-            .class_name = current_file->ast->name,
-            .registry = registry,
-            .engine = jackc_diag_engine_init(current_file->content, current_file->filepath, diagnostic_translations, 1),
-            .allocator = allocator,
-            .is_invalid = false
-        };
+        jackc_diagnostic_engine engine = jackc_diag_engine_init(current_file->content, current_file->filepath, diagnostic_translations, 1);
+        semantic_validity_traversal_context ctx = semantic_validity_traversal_context_init(
+            &current_file->ast->name, registry, &engine, allocator
+        );
         is_invalid |= ast_semantic_validity_traversal(current_file->ast, &ctx);
 
         jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);

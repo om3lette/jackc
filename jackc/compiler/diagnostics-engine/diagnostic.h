@@ -49,6 +49,9 @@ typedef enum {
     DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE,
     DIAG_NOTE_DECLATED_HERE,
 
+    // Warnings
+    DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE,
+
     NUMBER_OF_DIAGNOSTICS,
 } jackc_diagnostic_code;
 
