@@ -1,0 +1,7 @@
+class Main {
+    function void main() {
+        var int x;
+        x = Memory.alloc(4);
+        return;
+    }
+}

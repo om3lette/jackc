@@ -135,6 +135,8 @@ static bool function_registry_find_or_diagnostic(
     return true;
 }
 
+static void visit_expression(const ast_expr* expr, semantic_validity_traversal_context* ctx);
+
 static void visit_subroutine_call(const ast_call* call, semantic_validity_traversal_context* ctx) {
     jackc_string receiver_class = ctx->class_name;
     bool is_receiver_an_instance = (
@@ -192,6 +194,7 @@ static void visit_subroutine_call(const ast_call* call, semantic_validity_traver
 
     uint16_t n_args = 0;
     for (ast_expr_list* arg = call->args; arg; arg = arg->next) {
+        visit_expression(arg->expr, ctx);
         ++n_args;
     }
     if (n_args != signature.n_args) {

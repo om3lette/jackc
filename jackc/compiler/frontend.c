@@ -7,6 +7,7 @@
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_internal.h"
 #include "core/allocators/allocators.h"
+#include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
@@ -110,6 +111,14 @@ static bool generate_vm_code(
     char out_file_path[4096];
     bool had_error = false;
 
+    // Label indexes need to persist through the whole compilation
+    vm_code_generation_traversal_context ctx = (vm_code_generation_traversal_context){
+        .fd = -1,
+        .registry = registry,
+        .allocator = allocator,
+        .if_label_index = 0,
+        .while_label_index = 0
+    };
     for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
         jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
         if (!filename.data) {
@@ -129,15 +138,10 @@ static bool generate_vm_code(
             had_error = true;
             continue;
         }
+        ctx.fd = fd;
+        ctx.had_error = false;
 
-        vm_code_generation_traversal_context ctx = (vm_code_generation_traversal_context){
-            .fd = fd,
-            .had_error = false,
-            .registry = registry,
-            .allocator = allocator,
-            .if_label_index = 0,
-            .while_label_index = 0
-        };
+        jackc_assert(ctx.fd != -1 && !ctx.had_error && "Context state is invalid");
         vm_code_genetation_traversal(current_file->ast, &ctx);
         had_error |= ctx.had_error;
 
@@ -190,10 +194,13 @@ jackc_frontend_return_code jackc_frontend_compile(
         source_files = jack_source_add(source_files, result.ast, source_file_path, file_content, result.lines, allocator);
     }
 
-    if (!source_files)
-        RETURN_WITH_CLEANUP(FRONTEND_NO_SOURCE_FILES);
+    // Report syntax error before source files
+    // Because if all files had an error there will be no source files, which will cause
+    // FRONTEND_NO_SOURCE_FILES to be mistakenly returned
     if (had_syntax_error)
         RETURN_WITH_CLEANUP(FRONTEND_SYNTAX_ERROR);
+    if (!source_files)
+        RETURN_WITH_CLEANUP(FRONTEND_NO_SOURCE_FILES);
     if (failed_to_open_source_file)
         RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_OPEN_SOURCE_FILE);
 

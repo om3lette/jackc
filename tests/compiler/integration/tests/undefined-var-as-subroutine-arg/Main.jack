@@ -1,0 +1,9 @@
+class Main {
+    function int foo(int x) {
+        return x;
+    }
+
+    function void main() {
+        do foo(y, z + 2);
+    }
+}

@@ -286,6 +286,9 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             if (!body)
                 body = stmt_tail;
         } else {
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_TOKEN_SUBROUTINE_BODY);
+            d.diag.data.invalid_token.got = parser->current.str;
+            jackc_diag_emit(&d);
             jack_parser_sync(parser);
         }
     }

@@ -220,6 +220,7 @@ static void diagnostic_engine_report_one(
                 diagnostic->data.unexpected_token.got.data
             );
             break;
+        case DIAG_INVALID_TOKEN_SUBROUTINE_BODY:
         case DIAG_INVALID_TOKEN_CLASS_BODY:
         case DIAG_INVALID_TOKEN_TERM:
             jackc_fprintf(
