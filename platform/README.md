@@ -6,17 +6,37 @@ This directory contains platform specific code.
 
 `Jackc` aims to be a crossplatform compiler. And one of its target platforms is [RARS](https://github.com/TheThirdOne/rars).
 Given this into account `jackc` cannot directly depend on neither `libc` nor syscalls to keep a universal internal interface between various platforms.
-This is why this compatibility layer exists.
 
-Overall function signatures aim to mirror libc, though some functionality, especially in `jackc_fprintf`, `jackc_sprintf` implementations, is intentionally omitted as it is not currently needed by the compiler.
+## Abstractions
 
-## Featured functionality
+There are 3 layers of abstraction added to ensure a stable internal API regardless of the `OS` or `libc`/`nolibc` environment:
 
-1. [IO](jackc_stdio.h) - printing, file operations.
-2. [Memory](jackc_stdlib.h) - allocating heap memory.
-3. [String](jackc_string.h) - string utility functions and custom string types.
+### [Syscalls](std/jackc_syscalls.h)
 
-\* \- RARS does not have a way to deallocate memory. The only available action is to allocate heap memory using `sbrk` syscall.
-Therefore there is no `free` functionality provided.
+Every `platform/${PLATFORM_DIR}` provides a `syscalls.c` which is compliant with [jackc_syscalls.h](std/jackc_syscalls.h).
+Extra syscalls may also be defined but are not a part of the general interface. See [rars](rars/rars_syscalls.c) for example
 
-See [jackc_stdio.h], [jackc_stdlib.h], [jackc_string.h] for more details.
+### [jackc_std](std)
+
+This module aims to provide common abstraction for
+
+1. Basic memory allocation
+2. String utilities
+3. Basic IO operations
+
+Some of the IO operations are platform dependent. For example RARS does not provide functionality to iterate over directory content while linux and other OSs do. To combat this every platform directory provides a separate `platform/${PLATFORM_DIR}/std` folder with implementation of `jackc_std` methods which are unique to it.
+
+This is also where `libc` function are substituted if running in a `nolibc` environment. See [libc](std/libc) and [nolibc](std/nolibc).
+
+Overall function signatures aim to mirror libc, though some functionality, especially in `jackc_fprintf`, `jackc_sprintf` implementations, is intentionally omitted as it is not currently required.
+
+### [Core](../jackc/core)
+
+Final layer of abstraction wrapping the `jackc_std` and providing higher level utilities such as:
+
+1. Logging
+2. Data structures
+3. Custom memory allocators
+4. FS utils which dependent on memory allocation
+
+And more...

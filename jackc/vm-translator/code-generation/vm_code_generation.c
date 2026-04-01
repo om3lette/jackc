@@ -1,9 +1,9 @@
-#include "jackc_stdlib.h"
+#include "std/jackc_stdlib.h"
 #include "vm_code_generator.h"
-#include "common/jackc_assert.h"
-#include "common/config.h"
-#include "jackc_stdio.h"
-#include "jackc_string.h"
+#include "core/asserts/jackc_assert.h"
+#include "core/config.h"
+#include "std/jackc_stdio.h"
+#include "std/jackc_string.h"
 #include "vm-translator/code-generation/vm_code_gen_utils.h"
 #include "vm-translator/constants.h"
 #include "vm-translator/parser/vm_parser.h"
@@ -37,7 +37,7 @@ void jackc_vm_code_bootstrap(vm_code_generator* generator) {
     jackc_fprintf(fd, "\n");
 }
 
-static void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config_t* cfg) {
+static void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config* cfg) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "push %s %d\n", vm_segment_type_to_string(type), idx);
     vm_code_gen_stack_alloc(fd, 1, cfg);
 
@@ -100,7 +100,7 @@ static void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx
     }
 }
 
-static void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config_t* cfg) {
+static void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config* cfg) {
     jackc_assert(type != SEGMENT_CONSTANT && "pop with constant segment is not allowed");
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "pop %s %d\n", vm_segment_type_to_string(type), idx);
@@ -155,7 +155,7 @@ static void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx,
     vm_code_gen_stack_dealloc(fd, 1, cfg);
 }
 
-static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd, const jackc_config_t* cfg) {
+static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd, const jackc_config* cfg) {
     // Do not deallocate. Let it be overridden by the OP result
     vm_code_gen_pop(fd, OP_ARG_1_REG, false, cfg);
 
@@ -175,7 +175,7 @@ static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd, const j
     vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
-static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const jackc_config_t* cfg) {
+static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const jackc_config* cfg) {
     // Do not deallocate both. Let it be overridden by the OP result
     vm_code_gen_pop(fd, OP_ARG_2_REG, false, cfg);
     vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true, cfg);
@@ -194,6 +194,12 @@ static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const j
         case C_OR:
             jackc_strcpy(op, "or");
             break;
+        case C_DIV:
+            jackc_strcpy(op, "div");
+            break;
+        case C_MUL:
+            jackc_strcpy(op, "mul");
+            break;
         default:
             jackc_assert(false && "Invalid 3 argument arithmetic command");
             break;
@@ -202,19 +208,12 @@ static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const j
     vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
-static void vm_code_gen_return(int fd, const jackc_config_t* cfg) {
+static void vm_code_gen_return(int fd, const jackc_config* cfg) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n");
     jackc_fprintf(fd, "\tlw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n");
     vm_code_gen_stack_dealloc(fd, 1, cfg);
-
-    // jackc_fprintf(
-    //     fd,
-    //     "\taddi %s, %s, %d\n"
-    //     "\tret\n",
-    //     JACK_SP_REG, SEGMENT_LCL_REG, gene-word_to_bytes(1)
-    // );
 
     jackc_fprintf(
         fd,
@@ -222,7 +221,7 @@ static void vm_code_gen_return(int fd, const jackc_config_t* cfg) {
     );
 }
 
-static void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label, const jackc_config_t* cfg) {
+static void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label, const jackc_config* cfg) {
     switch (cmd) {
         case C_IF_GOTO:
             vm_code_gen_pop(fd, LOAD_REG, true, cfg);
@@ -257,7 +256,7 @@ static void vm_code_gen_label(int fd, const jackc_string* label) {
  * [sp+ 4] local arg 0    | <- LCL ptr
  * [sp+ 0] local arg 1    |
 */
-void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt, const jackc_config_t* cfg) {
+void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt, const jackc_config* cfg) {
     jackc_fprintf(fd, "%.*s:\n", name->length, name->data);
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n");
@@ -281,7 +280,7 @@ void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt, const
  * [sp+ 4] THIS
  * [sp+ 0] return address
 */
-void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count, const jackc_config_t* cfg) {
+void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count, const jackc_config* cfg) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Save registers\n");
     const int SAVED_REGISTERS = 5;
     vm_code_gen_stack_alloc(fd, SAVED_REGISTERS, cfg);
@@ -330,7 +329,7 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count, 
    jackc_fprintf(fd, "\tsw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
 }
 
-void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd, const jackc_config_t* cfg) {
+void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd, const jackc_config* cfg) {
     vm_code_gen_pop(fd, OP_ARG_2_REG, false, cfg);
     vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true, cfg);
 
@@ -358,13 +357,15 @@ void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd, const jackc_config_t
 
 void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* parser) {
     int fd = generator->fd;
-    const jackc_config_t* cfg = generator->config;
+    const jackc_config* cfg = generator->config;
 
     switch (parser->cmd) {
         case C_ADD:
         case C_SUB:
         case C_AND:
         case C_OR:
+        case C_DIV:
+        case C_MUL:
             vm_code_gen_arithmetic_3_args(fd, parser->cmd, cfg);
             break;
         case C_NEG:

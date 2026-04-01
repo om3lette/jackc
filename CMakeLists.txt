@@ -37,6 +37,7 @@ if(NOT CMAKE_CROSSCOMPILING)
     FetchContent_Declare(
         Tau
         URL https://github.com/jasmcaus/tau/archive/dev.zip
+        PATCH_COMMAND patch -p1 --input=${CMAKE_CURRENT_SOURCE_DIR}/patches/tau.patch
     )
     FetchContent_MakeAvailable(Tau)
 endif()
@@ -48,9 +49,12 @@ add_subdirectory(jackc)
 
 # Cross compilation
 if (CMAKE_CROSSCOMPILING)
-    set(ASM_DIR ${CMAKE_BINARY_DIR}/asm)
-    add_custom_command(
-        OUTPUT jackc.s
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/backend)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend)
+
+    add_custom_target(jackc_backend.s ALL
+        COMMAND
+            ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/backend_build/*.s
         COMMAND
             ${CMAKE_C_COMPILER}
                 -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
@@ -58,35 +62,43 @@ if (CMAKE_CROSSCOMPILING)
                 -DNDEBUG
                 -D__rars__
                 -S
-                $<TARGET_PROPERTY:common,SOURCES>
-                $<TARGET_PROPERTY:vm-translator,SOURCES>
-                $<TARGET_PROPERTY:compiler,SOURCES>
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
-                $<TARGET_PROPERTY:jackc,SOURCES>
+                $<TARGET_PROPERTY:jackc_std,SOURCES>
+                $<TARGET_PROPERTY:core,SOURCES>
+                $<TARGET_PROPERTY:vm-translator,SOURCES>
+                $<TARGET_PROPERTY:jackc_backend,SOURCES>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
         COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/assembly-merger.py
-                ${CMAKE_CURRENT_BINARY_DIR}
-                ${ASM_DIR}
-                jackc-merged.s
-        COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/warnings-remover.py
-                jackc-merged.s
-                jackc.s
-        COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/error-fixer.py
-                jackc.s
-        DEPENDS
-            common
-            vm-translator
-            compiler
-            platform_impl
-            jackc
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-helper.py
+                ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
+                ${CMAKE_CURRENT_BINARY_DIR}/jackc_backend.s
         COMMAND_EXPAND_LISTS
         VERBATIM
     )
 
-    add_custom_target(rars-build ALL
-        DEPENDS jackc.s
+    add_custom_target(jackc_frontend.s ALL
+        COMMAND
+            ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_BINARY_DIR}/frontend_build/*.s
+        COMMAND
+            ${CMAKE_C_COMPILER}
+                -I${CMAKE_CURRENT_SOURCE_DIR}/jackc
+                -I${CMAKE_CURRENT_SOURCE_DIR}/platform
+                -DNDEBUG
+                -D__rars__
+                -S
+                $<TARGET_PROPERTY:platform_impl,SOURCES>
+                $<TARGET_PROPERTY:jackc_std,SOURCES>
+                $<TARGET_PROPERTY:core,SOURCES>
+                $<TARGET_PROPERTY:diagnostics_engine,SOURCES>
+                $<TARGET_PROPERTY:compiler,SOURCES>
+                $<TARGET_PROPERTY:jackc_frontend,SOURCES>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend
+        COMMAND
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmake/build-helper.py
+                ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend
+                ${CMAKE_CURRENT_BINARY_DIR}/jackc_frontend.s
+        COMMAND_EXPAND_LISTS
+        VERBATIM
     )
 endif()
 

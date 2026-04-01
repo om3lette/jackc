@@ -1,0 +1,9 @@
+class Main {
+    static int Main;
+    method void main() {
+        var int y;
+        let y = 3;
+
+        return Main * y;
+    }
+}

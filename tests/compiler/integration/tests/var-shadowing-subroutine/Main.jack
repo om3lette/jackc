@@ -1,0 +1,11 @@
+class Main {
+    static int main;
+    method void main() {
+        var int y;
+        let y = 3;
+
+        do main();
+
+        return main * y;
+    }
+}

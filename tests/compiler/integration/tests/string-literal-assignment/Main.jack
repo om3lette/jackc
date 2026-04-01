@@ -1,0 +1,6 @@
+class Main {
+    function void main() {
+        var String x;
+        let x = "Hello world!";
+    }
+}

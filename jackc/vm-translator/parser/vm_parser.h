@@ -1,7 +1,7 @@
 #ifndef JACKC_VM_PARSER_H
 #define JACKC_VM_PARSER_H
 
-#include "jackc_string.h"
+#include "std/jackc_string.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -12,6 +12,8 @@ typedef enum {
     C_UNKNOWN = 0,
     C_ADD,
     C_SUB,
+    C_DIV,
+    C_MUL,
     C_NEG,
     C_AND,
     C_OR,
@@ -66,18 +68,9 @@ typedef enum {
  *
  * @param buffer The input file buffer to parse.
  */
-[[ nodiscard ]] jackc_parser* jackc_parser_init(const char* buffer);
+[[ nodiscard ]] jackc_parser jackc_parser_init(const char* buffer);
 
 void jackc_parser_update_source(jackc_parser* parser, const char* buffer);
-
-/**
- * Frees the memory allocated for a jackc_parser instance.
- *
- * Invalidates the pointer.
- *
- * @param parser The parser instance to free.
- */
-void jackc_parser_free(jackc_parser* parser);
 
 /**
  * Checks if there are more lines to parse.

@@ -1,0 +1,5 @@
+error: Expected 'class', got 'function'
+ --> source.jack:1:1
+  |
+1 | function void multiply(int x, int y) {
+  | ^~~~~~~~

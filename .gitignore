@@ -1,5 +1,6 @@
 .cache
 .DS_STORE
+.VSCodeCounter
 
 .idea
 
@@ -9,7 +10,13 @@ docs
 __cmake_systeminformation
 
 gen
+jack-sources.txt
 jack-vm-sources.txt
+notes.md
 *.S
 *.s
 *.asm
+
+tests/compiler/jack-code
+output.txt
+.tmp

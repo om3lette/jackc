@@ -1,0 +1,9 @@
+class Main {
+    function void main() {
+        var int x, y, ans;
+        let x = 2;
+        let y = 3;
+
+        return Solver.solve(x, y);
+    }
+}
