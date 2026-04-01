@@ -92,7 +92,7 @@ java -jar <PATH_TO_RARS_JAR> jackc_backend.s pa jack-vm-sources.txt <ASM_OUT_DIR
 ```
 This will produce a single assembly file for the program.
 
-[!IMPORTANT]
+> [!IMPORTANT]
 > `jackc` does not yet implement standard library for Jack so the following lines need to be added to the produced file after `j Sys.init` in `_start`:
 ```asm
 Sys.init:
@@ -104,5 +104,5 @@ Sys.init:
 
 5. We can finally run the program!
 ```bash
-java -jar <PATH_TO_RARS_JAR> <ASM_OUT_DIR>/out.s`
+java -jar <PATH_TO_RARS_JAR> <ASM_OUT_DIR>/out.s
 ```

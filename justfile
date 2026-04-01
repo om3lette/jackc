@@ -16,6 +16,10 @@ test preset="debug":
     cmake --build --preset {{preset}}
     ctest --preset {{preset}}
 
+# Generate documentation
+docs:
+    doxygen
+
 # Remove all build directories
 clean:
     rm -rf build build-riscv cmake-build-release
