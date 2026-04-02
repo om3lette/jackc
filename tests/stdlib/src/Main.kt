@@ -17,10 +17,15 @@ fun main() {
 }
 
 fun compileAllJackPrograms(root: File, compilerPath: String, stdPath: String) {
-    val jackDirs = root.walkTopDown()
-        .filter { it.isFile && it.name == "Main.jack" }
-        .map { it.parentFile }
-        .toSet()
+    val jackDirs = mutableSetOf<File>()
+    root.walkTopDown().forEach { file ->
+        if (file.isFile) {
+            when {
+                file.extension in setOf("vm", "asm") -> file.delete()
+                file.name == "Main.jack" -> jackDirs.add(file.parentFile)
+            }
+        }
+    }
 
     for (dir in jackDirs) {
         println("Compiling ${dir.path}...")
