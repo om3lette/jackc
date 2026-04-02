@@ -10,3 +10,10 @@ target_link_libraries(jackc
         compiler
         vm-translator
 )
+
+add_custom_command(TARGET jackc POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:jackc>
+        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/stdlib/libs/jackc
+    COMMENT "Copy jackc executable to stdlib tests directory"
+)

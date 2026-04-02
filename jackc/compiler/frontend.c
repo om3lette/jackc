@@ -165,7 +165,8 @@ static void source_file_free(const jack_source* source_files) {
 } while (0);
 
 jackc_frontend_return_code jackc_frontend_compile(
-    const char* base_path,
+    const char* input_paths[],
+    uint32_t n_paths,
     const char* output_dir,
     Allocator* allocator,
     bool skip_vm_code_gen
@@ -176,24 +177,36 @@ jackc_frontend_return_code jackc_frontend_compile(
     bool failed_to_open_source_file = false;
     jack_source* source_files = nullptr;
 
-    while ((source_file_path = jackc_next_source_file(base_path, ".jack"))) {
-        const char* file_content_raw = jackc_read_file_content(source_file_path);
-
-        if (!file_content_raw) {
-            LOG_ERROR("Failed to open file at %s\n", source_file_path);
-            failed_to_open_source_file = true;
+    for (size_t i = 0; i < n_paths; ++i) {
+        const char* current_path = input_paths[i];
+        if (!current_path)
             continue;
+
+        while ((source_file_path = jackc_next_source_file(current_path, ".jack"))) {
+            const char* file_content_raw = jackc_read_file_content(source_file_path);
+
+            if (!file_content_raw) {
+                LOG_ERROR("Failed to open file at %s\n", source_file_path);
+                failed_to_open_source_file = true;
+                continue;
+            }
+
+            jackc_string file_content = jackc_string_from_str(file_content_raw);
+            jackc_parse_result result = jackc_parse_file(source_file_path, file_content, allocator);
+
+            had_syntax_error |= result.had_error;
+            if (!result.ast) continue;
+
+            source_files = jack_source_add(
+                source_files,
+                result.ast,
+                source_file_path,
+                file_content,
+                result.lines,
+                allocator
+            );
         }
-
-        jackc_string file_content = jackc_string_from_str(file_content_raw);
-        jackc_parse_result result = jackc_parse_file(source_file_path, file_content, allocator);
-
-        had_syntax_error |= result.had_error;
-        if (!result.ast) continue;
-
-        source_files = jack_source_add(source_files, result.ast, source_file_path, file_content, result.lines, allocator);
     }
-
     // Report syntax error before source files
     // Because if all files had an error there will be no source files, which will cause
     // FRONTEND_NO_SOURCE_FILES to be mistakenly returned

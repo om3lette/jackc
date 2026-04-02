@@ -1,8 +1,14 @@
-# Configure build project using preset
+# Configure and build the project using preset
 [arg("preset", long="preset", short="p")]
 build preset="debug":
     cmake --preset {{preset}}
     cmake --build --preset {{preset}}
+
+# Configure and perform a clean build of the project using preset
+[arg("preset", long="preset", short="p")]
+clean-build preset="debug":
+    cmake --preset {{preset}}
+    cmake --build --clean-first --preset {{preset}}
 
 # Configure and build for RARS
 rars:

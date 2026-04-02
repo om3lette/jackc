@@ -56,7 +56,18 @@
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/jackc/compiler/jackc_frontend",
-        "args": ["./.tmp/sources", "./.tmp/output"],
+        "args": ["-s", "./.tmp/sources", "-o", "./.tmp/output", "-std", "../stdlib"],
+        "request": "launch",
+        "adapter": "CodeLLDB"
+    },
+    {
+        "label": "jackc",
+        "build": {
+            "command": "just build",
+            "cwd": "$ZED_WORKTREE_ROOT"
+        },
+        "program": "$ZED_WORKTREE_ROOT/build/jackc/jackc",
+        "args": ["-s", "./.tmp/sources", "-o", "./.tmp/output", "-std", "../stdlib"],
         "request": "launch",
         "adapter": "CodeLLDB"
     },

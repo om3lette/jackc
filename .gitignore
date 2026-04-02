@@ -1,6 +1,7 @@
 .cache
 .DS_STORE
 .VSCodeCounter
+.idea
 
 .idea
 
@@ -20,3 +21,10 @@ notes.md
 tests/compiler/jack-code
 output.txt
 .tmp
+
+tests/stdlib/lib/jackc*
+tests/stdlib/build
+tests/stdlib/.gradle
+tests/stdlib/.kotlin
+tests/stdlib/tests/**/*.vm
+tests/stdlib/tests/**/*.asm

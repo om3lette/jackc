@@ -101,7 +101,11 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
                 return;
             }
             emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
+
             visit_expression(ctx, expr->array_access.index);
+            emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
+            emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
+
             emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
             emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
             emit_push(ctx->fd, SEGMENT_THAT, 0);
@@ -139,8 +143,11 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             if (stmt->let_stmt.index) {
                 // Compute index value
                 visit_expression(ctx, stmt->let_stmt.index);
+
                 emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
-                // Calculate offset = array_base + index (index = words)
+                emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
+                emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
+                // Calculate offset = array_base + index * 4 (index = words)
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
                 emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
                 emit_pop(ctx->fd, SEGMENT_THAT, 0);

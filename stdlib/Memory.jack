@@ -1,0 +1,66 @@
+class Memory {
+    static int freeList;
+    static int heapBase;
+
+    /** Initializes the class. */
+    function void init() {
+        let heapBase = 268697600; // 0x10040000
+        let freeList = heapBase;
+
+        do Memory.poke(heapBase, 917504); // Number of available 4 byte words
+        do Memory.poke(heapBase + 4, 0);
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return heapBase[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let heapBase[address] = value;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+        // Word size aware pointers
+        var int curBlockPtr, prevBlockPtr, nextBlockPtr;
+        var int blockSize; // In words!
+
+        let prevBlockPtr = 0;
+        let curBlockPtr = freeList;
+        // First-fit
+        while (~(curBlockPtr = 0)) {
+            let blockSize = Memory.peek(curBlockPtr);
+            // Is block large enough?
+            if (~(blockSize < size + 1)) {
+                if (blockSize > size + 2) {
+                    // Block is too big -> split
+                    do Memory.poke(curBlockPtr, blockSize - size - 1);
+                    let curBlockPtr = curBlockPtr + ((blockSize - size - 1) * 4);
+                    do Memory.poke(curBlockPtr, size + 1);
+                } else {
+                    // Perfect match!
+                    let nextBlockPtr = Memory.peek(curBlockPtr + 4);
+                    if (prevBlockPtr = 0) {
+                        let freeList = nextBlockPtr;
+                    } else {
+                        do Memory.poke(prevBlockPtr + 4, nextBlockPtr);
+                    }
+                }
+                return curBlockPtr + 4;
+            }
+            let prevBlockPtr = curBlockPtr;
+            let curBlockPtr = Memory.peek(curBlockPtr + 4);
+        }
+
+        // Out of memory
+        return 0;
+    }
+
+    function void deAlloc(int obj) {
+        do Memory.poke(obj, freeList);
+        let freeList = obj - 4;
+    }
+}
