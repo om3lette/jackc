@@ -41,5 +41,4 @@ jobs:
           cache: "gradle"
 
       - name: Test
-        run: |
-          ctest --preset release
+        run: ctest --preset release

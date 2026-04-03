@@ -54,3 +54,4 @@ REGISTER_TEST(class_filename_mismatch, "class-filename-mismatch", FRONTEND_SEMAN
 REGISTER_TEST(string_literal_assignment_to_non_string, "string-literal-assignment-to-non-string", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(subroutine_call_args_number_mismatch, "subroutine-call-args-number-mismatch", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(undefined_var_as_subroutine_arg, "undefined-var-as-subroutine-arg", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(variable_undefined_class_type, "variable-undefined-class-type", FRONTEND_SEMANTICALLY_INVALID)
