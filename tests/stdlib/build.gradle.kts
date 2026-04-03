@@ -1,7 +1,10 @@
-// build.gradle.kts
 plugins {
     kotlin("jvm") version "2.3.0"
     application
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 repositories {
