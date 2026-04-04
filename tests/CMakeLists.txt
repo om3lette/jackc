@@ -111,6 +111,7 @@ target_link_libraries(compiler_integration_tests
 add_executable(vm_parser_tests
     main.c
     vm-translator/parser/instructions.c
+    vm-translator/parser/multi_line.c
     vm-translator/parser/errors.c
 )
 target_link_libraries(vm_parser_tests

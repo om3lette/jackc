@@ -28,6 +28,6 @@
  */
 [[ nodiscard ]] vm_second_arg vm_parser_parse_arg2(vm_parser* parser, vm_cmd cmd);
 
-bool vm_parser_skip_one_line_comment(vm_parser* parser);
+void vm_parser_skip_one_line_comment(vm_parser* parser);
 
 #endif

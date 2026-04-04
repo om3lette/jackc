@@ -12,13 +12,18 @@
  * Implementation of jackc_parser_init function.
  */
 vm_parser jackc_parser_init(const jackc_string* buffer) {
-    return (vm_parser) {
+    vm_parser parser = {
         .buffer = *buffer,
         .pos = 0,
         .status = VM_OK,
         .line_idx = 0,
-        .line_start = buffer->data
+        .line_start = buffer->data,
     };
+    vm_parser_advance(&parser); // Initialize .current
+    if (!is_valid_state(&parser))
+        return parser;
+    vm_parser_advance(&parser); // Initialize .next
+    return parser;
 }
 
 void jackc_parser_update_source(vm_parser* parser, const jackc_string* buffer) {
@@ -33,40 +38,35 @@ void jackc_parser_update_source(vm_parser* parser, const jackc_string* buffer) {
 
 
 bool vm_parser_has_more_lines(vm_parser* parser) {
-    char c = vm_parser_peek(parser);
-    vm_parser_skip_blank(parser);
-    return c != '\0';
+    return parser->next.line_start != (parser->buffer.data + parser->buffer.length);
 }
 
 void vm_parser_advance(vm_parser* parser) {
-    if (vm_parser_peek(parser) != '\0') {
-        parser->status = VM_UNEXPECTED_EOF;
-        return;
-    }
-
-    // Skip any number of comment lines before next instruction.
-    vm_parser_skip_new_line(parser); // todo: move to init? This is only needed for the first line.
-    while (true) {
-        vm_parser_skip_blank(parser);
-        bool reached_eol = vm_parser_skip_one_line_comment(parser);
-        if (!reached_eol) break;
-
+    while (
+        !jackc_isdigit(vm_parser_peek(parser))
+        && !jackc_isalpha(vm_parser_peek(parser))
+        && !vm_parser_check(parser, '\0')
+    ) {
         vm_parser_skip_new_line(parser);
+        vm_parser_skip_blank(parser);
+        vm_parser_skip_one_line_comment(parser);
     }
 
-    if (vm_parser_peek(parser) == '\0') return;
+    vm_line line;
+    if (vm_parser_check(parser, '\0')) {
+        // Dummy node to continue the cycle of prev / current / next
+        // `vm_parser_has_more_lines` will report no more lines available
+        line.line_start = vm_parser_current_position(parser);
+    } else {
+        line = vm_parser_parse_line(parser);
+        // Fail fast
+        if (!is_valid_state(parser))
+            return;
+    }
 
-    vm_line line = vm_parser_parse_line(parser);
-    if (!is_valid_state(parser))
-        return;
-    parser->prev = parser->current;
     parser->current = parser->next;
     parser->next = line;
 
-    // Allow comments after the line.
-    vm_parser_skip_blank(parser);
-    vm_parser_skip_one_line_comment(parser);
-    vm_parser_skip_new_line(parser);
     return;
 }
 

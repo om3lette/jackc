@@ -3,27 +3,27 @@
 
 #include "vm-translator/parser/vm_parser.h"
 
-#define REQUIRE_0ARG_INSTRUCTION(_i, _cmd) do { \
-    REQUIRE_EQ(_i.cmd, _cmd); \
+#define CHECK_0ARG_INSTRUCTION(_i, _cmd) do { \
+    CHECK_EQ(_i.cmd, _cmd); \
 } while (0)
 
-#define REQUIRE_1ARG_INSTRUCTION(_i, _cmd, _arg1_str) do { \
-    REQUIRE_0ARG_INSTRUCTION(_i, _cmd); \
+#define CHECK_1ARG_INSTRUCTION(_i, _cmd, _arg1_str) do { \
+    CHECK_0ARG_INSTRUCTION(_i, _cmd); \
     REQUIRE(jackc_streq(&_i.arg1.str, _arg1_str)); \
 } while (0)
 
-#define REQUIRE_1ARG_SEGMENT_INSTRUCTION(_i, _cmd, _segment) do { \
-    REQUIRE_0ARG_INSTRUCTION(_i, _cmd); \
-    REQUIRE_EQ(_i.arg1.segment, _segment); \
+#define CHECK_1ARG_SEGMENT_INSTRUCTION(_i, _cmd, _segment) do { \
+    CHECK_0ARG_INSTRUCTION(_i, _cmd); \
+    CHECK_EQ(_i.arg1.segment, _segment); \
 } while (0)
 
-#define REQUIRE_2ARG_INSTRUCTION(_i, _cmd, _arg1_str, _arg2_value) do { \
-    REQUIRE_1ARG_INSTRUCTION(_i, _cmd, _arg1_str); \
+#define CHECK_2ARG_INSTRUCTION(_i, _cmd, _arg1_str, _arg2_value) do { \
+    CHECK_1ARG_INSTRUCTION(_i, _cmd, _arg1_str); \
     CHECK_EQ(_i.arg2.value, _arg2_value); \
 } while (0)
 
-#define REQUIRE_2ARG_SEGMENT_INSTRUCTION(_i, _cmd, _segment, _arg2_value) do { \
-    REQUIRE_1ARG_SEGMENT_INSTRUCTION(_i, _cmd, _segment); \
+#define CHECK_2ARG_SEGMENT_INSTRUCTION(_i, _cmd, _segment, _arg2_value) do { \
+    CHECK_1ARG_SEGMENT_INSTRUCTION(_i, _cmd, _segment); \
     CHECK_EQ(_i.arg2.value, _arg2_value); \
 } while (0)
 

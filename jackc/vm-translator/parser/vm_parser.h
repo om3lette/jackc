@@ -40,8 +40,7 @@ typedef enum {
     VM_EMPTY_SECOND_ARGUMENT,
     VM_POP_SEGMENT_CONST,
     VM_INVALID_POINTER_IDX,
-    VM_INVALID_ARG_2,
-    VM_UNEXPECTED_EOF
+    VM_INVALID_ARG_2
 } vm_parser_return_code;
 
 typedef struct {
@@ -72,7 +71,6 @@ typedef struct {
      const char* line_start;
      size_t line_idx;
 
-     vm_line prev;
      vm_line current;
      vm_line next;
 

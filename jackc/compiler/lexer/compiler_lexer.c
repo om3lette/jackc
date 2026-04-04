@@ -8,10 +8,6 @@ static inline jack_token eof_token(jack_lexer* lexer) {
     return jack_lexer_new_str_token(lexer, '\0', jack_lexer_cur_pos(lexer));
 }
 
-static inline bool is_eol(char c) {
-    return c == '\n' || c == '\r' || c == '\0';
-}
-
 jack_lexer jack_lexer_init(const char* buffer) {
     jackc_assert(buffer != NULL && "Lexer's buffer cannot be NULL");
 
@@ -36,7 +32,7 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
         do {
             value = value * 10 + lexer->c - '0';
             jack_lexer_read_char(lexer);
-        } while(lexer->c >= '0' && lexer->c <= '9' && !is_eol(lexer->c));
+        } while(lexer->c >= '0' && lexer->c <= '9' && !jackc_iseol(lexer->c));
         return jack_lexer_new_int_token(lexer, num_start, value);
     }
 
@@ -44,7 +40,7 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
         const char* str_start = jack_lexer_cur_pos(lexer) + 1;
         jack_lexer_read_char(lexer);
         // TODO: Get "is_end_of_line" function
-        while (lexer->c != '"' && !is_eol(lexer->c)) {
+        while (lexer->c != '"' && !jackc_iseol(lexer->c)) {
             jack_lexer_read_char(lexer);
         }
         jack_token token = jack_lexer_new_str_token(lexer, TOKEN_STR_LITERAL, str_start);

@@ -26,7 +26,7 @@ bool vm_cmd_is_arithmetic(vm_cmd cmd_type);
  *
  * @param parser The parser instance.
  */
-const char* vm_get_current_position(const vm_parser* parser);
+const char* vm_parser_current_position(const vm_parser* parser);
 
 /**
  * Returns the current character of the parser.
@@ -39,9 +39,8 @@ char vm_parser_peek(const vm_parser* parser);
  * Returns the next character of the parser.
  *
  * @param parser The parser instance.
- * @param offset The offset to add to the current position.
  */
-char vm_parser_peek_next(const vm_parser* parser, size_t offset);
+char vm_parser_peek_next(const vm_parser* parser);
 
 /**
  * Skips new lines: CRLF, LF.
@@ -58,25 +57,8 @@ void vm_parser_skip_new_line(vm_parser* parser);
  */
 void vm_parser_skip_blank(vm_parser* parser);
 
-/**
- * Skips new lines: CRLF
- *
- * @param parser The parser instance.
- */
-void vm_parser_skip_crlf(vm_parser* parser);
+[[ nodiscard ]] bool vm_parser_check(const vm_parser* parser, char c);
 
-/**
- * Skips new lines: LF
- *
- * @param parser The parser instance.
- */
-void vm_parser_skip_lf(vm_parser* parser);
+[[ nodiscard ]] bool vm_parser_match(vm_parser* parser, char c);
 
-/**
- * Returns true if the given character is a line ending.
- * '\\n', '\r' or '\0'
- *
- * @param c The character to check.
- */
-bool is_line_ending(char c);
 #endif

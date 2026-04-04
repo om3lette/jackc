@@ -6,7 +6,7 @@ bool is_valid_state(vm_parser* parser) {
     return parser->status == VM_OK;
 }
 
-const char* vm_get_current_position(const vm_parser* parser) {
+const char* vm_parser_current_position(const vm_parser* parser) {
     return parser->buffer.data + parser->pos;
 }
 
@@ -17,46 +17,45 @@ char vm_parser_peek(const vm_parser* parser) {
     return parser->buffer.data[parser->pos];
 }
 
-char vm_parser_peek_next(const vm_parser* parser, size_t offset) {
+char vm_parser_peek_next(const vm_parser* parser) {
     jackc_assert(parser && "Parser is null");
-    jackc_assert(parser->pos + offset <= parser->buffer.length && "Buffer index out of range");
+    jackc_assert(parser->pos + 1 <= parser->buffer.length && "Buffer index out of range");
 
-    return parser->buffer.data[parser->pos + offset];
+    return parser->buffer.data[parser->pos + 1];
+}
+
+bool vm_parser_check(const vm_parser* parser, char c) {
+    return vm_parser_peek(parser) == c;
+}
+
+bool vm_parser_match(vm_parser* parser, char c) {
+    if (vm_parser_check(parser, c)) {
+        ++parser->pos;
+        return true;
+    }
+    return false;
 }
 
 void vm_parser_skip_new_line(vm_parser* parser) {
-    vm_parser_skip_crlf(parser);
-    vm_parser_skip_lf(parser);
-    parser->line_start = vm_get_current_position(parser);
+    // CRLF
+    while (vm_parser_match(parser, '\r')) {
+        if (vm_parser_match(parser, '\n')) {
+            ++parser->line_idx;
+            parser->line_start = vm_parser_current_position(parser);
+        }
+    }
+    // LF
+    while (vm_parser_match(parser, '\n')) {
+        ++parser->line_idx;
+        parser->line_start = vm_parser_current_position(parser);
+    }
 }
 
 void vm_parser_skip_blank(vm_parser* parser) {
-    char c = vm_parser_peek(parser);
-    while (c == ' ' || c == '\t') {
-        ++parser->pos;
-        c = vm_parser_peek(parser);
-    }
-}
-
-void vm_parser_skip_crlf(vm_parser* parser) {
-    while (vm_parser_peek(parser) == '\r') {
-        ++parser->pos;
-        // TODO:
-        // JACKC_VM_PARSER_ASSERT(parser, vm_parser_peek(parser) == '\n', "Invalid CRLF sequence. Found '\r' but '\n' did not follow");
-        ++parser->pos;
-        ++parser->line_idx;
-    }
-}
-
-void vm_parser_skip_lf(vm_parser* parser) {
-    while (vm_parser_peek(parser) == '\n') {
-        ++parser->pos;
-        ++parser->line_idx;
-    }
-}
-
-bool is_line_ending(char c) {
-    return c == '\n' || c == '\r' || c == '\0';
+    while (
+        vm_parser_match(parser, ' ')
+        || vm_parser_match(parser, '\t')
+    ) {}
 }
 
 bool vm_cmd_is_arithmetic(vm_cmd cmd_type) {
