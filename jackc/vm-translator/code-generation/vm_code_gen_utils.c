@@ -21,13 +21,12 @@ void vm_code_gen_pop(int fd, const char* dest_reg, bool deallocate, const jackc_
     vm_code_gen_pop_idx(fd, dest_reg, 0, deallocate, ctx);
 }
 
-
 void vm_code_gen_push(int fd, const char* src_reg, bool allocate, const jackc_config* ctx) {
     if (allocate) vm_code_gen_stack_alloc(fd, 1, ctx);
     jackc_fprintf(fd, "\tsw %s, 0(%s)\n", src_reg, JACK_SP_REG);
 }
 
-char* vm_segment_type_to_string(jackc_vm_segment_type segment_type) {
+char* vm_segment_type_to_string(vm_segment segment_type) {
     switch (segment_type) {
         case SEGMENT_CONSTANT:
             return "constant";

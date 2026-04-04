@@ -18,15 +18,15 @@ typedef size_t vm_index;
 
 void emit_string_from_string_literal(int fd, const jackc_string* string_literal);
 
-[[ nodiscard ]] jackc_vm_segment_type vm_segment_from_variable_kind(jack_variable_kind kind);
+[[ nodiscard ]] vm_segment vm_segment_from_variable_kind(jack_variable_kind kind);
 
-[[ nodiscard ]] char* vm_segment_to_string(jackc_vm_segment_type seg);
+[[ nodiscard ]] char* vm_segment_to_string(vm_segment seg);
 
-void emit_push(int fd, jackc_vm_segment_type seg, vm_index index);
+void emit_push(int fd, vm_segment seg, vm_index index);
 
 void emit_signed_const(int fd, int32_t index);
 
-void emit_pop(int fd, jackc_vm_segment_type seg, vm_index index);
+void emit_pop(int fd, vm_segment seg, vm_index index);
 
 void emit_unary_arithmetic(int fd, ast_unary_op op);
 

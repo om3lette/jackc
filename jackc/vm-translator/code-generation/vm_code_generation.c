@@ -61,7 +61,7 @@ void jackc_vm_code_bootstrap(vm_code_generator* generator) {
     jackc_fprintf(fd, "\n");
 }
 
-static void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config* cfg) {
+static void vm_code_gen_push_segment(int fd, vm_segment type, int idx, const jackc_config* cfg) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "push %s %d\n", vm_segment_type_to_string(type), idx);
     vm_code_gen_stack_alloc(fd, 1, cfg);
 
@@ -124,7 +124,7 @@ static void vm_code_gen_push_segment(int fd, jackc_vm_segment_type type, int idx
     }
 }
 
-static void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx, const jackc_config* cfg) {
+static void vm_code_gen_pop_segment(int fd, vm_segment type, int idx, const jackc_config* cfg) {
     jackc_assert(type != SEGMENT_CONSTANT && "pop with constant segment is not allowed");
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "pop %s %d\n", vm_segment_type_to_string(type), idx);
@@ -179,7 +179,7 @@ static void vm_code_gen_pop_segment(int fd, jackc_vm_segment_type type, int idx,
     vm_code_gen_stack_dealloc(fd, 1, cfg);
 }
 
-static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd, const jackc_config* cfg) {
+static void vm_code_gen_arithmetic_2_args(int fd, vm_cmd cmd, const jackc_config* cfg) {
     // Do not deallocate. Let it be overridden by the OP result
     vm_code_gen_pop(fd, OP_ARG_1_REG, false, cfg);
 
@@ -199,7 +199,7 @@ static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd, const j
     vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
-static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const jackc_config* cfg) {
+static void vm_code_gen_arithmetic_3_args(int fd, vm_cmd cmd, const jackc_config* cfg) {
     // Do not deallocate both. Let it be overridden by the OP result
     vm_code_gen_pop(fd, OP_ARG_2_REG, false, cfg);
     vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true, cfg);
@@ -249,7 +249,7 @@ static void vm_code_gen_return(int fd, uint16_t n_locals, const jackc_config* cf
     );
 }
 
-static void vm_code_gen_branching(int fd, jackc_vm_cmd_type cmd, const jackc_string* label, const jackc_config* cfg) {
+static void vm_code_gen_branching(int fd, vm_cmd cmd, const jackc_string* label, const jackc_config* cfg) {
     switch (cmd) {
         case C_IF_GOTO:
             vm_code_gen_pop(fd, LOAD_REG, true, cfg);
@@ -357,7 +357,7 @@ void vm_code_gen_call(int fd, const jackc_string* function_name, int arg_count, 
    jackc_fprintf(fd, "\tsw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
 }
 
-void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd, const jackc_config* cfg) {
+void vm_code_gen_comparisons(int fd, vm_cmd cmd, const jackc_config* cfg) {
     vm_code_gen_pop(fd, OP_ARG_2_REG, false, cfg);
     vm_code_gen_pop_idx(fd, OP_ARG_1_REG, 1, true, cfg);
 
@@ -383,58 +383,57 @@ void vm_code_gen_comparisons(int fd, jackc_vm_cmd_type cmd, const jackc_config* 
     vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
-void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* parser) {
+void jackc_vm_code_gen_line(vm_code_generator* generator, const vm_parser* parser) {
     int fd = generator->fd;
     const jackc_config* cfg = generator->config;
 
-    switch (parser->cmd) {
+    const vm_line* line = &parser->current;
+
+    switch (line->cmd) {
         case C_ADD:
         case C_SUB:
         case C_AND:
         case C_OR:
         case C_DIV:
         case C_MUL:
-            vm_code_gen_arithmetic_3_args(fd, parser->cmd, cfg);
+            vm_code_gen_arithmetic_3_args(fd, line->cmd, cfg);
             break;
         case C_NEG:
         case C_NOT:
-            vm_code_gen_arithmetic_2_args(fd, parser->cmd, cfg);
+            vm_code_gen_arithmetic_2_args(fd, line->cmd, cfg);
             break;
         case C_EQ:
         case C_GT:
         case C_LT:
-            vm_code_gen_comparisons(fd, parser->cmd, generator->config);
+            vm_code_gen_comparisons(fd, line->cmd, generator->config);
             break;
         case C_PUSH:
-            if (parser->segment == SEGMENT_STATIC)
-                vm_code_gen_update_static_idx(generator, (size_t)parser->arg2);
-            vm_code_gen_push_segment(fd, parser->segment, parser->arg2, cfg);
+            if (line->arg1.segment == SEGMENT_STATIC)
+                vm_code_gen_update_static_idx(generator, (size_t)line->arg2.value);
+            vm_code_gen_push_segment(fd, line->arg1.segment, line->arg2.value, cfg);
             break;
         case C_POP:
-            if (parser->segment == SEGMENT_STATIC)
-                vm_code_gen_update_static_idx(generator, (size_t)parser->arg2);
-            vm_code_gen_pop_segment(fd, parser->segment, parser->arg2, cfg);
+            if (line->arg1.segment == SEGMENT_STATIC)
+                vm_code_gen_update_static_idx(generator, (size_t)line->arg2.value);
+            vm_code_gen_pop_segment(fd, line->arg1.segment, line->arg2.value, cfg);
             break;
         case C_FUNCTION:
-            jackc_assert(parser->arg2 >= 0);
-            generator->n_local_args = (uint16_t)parser->arg2;
-            vm_code_gen_function(fd, &parser->arg1, parser->arg2, cfg);
+            jackc_assert(line->arg2.value >= 0);
+            generator->n_local_args = (uint16_t)line->arg2.value;
+            vm_code_gen_function(fd, &line->arg1.str, line->arg2.value, cfg);
             break;
         case C_LABEL:
-            vm_code_gen_label(fd, &parser->arg1);
+            vm_code_gen_label(fd, &line->arg1.str);
             break;
         case C_GOTO:
         case C_IF_GOTO:
-            vm_code_gen_branching(fd, parser->cmd, &parser->arg1, cfg);
+            vm_code_gen_branching(fd, line->cmd, &line->arg1.str, cfg);
             break;
         case C_RETURN:
             vm_code_gen_return(fd, generator->n_local_args, cfg);
             break;
         case C_CALL:
-            vm_code_gen_call(fd, &parser->arg1, parser->arg2, cfg);
-            break;
-        case C_UNKNOWN:
-            jackc_assert(false && "Unknown command found while generating code");
+            vm_code_gen_call(fd, &line->arg1.str, line->arg2.value, cfg);
             break;
     }
 }

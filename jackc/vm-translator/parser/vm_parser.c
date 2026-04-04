@@ -4,6 +4,7 @@
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
 #include "vm-translator/backend.h"
+#include "vm-translator/parser/vm_parser_internal.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 #include <stdio.h>
 
@@ -39,95 +40,44 @@ static const uint16_t vm_cmd_to_args[] = {
     [C_IF_GOTO] = 1,
     [C_FUNCTION] = 2,
     [C_RETURN] = 0,
-    [C_CALL] = 2,
-    [C_UNKNOWN] = 0
+    [C_CALL] = 2
 };
+
+static bool is_valid_state(vm_parser* parser) {
+    return parser->status == VM_OK;
+}
 
 /**
  * Implementation of jackc_parser_init function.
  */
-jackc_parser jackc_parser_init(const char *buffer) {
-    jackc_parser parser;
-    parser.buffer = jackc_string_create(buffer, jackc_strlen(buffer));
-    parser.line_start = parser.buffer.data;
-    parser.line_idx = 1;
-    parser.position = 0;
-
-    parser.arg1 = jackc_string_empty();
-    parser.arg2 = 0;
-
-    parser.is_arg1_set = false;
-    parser.is_arg2_set = false;
-
-    return parser;
+vm_parser jackc_parser_init(const jackc_string* buffer) {
+    return (vm_parser) {
+        .buffer = *buffer,
+        .pos = 0,
+        .status = VM_OK,
+        .line_idx = 0,
+        .line_start = buffer->data
+    };
 }
 
-void jackc_parser_update_source(jackc_parser* parser, const char* buffer) {
+void jackc_parser_update_source(vm_parser* parser, const jackc_string* buffer) {
     jackc_assert(parser && "Parser is null");
 
-    parser->buffer = jackc_string_create(buffer, jackc_strlen(buffer));
-    parser->line_start = parser->buffer.data;
-    parser->line_idx = 1;
-    parser->position = 0;
-
-    parser->is_arg1_set = false;
-    parser->is_arg2_set = false;
+    parser->buffer = *buffer;
+    parser->pos = 0;
+    parser->status = VM_OK;
+    parser->line_idx = 0;
+    parser->line_start = buffer->data;
 }
 
-/**
- * Implementation of jackc_parser_free function.
- */
-void jackc_parser_free(jackc_parser* parser) {
-    jackc_free(parser);
-}
 
-bool vm_parser_skip_one_line_comment(jackc_parser* parser) {
-    jackc_assert(parser && "Parser is null");
-    bool reached_eol = false;
-    vm_parser_skip_blank(parser);
-
-    if (vm_parser_peek(parser) == '/' && vm_parser_peek_next(parser, 1) == '/') {
-        while (!(reached_eol = is_line_ending(vm_parser_peek(parser)))) {
-            ++parser->position;
-        }
-    }
-
-    return reached_eol;
-}
-
-bool jackc_parser_has_more_lines(jackc_parser* parser) {
+bool vm_parser_has_more_lines(vm_parser* parser) {
     char c = vm_parser_peek(parser);
     vm_parser_skip_blank(parser);
     return c != '\0';
 }
 
-jackc_vm_cmd_type jackc_vm_cmd_type_from_string(const jackc_string str) {
-    if (jackc_streq(&str, "add")) return C_ADD;
-    if (jackc_streq(&str, "sub")) return C_SUB;
-    if (jackc_streq(&str, "neg")) return C_NEG;
-    if (jackc_streq(&str, "mul")) return C_MUL;
-    if (jackc_streq(&str, "div")) return C_DIV;
-    if (jackc_streq(&str, "eq")) return C_EQ;
-    if (jackc_streq(&str, "gt")) return C_GT;
-    if (jackc_streq(&str, "lt")) return C_LT;
-    if (jackc_streq(&str, "and")) return C_AND;
-    if (jackc_streq(&str, "or")) return C_OR;
-    if (jackc_streq(&str, "not")) return C_NOT;
-    if (jackc_streq(&str, "push")) return C_PUSH;
-    if (jackc_streq(&str, "pop")) return C_POP;
-    if (jackc_streq(&str, "label")) return C_LABEL;
-    if (jackc_streq(&str, "goto")) return C_GOTO;
-    if (jackc_streq(&str, "if-goto")) return C_IF_GOTO;
-    if (jackc_streq(&str, "function")) return C_FUNCTION;
-    if (jackc_streq(&str, "return")) return C_RETURN;
-    if (jackc_streq(&str, "call")) return C_CALL;
-    return C_UNKNOWN;
-}
-
-/**
- * @todo Remove unknown command from jackc_vm_cmd_type?
- */
-jackc_vm_cmd_type jackc_vm_parse_command(jackc_parser* parser) {
+vm_cmd jackc_vm_parse_command(vm_parser* parser) {
     jackc_assert(parser && "Parser is null");
 
     const char* token_start = vm_get_current_position(parser);
@@ -135,132 +85,47 @@ jackc_vm_cmd_type jackc_vm_parse_command(jackc_parser* parser) {
 
     char c = jackc_tolower(vm_parser_peek(parser));
     while ((c >= 'a' && c <= 'z') || c == '-') {
-        ++parser->position;
+        ++parser->pos;
         ++token_size;
         c = jackc_tolower(vm_parser_peek(parser));
     }
 
-    jackc_vm_cmd_type cmd = jackc_vm_cmd_type_from_string(
-        jackc_string_create(token_start, token_size)
+    vm_cmd cmd = jackc_vm_cmd_type_from_string(
+        parser, &jackc_string_create(token_start, token_size)
     );
-    LOG_DEBUG("%s\n", vm_cmd_type_to_string(cmd));
-    JACKC_VM_PARSER_ASSERT(parser, cmd != C_UNKNOWN, "Unknown command");
+    if (is_valid_state(parser))
+        LOG_DEBUG("%s\n", vm_cmd_type_to_string(cmd));
 
-    parser->cmd = cmd;
     return cmd;
 }
 
-void jackc_vm_parse_arg1(jackc_parser* parser) {
-    jackc_assert(parser && "Parser is null.");
-
-    // TODO: Make a separate function
-    bool is_invalid_cmd_type = parser->cmd == C_RETURN || parser->cmd == vm_cmd_is_arithmetic(parser->cmd);
-    jackc_assert(!is_invalid_cmd_type && "Invalid command type");
-
-    vm_parser_skip_blank(parser);
-
-    const char* token_start = vm_get_current_position(parser);
-    size_t token_size = 0;
-
-    char c = jackc_tolower(vm_parser_peek(parser));
-    while ((c >= 'a' && c <= 'z') || c == '_' || c == '.' || (c >= '0' && c <= '9')) {
-        ++parser->position;
-        ++token_size;
-        c = jackc_tolower(vm_parser_peek(parser));
-    }
-    JACKC_VM_PARSER_ASSERT(parser, token_size, "Token size is zero");
-
-    parser->arg1 = jackc_string_create(token_start, token_size);
-    parser->is_arg1_set = true;
-
-    LOG_DEBUG("%.*s\n", token_size, parser->arg1.data);
-
-    if (parser->cmd == C_PUSH || parser->cmd == C_POP) {
-        if (jackc_streq(&parser->arg1, "this")) {
-            parser->segment = SEGMENT_THIS;
-        } else if (jackc_streq(&parser->arg1, "that")) {
-            parser->segment = SEGMENT_THAT;
-        } else if (jackc_streq(&parser->arg1, "local")) {
-            parser->segment = SEGMENT_LOCAL;
-        } else if (jackc_streq(&parser->arg1, "argument")) {
-            parser->segment = SEGMENT_ARG;
-        } else if (jackc_streq(&parser->arg1, "static")) {
-            parser->segment = SEGMENT_STATIC;
-        } else if (jackc_streq(&parser->arg1, "constant")) {
-            parser->segment = SEGMENT_CONSTANT;
-        } else if (jackc_streq(&parser->arg1, "temp")) {
-            parser->segment = SEGMENT_TEMP;
-        } else if (jackc_streq(&parser->arg1, "pointer")) {
-            parser->segment = SEGMENT_POINTER;
-        } else {
-            JACKC_VM_PARSER_ASSERT(parser, false, "Invalid segment");
-        }
-    }
-    if (parser->cmd == C_POP && parser->segment == SEGMENT_CONSTANT) {
-        JACKC_VM_PARSER_ASSERT(parser, false, "Cannot pop with constant segment");
-    }
-
-    return;
-}
-
-void jackc_vm_parse_arg2(jackc_parser* parser) {
-    jackc_assert(parser && "Parser is null.");
-
-    // TODO: Make a separate function
-    bool is_valid_cmd_type =
-        parser->cmd == C_PUSH
-        || parser->cmd == C_POP
-        || parser->cmd == C_FUNCTION
-        || parser->cmd == C_CALL;
-    jackc_assert(is_valid_cmd_type && "Invalid command type");
-
-    vm_parser_skip_blank(parser);
-
-    const char* token_start = vm_get_current_position(parser);
-    size_t token_size = 0;
-
-    char c = vm_parser_peek(parser);
-    while ((c >= '0' && c <= '9') || c == '-') {
-        ++parser->position;
-        ++token_size;
-        c = vm_parser_peek(parser);
-    }
-
-    JACKC_VM_PARSER_ASSERT(parser, token_size, "Token size is zero");
-    jackc_string token = jackc_string_create(token_start, token_size);
-
-    int32_t arg2 = jackc_atoi(&token);
-    parser->arg2 = arg2;
-    parser->is_arg2_set = true;
-    LOG_DEBUG("%d\n", parser->arg2);
-
-    JACKC_VM_PARSER_ASSERT(
-        parser,
-        (parser->cmd != C_PUSH && parser->cmd != C_POP)
-        || parser->segment != SEGMENT_POINTER
-        || (arg2 == 0 || arg2 == 1),
-        "Invalid arg2 for push/pop pointer segment. Available values are 0 and 1"
-    );
-
-    return;
-}
-
-void jackc_vm_parse_line(jackc_parser* parser) {
+vm_line jackc_vm_parse_line(vm_parser* parser) {
     jackc_assert(parser && "Parser is null.");
     LOG_DEBUG("Line %u\n", parser->line_idx);
 
-    jackc_vm_cmd_type cmd = jackc_vm_parse_command(parser);
-    uint16_t cmd_argc = vm_cmd_to_args[cmd];
+    vm_line token = {0};
 
-    if (cmd_argc > 0)  jackc_vm_parse_arg1(parser);
-    if (cmd_argc == 2) jackc_vm_parse_arg2(parser);
+    token.cmd = jackc_vm_parse_command(parser);
+    if (!is_valid_state(parser))
+        return token;
+
+    uint16_t cmd_argc = vm_cmd_to_args[token.cmd];
+    if (cmd_argc > 0) {
+        token.arg1 = vm_parser_parse_arg1(parser, token.cmd);
+        if (!is_valid_state(parser))
+            return token;
+    }
+    if (cmd_argc == 2) {
+        token.arg2 = vm_parser_parse_arg2(parser, token.cmd);
+        if (!is_valid_state(parser))
+            return token;
+    }
 
     LOG_DEBUG_NO_BANNER("\n");
-
-    return;
+    return token;
 }
 
-void jackc_vm_parser_advance(jackc_parser* parser) {
+void vm_parser_advance(vm_parser* parser) {
     JACKC_VM_PARSER_ASSERT(parser, vm_parser_peek(parser) != '\0', "Unexpected EOF");
 
     // Skip any number of comment lines before next instruction.
@@ -273,11 +138,15 @@ void jackc_vm_parser_advance(jackc_parser* parser) {
         vm_parser_skip_new_line(parser);
     }
 
-    parser->is_arg1_set = false;
-    parser->is_arg2_set = false;
-
     if (vm_parser_peek(parser) == '\0') return;
-    jackc_vm_parse_line(parser);
+
+    vm_line line = jackc_vm_parse_line(parser);
+    if (!is_valid_state(parser))
+        return;
+    parser->prev = parser->current;
+    parser->current = parser->next;
+    parser->next = line;
+
     // Allow comments after the line.
     vm_parser_skip_blank(parser);
     vm_parser_skip_one_line_comment(parser);
@@ -285,10 +154,10 @@ void jackc_vm_parser_advance(jackc_parser* parser) {
     return;
 }
 
-void jackc_vm_parser_panic(const jackc_parser* parser, const char* msg, const char* c_file, unsigned int c_line) {
+void vm_parser_panic(const vm_parser* parser, const char* msg, const char* c_file, unsigned int c_line) {
     jackc_printf("\n\n");
     LOG_FATAL("Invalid VM syntax at line %d\n", parser->line_idx);
-    LOG_FATAL("Current symbol index: %d\n\n", parser->position - (size_t)(parser->line_start - parser->buffer.data));
+    LOG_FATAL("Current symbol index: %d\n\n", parser->pos - (size_t)(parser->line_start - parser->buffer.data));
     const char* cur = parser->line_start;
     while (*cur != '\n' && *cur != '\0') {
         jackc_printf("%c", *cur++);

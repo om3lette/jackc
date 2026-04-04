@@ -8,28 +8,28 @@
  *
  * @param cmd_type The command type to convert to a string.
  */
-char* vm_cmd_type_to_string(jackc_vm_cmd_type cmd_type);
+char* vm_cmd_type_to_string(vm_cmd cmd_type);
 
 /**
  * Returns true if the given command type is an arithmetic command.
  *
  * @param cmd_type The command type to check.
  */
-bool vm_cmd_is_arithmetic(jackc_vm_cmd_type cmd_type);
+bool vm_cmd_is_arithmetic(vm_cmd cmd_type);
 
 /**
  * Returns a pointer to the current position of the parser.
  *
  * @param parser The parser instance.
  */
-const char* vm_get_current_position(const jackc_parser* parser);
+const char* vm_get_current_position(const vm_parser* parser);
 
 /**
  * Returns the current character of the parser.
  *
  * @param parser The parser instance.
  */
-char vm_parser_peek(const jackc_parser* parser);
+char vm_parser_peek(const vm_parser* parser);
 
 /**
  * Returns the next character of the parser.
@@ -37,7 +37,7 @@ char vm_parser_peek(const jackc_parser* parser);
  * @param parser The parser instance.
  * @param offset The offset to add to the current position.
  */
-char vm_parser_peek_next(const jackc_parser* parser, size_t offset);
+char vm_parser_peek_next(const vm_parser* parser, size_t offset);
 
 /**
  * Skips new lines: CRLF, LF.
@@ -45,28 +45,28 @@ char vm_parser_peek_next(const jackc_parser* parser, size_t offset);
  *
  * @param parser The parser instance.
  */
-void vm_parser_skip_new_line(jackc_parser* parser);
+void vm_parser_skip_new_line(vm_parser* parser);
 
 /**
  * Skips whitespaces and tabs.
  *
  * @param parser The parser instance.
  */
-void vm_parser_skip_blank(jackc_parser* parser);
+void vm_parser_skip_blank(vm_parser* parser);
 
 /**
  * Skips new lines: CRLF
  *
  * @param parser The parser instance.
  */
-void vm_parser_skip_crlf(jackc_parser* parser);
+void vm_parser_skip_crlf(vm_parser* parser);
 
 /**
  * Skips new lines: LF
  *
  * @param parser The parser instance.
  */
-void vm_parser_skip_lf(jackc_parser* parser);
+void vm_parser_skip_lf(vm_parser* parser);
 
 /**
  * Returns true if the given character is a line ending.

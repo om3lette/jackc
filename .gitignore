@@ -22,7 +22,7 @@ tests/compiler/jack-code
 output.txt
 .tmp
 
-tests/stdlib/lib/jackc*
+tests/stdlib/libs/jackc*
 tests/stdlib/build
 tests/stdlib/.gradle
 tests/stdlib/.kotlin

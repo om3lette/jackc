@@ -16,7 +16,7 @@
         jackc_fprintf(fd, fmt __VA_OPT__(,) __VA_ARGS__); \
     } while(0)
 
-char* vm_segment_type_to_string(jackc_vm_segment_type segment_type);
+char* vm_segment_type_to_string(vm_segment segment_type);
 
 void vm_code_gen_stack_alloc(int fd, int words, const jackc_config* ctx);
 

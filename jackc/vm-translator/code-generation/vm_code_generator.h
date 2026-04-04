@@ -19,7 +19,7 @@ vm_code_generator jackc_vm_code_gen_init(const char* output_file, int fd, const 
 
 void jackc_vm_code_bootstrap(vm_code_generator* generator);
 
-void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* parser);
+void jackc_vm_code_gen_line(vm_code_generator* generator, const vm_parser* parser);
 
 void jackc_vm_code_gen_finalize(vm_code_generator* generator);
 

@@ -1,5 +1,6 @@
 #include "vm-translator/backend.h"
 #include "std/jackc_stdio.h"
+#include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
 #include "vm-translator/code-generation/vm_code_generator.h"
 #include "vm-translator/parser/vm_parser.h"
@@ -18,7 +19,7 @@ jackc_backend_return_code jackc_backend_compile(
         return BACKEND_FAILED_TO_OPEN_SAVE_FILE;
     }
 
-    jackc_parser parser = jackc_parser_init("");
+    vm_parser parser = jackc_parser_init(&jackc_string_empty());
     vm_code_generator generator = jackc_vm_code_gen_init(out_file_path, fd, config);
 
     jackc_vm_code_bootstrap(&generator);
@@ -31,10 +32,10 @@ jackc_backend_return_code jackc_backend_compile(
         const char* file_content = jackc_read_file_content(source_file_path);
         if (!file_content)
             return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
-        jackc_parser_update_source(&parser, file_content);
+        jackc_parser_update_source(&parser, &jackc_string_from_str(file_content));
 
-        while (jackc_parser_has_more_lines(&parser)) {
-            jackc_vm_parser_advance(&parser);
+        while (vm_parser_has_more_lines(&parser)) {
+            vm_parser_advance(&parser);
             jackc_vm_code_gen_line(&generator, &parser);
         }
 
