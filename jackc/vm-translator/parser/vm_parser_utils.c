@@ -37,7 +37,8 @@ void vm_parser_skip_blank(vm_parser* parser) {
 void vm_parser_skip_crlf(vm_parser* parser) {
     while (vm_parser_peek(parser) == '\r') {
         ++parser->pos;
-        JACKC_VM_PARSER_ASSERT(parser, vm_parser_peek(parser) == '\n', "Invalid CRLF sequence. Found '\r' but '\n' did not follow");
+        // TODO:
+        // JACKC_VM_PARSER_ASSERT(parser, vm_parser_peek(parser) == '\n', "Invalid CRLF sequence. Found '\r' but '\n' did not follow");
         ++parser->pos;
         ++parser->line_idx;
     }

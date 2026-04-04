@@ -43,12 +43,15 @@ typedef enum {
 
 typedef enum {
     VM_OK = 0,
-    VM_INVALID_CMD,
+    VM_INVALID_CMD = 2000,
     VM_INVALID_ARG_1,
+    VM_INVALID_SEGMENT,
     VM_EMPTY_FIRST_ARGUMENT,
     VM_EMPTY_SECOND_ARGUMENT,
     VM_POP_SEGMENT_CONST,
-    VM_INVALID_ARG_2
+    VM_INVALID_POINTER_IDX,
+    VM_INVALID_ARG_2,
+    VM_UNEXPECTED_EOF
 } vm_parser_return_code;
 
 typedef struct {
@@ -111,22 +114,5 @@ void jackc_parser_update_source(vm_parser* parser, const jackc_string* buffer);
  * @param parser The parser instance.
  */
 void vm_parser_advance(vm_parser* parser);
-
-/**
- * Prints debug information and the current parser state.
- *
- * @param parser The parser instance.
- * @param msg The message to print.
- * @param c_file The file name where the error occurred.
- * @param c_line The line number where the error occurred.
- */
-void vm_parser_panic(const vm_parser* parser, const char* msg, const char* c_file, unsigned int c_line);
-
-#define JACKC_VM_PARSER_ASSERT(parser, condition, message) \
-    do { \
-        if (!(condition)) { \
-            vm_parser_panic(parser, message, __FILE__, __LINE__); \
-        } \
-    } while(0)
 
 #endif

@@ -31,7 +31,6 @@ vm_first_arg vm_parser_parse_arg1(vm_parser* parser, vm_cmd cmd) {
     }
     if (token_size <= 0)
         RETURN_WITH_STATUS(parser, VM_EMPTY_FIRST_ARGUMENT, arg);
-    JACKC_VM_PARSER_ASSERT(parser, token_size, "Token size is zero");
 
     jackc_string arg1_str = jackc_string_create(token_start, token_size);
     arg.str = arg1_str;
@@ -55,7 +54,7 @@ vm_first_arg vm_parser_parse_arg1(vm_parser* parser, vm_cmd cmd) {
         } else if (jackc_streq(&arg1_str, "pointer")) {
             arg.segment = SEGMENT_POINTER;
         } else {
-            JACKC_VM_PARSER_ASSERT(parser, false, "Invalid segment");
+            RETURN_WITH_STATUS(parser, VM_INVALID_SEGMENT, arg);
         }
     }
     if (cmd == C_POP && arg.segment == SEGMENT_CONSTANT)
@@ -96,19 +95,6 @@ vm_second_arg vm_parser_parse_arg2(vm_parser* parser, vm_cmd cmd) {
     arg.str = token;
     arg.value = jackc_atoi(&token);
     LOG_DEBUG("%d\n", arg.value);
-
-    // TODO:
-    // if (
-    //     (cmd == C_PUSH || cmd == C_POP)
-    //     && SEGMENT_POINTER
-    // )
-    // JACKC_VM_PARSER_ASSERT(
-    //     parser,
-    //     (parser->cmd != C_PUSH && parser->cmd != C_POP)
-    //     || parser->segment != SEGMENT_POINTER
-    //     || (arg2 == 0 || arg2 == 1),
-    //     "Invalid arg2 for push/pop pointer segment. Available values are 0 and 1"
-    // );
 
     return arg;
 }

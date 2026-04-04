@@ -120,13 +120,23 @@ vm_line jackc_vm_parse_line(vm_parser* parser) {
         if (!is_valid_state(parser))
             return token;
     }
-
     LOG_DEBUG_NO_BANNER("\n");
+
+    if (
+        (token.cmd == C_PUSH || token.cmd == C_POP)
+        && token.arg1.segment == SEGMENT_POINTER
+        && (token.arg2.value != 1 && token.arg2.value != 1)
+    ) {
+        parser->status = VM_INVALID_POINTER_IDX;
+    }
     return token;
 }
 
 void vm_parser_advance(vm_parser* parser) {
-    JACKC_VM_PARSER_ASSERT(parser, vm_parser_peek(parser) != '\0', "Unexpected EOF");
+    if (vm_parser_peek(parser) != '\0') {
+        parser->status = VM_UNEXPECTED_EOF;
+        return;
+    }
 
     // Skip any number of comment lines before next instruction.
     vm_parser_skip_new_line(parser); // todo: move to init? This is only needed for the first line.
