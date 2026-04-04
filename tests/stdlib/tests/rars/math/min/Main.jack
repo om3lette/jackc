@@ -1,7 +1,5 @@
 class Main {
-    function void main() {
-        var int x;
-        let x = 268697600;
+    function void main(int x) {
         return Math.min(x[0], x[1]);
     }
 }

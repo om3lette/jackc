@@ -5,62 +5,70 @@ class Memory {
     /** Initializes the class. */
     function void init() {
         let heapBase = 268697600; // 0x10040000
-        let freeList = heapBase;
+        let freeList = 0; // Word index of free list head (relative to heapBase)
 
-        do Memory.poke(heapBase, 917504); // Number of available 4 byte words
-        do Memory.poke(heapBase + 4, 0);
+        // [0] = size of free block in words (excluding header)
+        // [1] = next free block index (0 = null)
+        do Memory.poke(0, 917503); // Total words minus header word (917504 * 4 -> 3.5MB)
+        do Memory.poke(1, 0);      // No next block
     }
 
-    /** Returns the RAM value at the given address. */
-    function int peek(int address) {
-        return heapBase[address];
+    /** Returns the RAM value at the given word index. */
+    function int peek(int wordIndex) {
+        return heapBase[wordIndex];
     }
 
-    /** Sets the RAM value at the given address to the given value. */
-    function void poke(int address, int value) {
-        let heapBase[address] = value;
+    /** Sets the RAM value at the given word index to the given value. */
+    function void poke(int wordIndex, int value) {
+        let heapBase[wordIndex] = value;
     }
 
     /** Finds an available RAM block of the given size and returns
-     *  a reference to its base address. */
+     *  a reference to its base word index. */
     function int alloc(int size) {
-        // Word size aware pointers
         var int curBlockPtr, prevBlockPtr, nextBlockPtr;
-        var int blockSize; // In words!
+        var int blockSize;
 
-        let prevBlockPtr = 0;
+        let prevBlockPtr = -1; // -1 means no previous block
         let curBlockPtr = freeList;
+
         // First-fit
-        while (~(curBlockPtr = 0)) {
+        while (~(curBlockPtr = -1)) {
             let blockSize = Memory.peek(curBlockPtr);
-            // Is block large enough?
+
+            // Is block large enough? (need size words + 1 for header)
             if (~(blockSize < size + 1)) {
                 if (blockSize > size + 2) {
-                    // Block is too big -> split
+                    // Block is too big -> split it
                     do Memory.poke(curBlockPtr, blockSize - size - 1);
-                    let curBlockPtr = curBlockPtr + ((blockSize - size - 1) * 4);
+                    let curBlockPtr = curBlockPtr + (blockSize - size - 1);
+                    // Write header for new allocated block
                     do Memory.poke(curBlockPtr, size + 1);
                 } else {
-                    // Perfect match!
-                    let nextBlockPtr = Memory.peek(curBlockPtr + 4);
-                    if (prevBlockPtr = 0) {
+                    // Perfect fit -> remove from free list
+                    let nextBlockPtr = Memory.peek(curBlockPtr + 1);
+                    if (prevBlockPtr = -1) {
                         let freeList = nextBlockPtr;
                     } else {
-                        do Memory.poke(prevBlockPtr + 4, nextBlockPtr);
+                        do Memory.poke(prevBlockPtr + 1, nextBlockPtr);
                     }
                 }
-                return curBlockPtr + 4;
+                // Return word index of usable memory (past the header)
+                return curBlockPtr + 1;
             }
+
             let prevBlockPtr = curBlockPtr;
-            let curBlockPtr = Memory.peek(curBlockPtr + 4);
+            let curBlockPtr = Memory.peek(curBlockPtr + 1);
         }
 
         // Out of memory
-        return 0;
+        return -1;
     }
 
     function void deAlloc(int obj) {
-        do Memory.poke(obj, freeList);
-        let freeList = obj - 4;
+        // obj points to first usable word, header is one word before
+        let obj = obj - 1;
+        do Memory.poke(obj + 1, freeList); // next pointer = old freeList
+        let freeList = obj;
     }
 }

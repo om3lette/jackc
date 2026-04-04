@@ -128,7 +128,7 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
 }
 
 // Forward declaration for visit_statement
-static void visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts);
+static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts);
 
 static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt* stmt) {
     switch (stmt->kind) {
@@ -141,13 +141,14 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             visit_expression(ctx, stmt->let_stmt.value);
 
             if (stmt->let_stmt.index) {
-                // Compute index value
-                visit_expression(ctx, stmt->let_stmt.index);
-
                 emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
+
+                // Compute index offset from base ptr
+                visit_expression(ctx, stmt->let_stmt.index);
                 emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
-                // Calculate offset = array_base + index * 4 (index = words)
+
+                // Calculate offset = array_base + index_offset
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
                 emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
                 emit_pop(ctx->fd, SEGMENT_THAT, 0);
@@ -197,10 +198,13 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
     }
 }
 
-static void visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts) {
+static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts) {
+    const ast_stmt* prev = nullptr;
     for (const ast_stmt* stmt = stmts; stmt; stmt = stmt->next) {
         visit_stmt(ctx, stmt);
+        prev = stmt;
     }
+    return prev;
 }
 
 static void visit_subroutine(vm_code_generation_traversal_context* ctx, const ast_subroutine* sub) {
@@ -222,7 +226,11 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
         });
         emit_pop(ctx->fd, SEGMENT_POINTER, 0);
     }
-    visit_statements(ctx, sub->body);
+    const ast_stmt* last_stmt = visit_statements(ctx, sub->body);
+    // Add return to avoid fallthrough
+    if (!last_stmt || last_stmt->kind != STMT_RETURN) {
+        emit_return(ctx->fd);
+    }
 
     ctx->symtab = sym_table_pop(ctx->symtab);
 }

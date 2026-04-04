@@ -51,6 +51,7 @@ void jackc_vm_code_bootstrap(vm_code_generator* generator) {
     jackc_fprintf(
         fd,
         "Sys.init:\n"
+        "\tcall Memory.init\n"
         "\tcall Main.main\n"
         "\tli a7, 1\n"
         "\tecall\n"
