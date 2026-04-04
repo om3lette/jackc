@@ -8,6 +8,7 @@ typedef struct {
     const char* output_file;
     const jackc_config* config;
     int fd;
+    uint16_t n_local_args;
     long static_idx;
     size_t label_idx;
     size_t temp_idx;

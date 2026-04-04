@@ -182,13 +182,13 @@ static void vm_code_gen_arithmetic_2_args(int fd, jackc_vm_cmd_type cmd, const j
     // Do not deallocate. Let it be overridden by the OP result
     vm_code_gen_pop(fd, OP_ARG_1_REG, false, cfg);
 
-    char op[4];
+    char op[5];
     switch (cmd) {
         case C_NEG:
             jackc_strcpy(op, "neg");
             break;
         case C_NOT:
-            jackc_strcpy(op, "not");
+            jackc_strcpy(op, "seqz");
             break;
         default:
             jackc_assert(false && "Invalid 2 argument arithmetic command");
@@ -231,12 +231,16 @@ static void vm_code_gen_arithmetic_3_args(int fd, jackc_vm_cmd_type cmd, const j
     vm_code_gen_push(fd, OP_RES_REG, false, cfg);
 }
 
-static void vm_code_gen_return(int fd, const jackc_config* cfg) {
+static void vm_code_gen_return(int fd, uint16_t n_locals, const jackc_config* cfg) {
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Store the return value\n");
     jackc_fprintf(fd, "\tlw %s, 0(%s)\n", RET_REG, JACK_SP_REG);
 
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Restore the frame pointer\n");
-    vm_code_gen_stack_dealloc(fd, 1, cfg);
+    jackc_fprintf(
+        fd,
+        "\taddi %s, %s, %d\n",
+        JACK_SP_REG, SEGMENT_LCL_REG, config_stack_growth_coef(cfg, config_word_to_bytes(cfg, n_locals))
+    );
 
     jackc_fprintf(
         fd,
@@ -285,8 +289,8 @@ void vm_code_gen_function(int fd, const jackc_string* name, int local_cnt, const
     VM_CODE_GEN_HELP_COMMENT_TAB(fd, "Initialize LCL\n");
     jackc_fprintf(
         fd,
-        "\taddi %s, %s, 4\n",
-        SEGMENT_LCL_REG, JACK_SP_REG
+        "\taddi %s, %s, %d\n",
+        SEGMENT_LCL_REG, JACK_SP_REG, -config_stack_growth_coef(cfg, config_word_to_bytes(cfg, local_cnt))
     );
     if (local_cnt > 0) {
         vm_code_gen_stack_alloc(fd, local_cnt, cfg);
@@ -411,6 +415,8 @@ void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* pa
             vm_code_gen_pop_segment(fd, parser->segment, parser->arg2, cfg);
             break;
         case C_FUNCTION:
+            jackc_assert(parser->arg2 >= 0);
+            generator->n_local_args = (uint16_t)parser->arg2;
             vm_code_gen_function(fd, &parser->arg1, parser->arg2, cfg);
             break;
         case C_LABEL:
@@ -421,7 +427,7 @@ void jackc_vm_code_gen_line(vm_code_generator* generator, const jackc_parser* pa
             vm_code_gen_branching(fd, parser->cmd, &parser->arg1, cfg);
             break;
         case C_RETURN:
-            vm_code_gen_return(fd, cfg);
+            vm_code_gen_return(fd, generator->n_local_args, cfg);
             break;
         case C_CALL:
             vm_code_gen_call(fd, &parser->arg1, parser->arg2, cfg);
