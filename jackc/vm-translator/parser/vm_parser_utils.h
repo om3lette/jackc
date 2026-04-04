@@ -3,6 +3,10 @@
 
 #include "vm-translator/parser/vm_parser.h"
 
+[[ nodiscard ]] vm_cmd jackc_vm_cmd_type_from_string(vm_parser* parser, const jackc_string* str);
+
+[[ nodiscard ]] bool is_valid_state(vm_parser* parser);
+
 /**
  * Returns a string representation of the given command type.
  *

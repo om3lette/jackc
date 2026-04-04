@@ -2,6 +2,10 @@
 #include "vm-translator/parser/vm_parser.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 
+bool is_valid_state(vm_parser* parser) {
+    return parser->status == VM_OK;
+}
+
 const char* vm_get_current_position(const vm_parser* parser) {
     return parser->buffer.data + parser->pos;
 }
@@ -72,6 +76,31 @@ bool vm_cmd_is_arithmetic(vm_cmd cmd_type) {
         default:
             return false;
     }
+}
+
+vm_cmd jackc_vm_cmd_type_from_string(vm_parser* parser, const jackc_string* str) {
+    if (jackc_streq(str, "add")) return C_ADD;
+    if (jackc_streq(str, "sub")) return C_SUB;
+    if (jackc_streq(str, "neg")) return C_NEG;
+    if (jackc_streq(str, "mul")) return C_MUL;
+    if (jackc_streq(str, "div")) return C_DIV;
+    if (jackc_streq(str, "eq")) return C_EQ;
+    if (jackc_streq(str, "gt")) return C_GT;
+    if (jackc_streq(str, "lt")) return C_LT;
+    if (jackc_streq(str, "and")) return C_AND;
+    if (jackc_streq(str, "or")) return C_OR;
+    if (jackc_streq(str, "not")) return C_NOT;
+    if (jackc_streq(str, "push")) return C_PUSH;
+    if (jackc_streq(str, "pop")) return C_POP;
+    if (jackc_streq(str, "label")) return C_LABEL;
+    if (jackc_streq(str, "goto")) return C_GOTO;
+    if (jackc_streq(str, "if-goto")) return C_IF_GOTO;
+    if (jackc_streq(str, "function")) return C_FUNCTION;
+    if (jackc_streq(str, "return")) return C_RETURN;
+    if (jackc_streq(str, "call")) return C_CALL;
+
+    parser->status = VM_INVALID_CMD;
+    return C_EQ;
 }
 
 char* vm_cmd_type_to_string(vm_cmd cmd_type) {

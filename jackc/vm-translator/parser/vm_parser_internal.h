@@ -3,6 +3,10 @@
 
 #include "vm-translator/parser/vm_parser.h"
 
+[[ nodiscard ]] vm_line vm_parser_parse_line(vm_parser* parser);
+
+[[ nodiscard ]] vm_cmd vm_parser_parse_instruction(vm_parser* parser);
+
 /**
  * Returns the type of the current command.
  *
@@ -23,8 +27,6 @@
  * @param parser The parser instance.
  */
 [[ nodiscard ]] vm_second_arg vm_parser_parse_arg2(vm_parser* parser, vm_cmd cmd);
-
-[[ nodiscard ]] vm_cmd jackc_vm_cmd_type_from_string(vm_parser* parser, const jackc_string* str);
 
 bool vm_parser_skip_one_line_comment(vm_parser* parser);
 

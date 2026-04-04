@@ -9,24 +9,15 @@
  * All possible Jack VM command types.
  */
 typedef enum {
-    C_ADD = 0,
-    C_SUB,
-    C_DIV,
-    C_MUL,
-    C_NEG,
-    C_AND,
-    C_OR,
-    C_NOT,
-    C_EQ,
-    C_GT,
-    C_LT,
-    C_PUSH,
-    C_POP,
-    C_LABEL,
-    C_GOTO,
-    C_IF_GOTO,
-    C_FUNCTION,
-    C_RETURN,
+    C_ADD = 0,  C_SUB,
+    C_DIV,      C_MUL,
+    C_NEG,      C_AND,
+    C_OR,       C_NOT,
+    C_EQ,       C_GT,
+    C_LT,       C_PUSH,
+    C_POP,      C_LABEL,
+    C_GOTO,     C_IF_GOTO,
+    C_FUNCTION, C_RETURN,
     C_CALL
 } vm_cmd;
 
@@ -44,7 +35,6 @@ typedef enum {
 typedef enum {
     VM_OK = 0,
     VM_INVALID_CMD = 2000,
-    VM_INVALID_ARG_1,
     VM_INVALID_SEGMENT,
     VM_EMPTY_FIRST_ARGUMENT,
     VM_EMPTY_SECOND_ARGUMENT,
