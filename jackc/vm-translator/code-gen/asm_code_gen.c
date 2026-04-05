@@ -175,7 +175,6 @@ static void codegen_function(asm_context* ctx, const jackc_string* name, int n_l
         asm_emit_comment(&ctx->e, "Initialize local ptr as a frame anchor");
     }
     asm_emit_mv(&ctx->e, REG_LOCAL, REG_SP);
-    // asm_emit_addi(&ctx->e, REG_LOCAL, REG_SP, frame_offset_bytes(&ctx->cfg, n_locals - 1));
 }
 
 void asm_code_gen_process_line(asm_context* ctx, const vm_parser* parser) {
