@@ -52,7 +52,10 @@ static const uint16_t vm_cmd_to_args[] = {
 vm_line vm_parser_parse_line(vm_parser* parser) {
     jackc_assert(parser && "Parser is null");
 
-    vm_line token = {0};
+    vm_line token = {
+        .line_start = parser->line_start,
+        .line_idx = (uint32_t)parser->line_idx
+    };
     token.cmd = vm_parser_parse_instruction(parser);
     RETURN_IF_INVALID_STATE(parser, token);
 

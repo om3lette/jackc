@@ -72,7 +72,7 @@ static ast_var_dec* jack_parser_parse_variables(
         }
 
         ast_var_dec* new_node = ast_variable_declaration(
-            parser->allocator, &var_name.str, kind, *type, NULL
+            parser->allocator, &var_name.str, kind, *type, nullptr
         );
         if (!declarations) {
             declarations = new_node;

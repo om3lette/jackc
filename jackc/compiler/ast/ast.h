@@ -52,6 +52,7 @@ typedef struct ast_expr_list ast_expr_list;
 struct ast_expr_list {
     ast_expr* expr;
     ast_expr_list* next;
+    ast_expr_list* prev;
 };
 
 ast_expr_list* ast_expr_list_push_back(
@@ -244,7 +245,7 @@ struct ast_var_dec {
     jack_variable_kind kind;
     ast_type type;
     jackc_string name;
-    struct ast_var_dec* next; // Linked list of declarations
+    ast_var_dec* next; // Linked list of declarations
 };
 
 ast_var_dec* ast_var_dec_list_push_back(

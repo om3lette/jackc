@@ -1,6 +1,6 @@
 #include "vm_parser.h"
-#include "core/logging/logger.h"
 #include "core/asserts/jackc_assert.h"
+#include "core/logging/logger.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
 #include "vm-translator/backend.h"
@@ -26,18 +26,8 @@ vm_parser jackc_parser_init(const jackc_string* buffer) {
     return parser;
 }
 
-void jackc_parser_update_source(vm_parser* parser, const jackc_string* buffer) {
-    jackc_assert(parser && "Parser is null");
-
-    parser->buffer = *buffer;
-    parser->pos = 0;
-    parser->status = VM_OK;
-    parser->line_idx = 0;
-    parser->line_start = buffer->data;
-}
-
-
 bool vm_parser_has_more_lines(vm_parser* parser) {
+    jackc_assert(parser->next.line_start);
     return parser->next.line_start != (parser->buffer.data + parser->buffer.length);
 }
 

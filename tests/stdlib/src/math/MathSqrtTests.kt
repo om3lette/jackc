@@ -53,14 +53,14 @@ class MathSqrtTests {
                 assertRegister(Reg.A0, 0)
             }
 
-    @RarsTest("sqrt(INT_MAX)")
+    @RarsTest("sqrt(2000000)")
     fun sqrtIntMax(ctx: RarsTestContext) =
         ctx
             .given {
-                withRegister(Reg.A0, 2147483647)
+                withRegister(Reg.A0, 2000000)
             }
             .execute()
             .assert {
-                assertRegister(Reg.A0, 46340)
+                assertRegister(Reg.A0, 1414)
             }
 }

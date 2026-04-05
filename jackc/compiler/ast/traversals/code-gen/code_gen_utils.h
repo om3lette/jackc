@@ -20,8 +20,6 @@ void emit_string_from_string_literal(int fd, const jackc_string* string_literal)
 
 [[ nodiscard ]] vm_segment vm_segment_from_variable_kind(jack_variable_kind kind);
 
-[[ nodiscard ]] char* vm_segment_to_string(vm_segment seg);
-
 void emit_push(int fd, vm_segment seg, vm_index index);
 
 void emit_signed_const(int fd, int32_t index);

@@ -86,8 +86,6 @@ typedef struct {
  */
 [[ nodiscard ]] vm_parser jackc_parser_init(const jackc_string* buffer);
 
-void jackc_parser_update_source(vm_parser* parser, const jackc_string* buffer);
-
 /**
  * Checks if there are more lines to parse.
  *

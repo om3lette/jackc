@@ -43,9 +43,11 @@ static void register_var(sym_table* symtab, const ast_var_dec* var_dec) {
 static void visit_expression(vm_code_generation_traversal_context* ctx, const ast_expr* expr);
 
 static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, const ast_call* call) {
-    // TODO: Add support for stack rotation?
     uint16_t n_args = 0;
-    for (const ast_expr_list* arg = call->args; arg; arg = arg->next) {
+    const ast_expr_list* last_arg = call->args;
+    for (last_arg = call->args; last_arg && last_arg->next; last_arg = last_arg->next) {}
+
+    for (const ast_expr_list* arg = last_arg; arg; arg = arg->prev) {
         visit_expression(ctx, arg->expr);
         ++n_args;
     }

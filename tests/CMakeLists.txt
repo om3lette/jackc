@@ -131,4 +131,4 @@ add_test(NAME diagnostics_engine_tests COMMAND diagnostics_engine_tests)
 add_test(NAME function_registry_tests COMMAND function_registry_tests)
 add_test(NAME compiler_integration_tests COMMAND compiler_integration_tests)
 
-# add_test(NAME stdlib_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/gradlew -p ${CMAKE_CURRENT_SOURCE_DIR}/stdlib run)
+add_test(NAME stdlib_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/gradlew -p ${CMAKE_CURRENT_SOURCE_DIR}/stdlib run)

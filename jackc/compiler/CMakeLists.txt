@@ -22,6 +22,8 @@ add_library(compiler STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/function-registry/function_registry.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/frontend.c
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/common.c
 )
 target_link_libraries(compiler
     PUBLIC

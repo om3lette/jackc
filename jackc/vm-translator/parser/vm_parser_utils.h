@@ -15,13 +15,6 @@
 char* vm_cmd_type_to_string(vm_cmd cmd_type);
 
 /**
- * Returns true if the given command type is an arithmetic command.
- *
- * @param cmd_type The command type to check.
- */
-bool vm_cmd_is_arithmetic(vm_cmd cmd_type);
-
-/**
  * Returns a pointer to the current position of the parser.
  *
  * @param parser The parser instance.

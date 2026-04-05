@@ -58,25 +58,6 @@ void vm_parser_skip_blank(vm_parser* parser) {
     ) {}
 }
 
-bool vm_cmd_is_arithmetic(vm_cmd cmd_type) {
-    switch (cmd_type) {
-        case C_ADD:
-        case C_SUB:
-        case C_NEG:
-        case C_MUL:
-        case C_DIV:
-        case C_EQ:
-        case C_GT:
-        case C_LT:
-        case C_AND:
-        case C_OR:
-        case C_NOT:
-            return true;
-        default:
-            return false;
-    }
-}
-
 vm_cmd jackc_vm_cmd_type_from_string(vm_parser* parser, const jackc_string* str) {
     if (jackc_streq(str, "add")) return C_ADD;
     if (jackc_streq(str, "sub")) return C_SUB;
