@@ -108,6 +108,20 @@ target_link_libraries(compiler_integration_tests
         compiler
 )
 
+add_executable(vm_parser_tests
+    main.c
+    vm-translator/parser/instructions.c
+    vm-translator/parser/multi_line.c
+    vm-translator/parser/errors.c
+)
+target_link_libraries(vm_parser_tests
+    PRIVATE
+        Tau
+        vm-translator
+)
+
+add_test(NAME vm_parser_tests COMMAND vm_parser_tests)
+
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
 add_test(NAME compiler_symtab_tests COMMAND compiler_symtab_tests)
 add_test(NAME data_structure_tests COMMAND data_structure_tests)

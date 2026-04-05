@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     }
 
     jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size);
-    jackc_backend_return_code backend_ret_code = jackc_backend_compile(cmd_args.source_dir, cmd_args.out_dir, &config);
+    jackc_backend_return_code backend_ret_code = jackc_backend_compile(cmd_args.out_dir, cmd_args.out_dir, &config);
 
     arena_allocator_destroy(arena.context);
     if (backend_ret_code != BACKEND_OK) {

@@ -18,7 +18,7 @@ class Math {
         var int i;
         let i = 0;
 
-        while (~((i * i) > x)) {
+        while ((i < 46341) & ~((i * i) > x)) {
             let i = i + 1;
         }
 

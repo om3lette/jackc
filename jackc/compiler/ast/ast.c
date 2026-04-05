@@ -118,6 +118,7 @@ ast_expr_list* ast_expr_list_push_back(
     ast_expr_list* new_tail = allocator->alloc(sizeof(ast_expr_list), allocator->context);
     new_tail->expr = expr;
     new_tail->next = nullptr;
+    new_tail->prev = tail;
     if (tail) tail->next = new_tail;
     return new_tail;
 }

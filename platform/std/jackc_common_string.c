@@ -69,6 +69,10 @@ bool jackc_isdigit(char c) {
     return '0' <= c && c <= '9';
 }
 
+bool jackc_iseol(char c) {
+    return c == '\n' || c == '\r' || c == '\0';
+}
+
 void jackc_string_print(const jackc_string* str) {
     const char* str_ptr = str->data;
     const char* str_end = str->data + str->length;

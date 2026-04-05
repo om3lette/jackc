@@ -1,76 +1,89 @@
 #include "core/asserts/jackc_assert.h"
+#include "vm-translator/parser/vm_parser.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 
-const char* vm_get_current_position(const jackc_parser* parser) {
-    return parser->buffer.data + parser->position;
+bool is_valid_state(vm_parser* parser) {
+    return parser->status == VM_OK;
 }
 
-char vm_parser_peek(const jackc_parser* parser) {
+const char* vm_parser_current_position(const vm_parser* parser) {
+    return parser->buffer.data + parser->pos;
+}
+
+char vm_parser_peek(const vm_parser* parser) {
     jackc_assert(parser && "Parser is null");
-    jackc_assert(parser->position <= parser->buffer.length && "Buffer index out of range");
+    jackc_assert(parser->pos <= parser->buffer.length && "Buffer index out of range");
 
-    return parser->buffer.data[parser->position];
+    return parser->buffer.data[parser->pos];
 }
 
-char vm_parser_peek_next(const jackc_parser* parser, size_t offset) {
+char vm_parser_peek_next(const vm_parser* parser) {
     jackc_assert(parser && "Parser is null");
-    jackc_assert(parser->position + offset <= parser->buffer.length && "Buffer index out of range");
+    jackc_assert(parser->pos + 1 <= parser->buffer.length && "Buffer index out of range");
 
-    return parser->buffer.data[parser->position + offset];
+    return parser->buffer.data[parser->pos + 1];
 }
 
-void vm_parser_skip_new_line(jackc_parser* parser) {
-    vm_parser_skip_crlf(parser);
-    vm_parser_skip_lf(parser);
-    parser->line_start = vm_get_current_position(parser);
+bool vm_parser_check(const vm_parser* parser, char c) {
+    return vm_parser_peek(parser) == c;
 }
 
-void vm_parser_skip_blank(jackc_parser* parser) {
-    char c = vm_parser_peek(parser);
-    while (c == ' ' || c == '\t') {
-        ++parser->position;
-        c = vm_parser_peek(parser);
+bool vm_parser_match(vm_parser* parser, char c) {
+    if (vm_parser_check(parser, c)) {
+        ++parser->pos;
+        return true;
     }
+    return false;
 }
 
-void vm_parser_skip_crlf(jackc_parser* parser) {
-    while (vm_parser_peek(parser) == '\r') {
-        ++parser->position;
-        JACKC_VM_PARSER_ASSERT(parser, vm_parser_peek(parser) == '\n', "Invalid CRLF sequence. Found '\r' but '\n' did not follow");
-        ++parser->position;
+void vm_parser_skip_new_line(vm_parser* parser) {
+    // CRLF
+    while (vm_parser_match(parser, '\r')) {
+        if (vm_parser_match(parser, '\n')) {
+            ++parser->line_idx;
+            parser->line_start = vm_parser_current_position(parser);
+        }
+    }
+    // LF
+    while (vm_parser_match(parser, '\n')) {
         ++parser->line_idx;
+        parser->line_start = vm_parser_current_position(parser);
     }
 }
 
-void vm_parser_skip_lf(jackc_parser* parser) {
-    while (vm_parser_peek(parser) == '\n') {
-        ++parser->position;
-        ++parser->line_idx;
-    }
+void vm_parser_skip_blank(vm_parser* parser) {
+    while (
+        vm_parser_match(parser, ' ')
+        || vm_parser_match(parser, '\t')
+    ) {}
 }
 
-bool is_line_ending(char c) {
-    return c == '\n' || c == '\r' || c == '\0';
+vm_cmd jackc_vm_cmd_type_from_string(vm_parser* parser, const jackc_string* str) {
+    if (jackc_streq(str, "add")) return C_ADD;
+    if (jackc_streq(str, "sub")) return C_SUB;
+    if (jackc_streq(str, "neg")) return C_NEG;
+    if (jackc_streq(str, "mul")) return C_MUL;
+    if (jackc_streq(str, "div")) return C_DIV;
+    if (jackc_streq(str, "eq")) return C_EQ;
+    if (jackc_streq(str, "gt")) return C_GT;
+    if (jackc_streq(str, "lt")) return C_LT;
+    if (jackc_streq(str, "and")) return C_AND;
+    if (jackc_streq(str, "or")) return C_OR;
+    if (jackc_streq(str, "not")) return C_NOT;
+    if (jackc_streq(str, "push")) return C_PUSH;
+    if (jackc_streq(str, "pop")) return C_POP;
+    if (jackc_streq(str, "label")) return C_LABEL;
+    if (jackc_streq(str, "goto")) return C_GOTO;
+    if (jackc_streq(str, "if-goto")) return C_IF_GOTO;
+    if (jackc_streq(str, "function")) return C_FUNCTION;
+    if (jackc_streq(str, "return")) return C_RETURN;
+    if (jackc_streq(str, "call")) return C_CALL;
+
+    parser->status = VM_INVALID_CMD;
+    return C_EQ;
 }
 
-bool vm_cmd_is_arithmetic(jackc_vm_cmd_type cmd_type) {
-    switch (cmd_type) {
-        case C_ADD:
-        case C_SUB:
-        case C_NEG:
-        case C_EQ:
-        case C_GT:
-        case C_LT:
-        case C_AND:
-        case C_OR:
-        case C_NOT:
-            return true;
-        default:
-            return false;
-    }
-}
-
-char* vm_cmd_type_to_string(jackc_vm_cmd_type cmd_type) {
+char* vm_cmd_type_to_string(vm_cmd cmd_type) {
     switch (cmd_type) {
         case C_ADD:
             return "add";
@@ -78,6 +91,10 @@ char* vm_cmd_type_to_string(jackc_vm_cmd_type cmd_type) {
             return "sub";
         case C_NEG:
             return "neg";
+        case C_MUL:
+            return "mul";
+        case C_DIV:
+            return "div";
         case C_EQ:
             return "eq";
         case C_GT:
@@ -106,7 +123,6 @@ char* vm_cmd_type_to_string(jackc_vm_cmd_type cmd_type) {
             return "return";
         case C_CALL:
             return "call";
-        default:
-            return "unknown";
     }
+    return "unknown";
 }

@@ -43,9 +43,11 @@ static void register_var(sym_table* symtab, const ast_var_dec* var_dec) {
 static void visit_expression(vm_code_generation_traversal_context* ctx, const ast_expr* expr);
 
 static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, const ast_call* call) {
-    // TODO: Add support for stack rotation?
     uint16_t n_args = 0;
-    for (const ast_expr_list* arg = call->args; arg; arg = arg->next) {
+    const ast_expr_list* last_arg = call->args;
+    for (last_arg = call->args; last_arg && last_arg->next; last_arg = last_arg->next) {}
+
+    for (const ast_expr_list* arg = last_arg; arg; arg = arg->prev) {
         visit_expression(ctx, arg->expr);
         ++n_args;
     }
@@ -128,7 +130,7 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
 }
 
 // Forward declaration for visit_statement
-static void visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts);
+static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts);
 
 static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt* stmt) {
     switch (stmt->kind) {
@@ -141,13 +143,14 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             visit_expression(ctx, stmt->let_stmt.value);
 
             if (stmt->let_stmt.index) {
-                // Compute index value
-                visit_expression(ctx, stmt->let_stmt.index);
-
                 emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
+
+                // Compute index offset from base ptr
+                visit_expression(ctx, stmt->let_stmt.index);
                 emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
-                // Calculate offset = array_base + index * 4 (index = words)
+
+                // Calculate offset = array_base + index_offset
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
                 emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
                 emit_pop(ctx->fd, SEGMENT_THAT, 0);
@@ -191,16 +194,25 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             visit_subroutine_call(ctx, stmt->do_stmt);
             break;
         case STMT_RETURN:
-            if (stmt->return_stmt) visit_expression(ctx, stmt->return_stmt);
+            if (stmt->return_stmt) {
+                // TODO: Verify that expression result is not void
+                // Not returning a value does not break the backend, but it is conventional to return 0
+                visit_expression(ctx, stmt->return_stmt);
+            } else {
+                emit_signed_const(ctx->fd, 0);
+            }
             emit_return(ctx->fd);
             break;
     }
 }
 
-static void visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts) {
+static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts) {
+    const ast_stmt* prev = nullptr;
     for (const ast_stmt* stmt = stmts; stmt; stmt = stmt->next) {
         visit_stmt(ctx, stmt);
+        prev = stmt;
     }
+    return prev;
 }
 
 static void visit_subroutine(vm_code_generation_traversal_context* ctx, const ast_subroutine* sub) {
@@ -222,7 +234,12 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
         });
         emit_pop(ctx->fd, SEGMENT_POINTER, 0);
     }
-    visit_statements(ctx, sub->body);
+    const ast_stmt* last_stmt = visit_statements(ctx, sub->body);
+    // Add `return 0` to avoid fallthrough
+    if (!last_stmt || last_stmt->kind != STMT_RETURN) {
+        emit_signed_const(ctx->fd, 0);
+        emit_return(ctx->fd);
+    }
 
     ctx->symtab = sym_table_pop(ctx->symtab);
 }

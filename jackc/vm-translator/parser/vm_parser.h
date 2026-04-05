@@ -9,27 +9,17 @@
  * All possible Jack VM command types.
  */
 typedef enum {
-    C_UNKNOWN = 0,
-    C_ADD,
-    C_SUB,
-    C_DIV,
-    C_MUL,
-    C_NEG,
-    C_AND,
-    C_OR,
-    C_NOT,
-    C_EQ,
-    C_GT,
-    C_LT,
-    C_PUSH,
-    C_POP,
-    C_LABEL,
-    C_GOTO,
-    C_IF_GOTO,
-    C_FUNCTION,
-    C_RETURN,
+    C_ADD = 0,  C_SUB,
+    C_DIV,      C_MUL,
+    C_NEG,      C_AND,
+    C_OR,       C_NOT,
+    C_EQ,       C_GT,
+    C_LT,       C_PUSH,
+    C_POP,      C_LABEL,
+    C_GOTO,     C_IF_GOTO,
+    C_FUNCTION, C_RETURN,
     C_CALL
-} jackc_vm_cmd_type;
+} vm_cmd;
 
 typedef enum {
     SEGMENT_THIS,
@@ -40,26 +30,52 @@ typedef enum {
     SEGMENT_STATIC,
     SEGMENT_TEMP,
     SEGMENT_POINTER
-} jackc_vm_segment_type;
+} vm_segment;
+
+typedef enum {
+    VM_OK = 0,
+    VM_INVALID_CMD = 2000,
+    VM_INVALID_SEGMENT,
+    VM_EMPTY_FIRST_ARGUMENT,
+    VM_EMPTY_SECOND_ARGUMENT,
+    VM_POP_SEGMENT_CONST,
+    VM_INVALID_POINTER_IDX,
+    VM_INVALID_ARG_2
+} vm_parser_return_code;
+
+typedef struct {
+    jackc_string str;
+    vm_segment segment;
+} vm_first_arg;
+
+typedef struct {
+    jackc_string str;
+    int32_t value;
+} vm_second_arg;
+
+typedef struct {
+    const char* line_start;
+    uint32_t line_idx;
+    vm_cmd cmd;
+    vm_first_arg arg1;
+    vm_second_arg arg2;
+} vm_line;
 
 /**
  * Parser struct for jackc.
  */
  typedef struct {
-     size_t position; /**< Current position in the buffer. */
-     const char* line_start; /**< Pointer to the current line start. */
-
      jackc_string buffer; /**< Input file buffer to parse. */
-     jackc_string arg1; /**< First argument of the current command. */
+     size_t pos; /**< Current position in the buffer. */
 
-     uint32_t line_idx; /**< Line index of the current command. Starting from 1. */
-     jackc_vm_cmd_type cmd; /**< Type of the current command. */
-     jackc_vm_segment_type segment; /**< Segment type. Valid if cmd is C_PUSH or C_POP. Parser version of arg1 */
-     int32_t arg2; /**< Second argument of the current command. */
+     const char* line_start;
+     size_t line_idx;
 
-     bool is_arg1_set; /**< Indicates if the first argument is set. */
-     bool is_arg2_set; /**< Indicates if the second argument is set. */
- } jackc_parser;
+     vm_line current;
+     vm_line next;
+
+     vm_parser_return_code status;
+ } vm_parser;
 
 /**
  * Allocates memory for a new jackc_parser instance.
@@ -68,16 +84,14 @@ typedef enum {
  *
  * @param buffer The input file buffer to parse.
  */
-[[ nodiscard ]] jackc_parser jackc_parser_init(const char* buffer);
-
-void jackc_parser_update_source(jackc_parser* parser, const char* buffer);
+[[ nodiscard ]] vm_parser jackc_parser_init(const jackc_string* buffer);
 
 /**
  * Checks if there are more lines to parse.
  *
  * @param parser The parser instance.
  */
-[[ nodiscard ]] bool jackc_parser_has_more_lines(jackc_parser* parser);
+[[ nodiscard ]] bool vm_parser_has_more_lines(vm_parser* parser);
 
 /**
  * Advances the parser to the next valid instruction.
@@ -85,44 +99,6 @@ void jackc_parser_update_source(jackc_parser* parser, const char* buffer);
  *
  * @param parser The parser instance.
  */
-void jackc_vm_parser_advance(jackc_parser* parser);
-
-/**
- * Returns the type of the current command.
- *
- * @param parser The parser instance.
- */
-[[ nodiscard ]] jackc_vm_cmd_type jackc_parser_command_type(const jackc_parser* parser);
-
-/**
- * Returns the first argument of the current command.
- *
- * @param parser The parser instance.
- */
-[[ nodiscard ]] const char* jackc_parser_arg1(const jackc_parser* parser);
-
-/**
- * Returns the second argument of the current command.
- *
- * @param parser The parser instance.
- */
-[[ nodiscard ]] const char* jackc_parser_arg2(const jackc_parser* parser);
-
-/**
- * Prints debug information and the current parser state.
- *
- * @param parser The parser instance.
- * @param msg The message to print.
- * @param c_file The file name where the error occurred.
- * @param c_line The line number where the error occurred.
- */
-void jackc_vm_parser_panic(const jackc_parser* parser, const char* msg, const char* c_file, unsigned int c_line);
-
-#define JACKC_VM_PARSER_ASSERT(parser, condition, message) \
-    do { \
-        if (!(condition)) { \
-            jackc_vm_parser_panic(parser, message, __FILE__, __LINE__); \
-        } \
-    } while(0)
+void vm_parser_advance(vm_parser* parser);
 
 #endif

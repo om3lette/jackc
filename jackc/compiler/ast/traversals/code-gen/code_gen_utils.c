@@ -4,10 +4,11 @@
 #include "compiler/ast/traversals/code-gen/std_utils.h"
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/lexer/compiler_lexer.h"
+#include "common/common.h"
 #include "std/jackc_stdio.h"
 #include "vm-translator/parser/vm_parser.h"
 
-jackc_vm_segment_type vm_segment_from_variable_kind(jack_variable_kind kind) {
+vm_segment vm_segment_from_variable_kind(jack_variable_kind kind) {
     switch (kind) {
         case VAR_STATIC: return SEGMENT_STATIC;
         case VAR_FIELD: return SEGMENT_THIS;
@@ -18,21 +19,7 @@ jackc_vm_segment_type vm_segment_from_variable_kind(jack_variable_kind kind) {
     return SEGMENT_ARG; // Make compiler happy;
 }
 
-char* vm_segment_to_string(jackc_vm_segment_type seg) {
-    switch (seg) {
-        case SEGMENT_THIS: return "this";
-        case SEGMENT_THAT: return "that";
-        case SEGMENT_ARG: return "argument";
-        case SEGMENT_LOCAL: return "local";
-        case SEGMENT_CONSTANT: return "constant";
-        case SEGMENT_STATIC: return "static";
-        case SEGMENT_TEMP: return "temp";
-        case SEGMENT_POINTER: return "pointer";
-        default: return nullptr;
-    }
-}
-
-void emit_push(int fd, jackc_vm_segment_type seg, vm_index index) {
+void emit_push(int fd, vm_segment seg, vm_index index) {
     jackc_fprintf(fd, "push %s %d\n", vm_segment_to_string(seg), index);
 }
 
@@ -40,7 +27,7 @@ void emit_signed_const(int fd, int32_t index) {
     jackc_fprintf(fd, "push %s %d\n", vm_segment_to_string(SEGMENT_CONSTANT), index);
 }
 
-void emit_pop(int fd, jackc_vm_segment_type seg, vm_index index) {
+void emit_pop(int fd, vm_segment seg, vm_index index) {
     jackc_fprintf(fd, "pop %s %d\n", vm_segment_to_string(seg), index);
 }
 
