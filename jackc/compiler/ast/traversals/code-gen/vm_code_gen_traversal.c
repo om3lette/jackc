@@ -194,7 +194,13 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             visit_subroutine_call(ctx, stmt->do_stmt);
             break;
         case STMT_RETURN:
-            if (stmt->return_stmt) visit_expression(ctx, stmt->return_stmt);
+            if (stmt->return_stmt) {
+                // TODO: Verify that expression result is not void
+                // Not returning a value does not break the backend, but it is conventional to return 0
+                visit_expression(ctx, stmt->return_stmt);
+            } else {
+                emit_signed_const(ctx->fd, 0);
+            }
             emit_return(ctx->fd);
             break;
     }
@@ -229,8 +235,9 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
         emit_pop(ctx->fd, SEGMENT_POINTER, 0);
     }
     const ast_stmt* last_stmt = visit_statements(ctx, sub->body);
-    // Add return to avoid fallthrough
+    // Add `return 0` to avoid fallthrough
     if (!last_stmt || last_stmt->kind != STMT_RETURN) {
+        emit_signed_const(ctx->fd, 0);
         emit_return(ctx->fd);
     }
 
