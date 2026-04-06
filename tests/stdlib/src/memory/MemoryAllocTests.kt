@@ -32,7 +32,6 @@ class MemoryAllocTests {
             }
     }
 
-    // FIXME:
     @RarsTest("Many allocations", resource = "memory/alloc/many/out.asm")
     fun manyAllocations(ctx: RarsTestContext) {
         // Every word is its own allocation. See the test file
