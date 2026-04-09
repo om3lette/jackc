@@ -28,7 +28,7 @@ class MemoryAllocTests {
                     TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAlloc - 1
                 )
                 // Expect the words to be allocated from the back of the free list
-                assertRegister(Reg.A0, TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAlloc)
+                assertRegister(Reg.A0, TestsConstants.LAST_HEAP_WORD - wordsToAlloc)
             }
     }
 
@@ -48,7 +48,7 @@ class MemoryAllocTests {
                     TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAlloc * 2
                 )
                 // Last allocated word
-                assertRegister(Reg.A0, TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAlloc * 2 + 1)
+                assertRegister(Reg.A0, TestsConstants.LAST_HEAP_WORD - wordsToAlloc * 2 + 1)
             }
     }
 }

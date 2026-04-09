@@ -7,7 +7,7 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
-#include "vm-translator/constants.h"
+#include "vm-translator/code-gen/regs.h"
 #include "vm-translator/parser/vm_parser.h"
 #include <stdint.h>
 
@@ -25,8 +25,19 @@ static jack_type ast_type_to_jack_type(const ast_type* type) {
         case TYPE_VOID:
             jackc_assert(false && "Semantically invalid");
     }
-    // Will not happen
+    // Make the compiler happy
     return JACK_CLASS;
+}
+
+static vm_segment jack_var_kind_to_vm_segment(jack_variable_kind var_kind) {
+    switch (var_kind) {
+        case VAR_STATIC: return SEGMENT_STATIC;
+        case VAR_ARG:    return SEGMENT_ARG;
+        case VAR_LOCAL:  return SEGMENT_LOCAL;
+        case VAR_FIELD:  return SEGMENT_THIS;
+    }
+    // Make the compiler happy
+    return SEGMENT_LOCAL;
 }
 
 static void register_var(sym_table* symtab, const ast_var_dec* var_dec) {
@@ -54,6 +65,7 @@ static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, con
 
     const jackc_string* receiver = &call->receiver;
 
+    // Resolve receiver
     sym_table_token receiver_var;
     if (call->implicit_this_receiver) {
         receiver = &ctx->class_name;
@@ -62,6 +74,26 @@ static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, con
         jackc_assert(receiver_var.type == JACK_CLASS);
         receiver = &receiver_var.class_name;
     }
+
+    function_signature signature;
+    if (!function_registry_contains(ctx->registry, receiver, &call->subroutine_name, &signature)) {
+        ctx->had_error = true;
+        return;
+    }
+    bool is_method_call = signature.kind == SUB_METHOD;
+    // Implicit this
+    if (is_method_call)
+        ++n_args;
+
+    // Push 'this' for methods
+    if (is_method_call) {
+        if (call->implicit_this_receiver) {
+            emit_push(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
+        } else if (sym_table_find(ctx->symtab, receiver, &receiver_var)) {
+            emit_push(ctx->fd, jack_var_kind_to_vm_segment(receiver_var.var.kind), receiver_var.var.idx);
+        }
+    }
+
     emit_call(ctx->fd, receiver, &call->subroutine_name, n_args);
 }
 
@@ -103,12 +135,12 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
                 return;
             }
             emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
-
             visit_expression(ctx, expr->array_access.index);
+            emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
+
             emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
             emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
 
-            emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
             emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
             emit_push(ctx->fd, SEGMENT_THAT, 0);
             break;
@@ -144,14 +176,13 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
 
             if (stmt->let_stmt.index) {
                 emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
-
-                // Compute index offset from base ptr
                 visit_expression(ctx, stmt->let_stmt.index);
+                emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
+
                 emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
 
                 // Calculate offset = array_base + index_offset
-                emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
                 emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
                 emit_pop(ctx->fd, SEGMENT_THAT, 0);
             } else {
@@ -225,15 +256,24 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
     }
 
     emit_function(ctx->fd, &ctx->class_name, &ctx->subroutine_signature);
-    if (ctx->subroutine_signature.kind == SUB_CONSTRUCTOR) {
-        emit_std_call(ctx->fd, (std_subroutine_call){
-            .kind = STD_MEMORY_ALLOC,
-            .memory_alloc = {
-                .words_to_allocate = ctx->n_fields
-            }
-        });
-        emit_pop(ctx->fd, SEGMENT_POINTER, 0);
+    switch (ctx->subroutine_signature.kind) {
+        case SUB_CONSTRUCTOR:
+            emit_std_call(ctx->fd, (std_subroutine_call){
+                .kind = STD_MEMORY_ALLOC,
+                .memory_alloc = {
+                    .words_to_allocate = ctx->n_fields
+                }
+            });
+            emit_pop(ctx->fd, SEGMENT_POINTER, 0);
+            break;
+        case SUB_METHOD:
+            emit_push(ctx->fd, SEGMENT_ARG, 0);
+            emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
+            break;
+        case SUB_FUNCTION:
+            break;
     }
+
     const ast_stmt* last_stmt = visit_statements(ctx, sub->body);
     // Add `return 0` to avoid fallthrough
     if (!last_stmt || last_stmt->kind != STMT_RETURN) {

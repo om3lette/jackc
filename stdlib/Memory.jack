@@ -1,39 +1,40 @@
 class Memory {
     static int freeList;
     static int heapBase;
+    static int RAM;
 
     /** Initializes the class. */
     function void init() {
-        let heapBase = 268697600; // 0x10040000
-        let freeList = 0; // Word index of free list head (relative to heapBase)
+        let heapBase = 67174400; // (0x10040000 / 4)
+        let freeList = heapBase; // Word index of free list head (absolute)
+        let RAM = 0;
 
         // [0] = size of free block in words (excluding header)
         // [1] = next free block index (0 = null)
-        do Memory.poke(0, 917503); // Total words minus header word (917504 * 4 -> 3.5MB)
-        do Memory.poke(1, 0);      // No next block
+        do Memory.poke(freeList, 917503); // Total words minus header (917504 * 4 -> 3.5MB)
+        do Memory.poke(freeList + 1, 0);
     }
 
     /** Returns the RAM value at the given word index. */
     function int peek(int wordIndex) {
-        return heapBase[wordIndex];
+        return RAM[wordIndex];
     }
 
     /** Sets the RAM value at the given word index to the given value. */
     function void poke(int wordIndex, int value) {
-        let heapBase[wordIndex] = value;
+        let RAM[wordIndex] = value;
     }
 
-    /** Finds an available RAM block of the given size and returns
-     *  a reference to its base word index. */
+    /** Allocates a block of given size (words) and returns pointer to usable memory */
     function int alloc(int size) {
         var int curBlockPtr, prevBlockPtr, nextBlockPtr;
         var int blockSize;
 
-        let prevBlockPtr = -1; // -1 means no previous block
+        let prevBlockPtr = 0;
         let curBlockPtr = freeList;
 
         // First-fit
-        while (~(curBlockPtr = -1)) {
+        while (~(curBlockPtr = 0)) {
             let blockSize = Memory.peek(curBlockPtr);
 
             // Is block large enough? (need size words + 1 for header)
@@ -47,7 +48,7 @@ class Memory {
                 } else {
                     // Perfect fit -> remove from free list
                     let nextBlockPtr = Memory.peek(curBlockPtr + 1);
-                    if (prevBlockPtr = -1) {
+                    if (prevBlockPtr = 0) {
                         let freeList = nextBlockPtr;
                     } else {
                         do Memory.poke(prevBlockPtr + 1, nextBlockPtr);
@@ -62,7 +63,7 @@ class Memory {
         }
 
         // Out of memory
-        return -1;
+        return 0;
     }
 
     function void deAlloc(int obj) {

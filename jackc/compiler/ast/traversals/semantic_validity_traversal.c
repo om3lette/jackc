@@ -203,6 +203,7 @@ static void visit_subroutine_call(const ast_call* call, semantic_validity_traver
         INVALID_STATE(ctx);
     }
 
+    // TODO: Precalc for ast_call?
     uint16_t n_args = 0;
     for (ast_expr_list* arg = call->args; arg; arg = arg->next) {
         visit_expression(arg->expr, ctx);

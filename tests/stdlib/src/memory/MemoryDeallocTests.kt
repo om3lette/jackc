@@ -41,7 +41,7 @@ class MemoryDeallocTests {
                     MemoryBaseAddresses.HEAP,
                     TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAllocate - 1
                 )
-                assertRegister(Reg.A0, TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAllocate)
+                assertRegister(Reg.A0, TestsConstants.LAST_HEAP_WORD - wordsToAllocate)
             }
     }
 }

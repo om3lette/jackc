@@ -10,7 +10,6 @@
 #include "vm-translator/code-gen/regs.h"
 #include "vm-translator/code-gen/stack_frame.h"
 #include "vm-translator/code-gen/virtual_stack.h"
-#include "vm-translator/constants.h"
 #include "vm-translator/parser/vm_parser.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 
@@ -231,6 +230,11 @@ void asm_code_gen_bootstrap(const asm_context* ctx) {
     asm_emit_sw(&ctx->e, "a0", 0, REG_SP);
 
     asm_emit_addi(&ctx->e, REG_ARG, REG_SP, 0);
+
+    // TODO: Create syscall api
+    asm_emit_li(&ctx->e, "a0", 917504);
+    asm_emit_li(&ctx->e, "a7", 9);
+    asm_emit_ecall(&ctx->e);
 
     // TODO: Generalize
     asm_emit_label(&ctx->e, &jackc_string_from_str("Sys.init"));

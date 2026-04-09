@@ -1,6 +1,6 @@
 package memory
 
-import xyz.om3lette.rars.MemoryBaseAddresses
+import TestsConstants
 import xyz.om3lette.rars.MemoryEntry
 import xyz.om3lette.rars.assertions.assertMemoryWord
 import xyz.om3lette.rars.assertions.assertRegister
@@ -15,8 +15,8 @@ import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 class MemoryPeekTests {
     @RarsTest("Peek returns the value at the address with no side-effect")
     fun test(ctx: RarsTestContext) {
-        val wordIdx = 100
-        val address = MemoryBaseAddresses.HEAP + wordIdx * 4
+        val wordIdx = TestsConstants.HEAP_BASE_WORD + 100
+        val address = wordIdx * 4
         ctx
             .given {
                 withRegister(Reg.A0, wordIdx)

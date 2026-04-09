@@ -13,12 +13,13 @@ import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 @RarsTestSuite(name = "Math.min", defaultResource = "math/min/out.asm")
 class MathMinTests {
     private val baseAddress: Int = MemoryBaseAddresses.HEAP + 32
+    private val baseAddressWord: Int = baseAddress / 4
 
     @RarsTest("Positive values")
     fun positiveValue(ctx: RarsTestContext) =
         ctx
             .given {
-                withRegister(Reg.A0, baseAddress)
+                withRegister(Reg.A0, baseAddressWord)
                 withMemory(MemoryEntry.Word(baseAddress, 3))
                 withMemory(MemoryEntry.Word(baseAddress + 4, 10))
             }
@@ -31,7 +32,7 @@ class MathMinTests {
     fun negativeValue(ctx: RarsTestContext) =
         ctx
             .given {
-                withRegister(Reg.A0, baseAddress)
+                withRegister(Reg.A0, baseAddressWord)
                 withMemory(MemoryEntry.Word(baseAddress, -10))
                 withMemory(MemoryEntry.Word(baseAddress + 4, -42))
             }
