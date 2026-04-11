@@ -1,4 +1,3 @@
-import xyz.om3lette.rars.MemoryBaseAddresses
 import xyz.om3lette.rars.assertions.assertMemoryWord
 import xyz.om3lette.rars.assertions.assertRegister
 import xyz.om3lette.rars.enums.Reg
@@ -20,7 +19,7 @@ class ArrayTests {
             .execute()
             .assert {
                 assertMemoryWord(
-                    MemoryBaseAddresses.HEAP,
+                    TestsConstants.HEAP_BASE,
                     TestsConstants.INITIAL_N_HEAP_WORDS - arraySize - 1
                 )
             }

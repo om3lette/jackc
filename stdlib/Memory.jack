@@ -5,13 +5,13 @@ class Memory {
 
     /** Initializes the class. */
     function void init() {
-        let heapBase = 67174400; // (0x10040000 / 4)
+        let heapBase = 67174400 + 512 * 256; // (0x10040000 / 4)
         let freeList = heapBase; // Word index of free list head (absolute)
         let RAM = 0;
 
         // [0] = size of free block in words (excluding header)
         // [1] = next free block index (0 = null)
-        do Memory.poke(freeList, 917503); // Total words minus header (917504 * 4 -> 3.5MB)
+        do Memory.poke(freeList, 786432); // Total words minus header (786432 * 4 -> 3.0MB)
         do Memory.poke(freeList + 1, 0);
     }
 

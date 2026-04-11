@@ -6,6 +6,7 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_internal.h"
+#include "compiler/symtable/compiler_symtable.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"
@@ -115,6 +116,7 @@ static bool generate_vm_code(
     vm_code_generation_traversal_context ctx = (vm_code_generation_traversal_context){
         .fd = -1,
         .registry = registry,
+        .symtab = sym_table_init(nullptr, allocator),
         .allocator = allocator,
         .if_label_index = 0,
         .while_label_index = 0

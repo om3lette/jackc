@@ -1,13 +1,11 @@
 package memory
 
-import xyz.om3lette.rars.MemoryBaseAddresses
-import xyz.om3lette.rars.MemoryEntry
+import TestsConstants
 import xyz.om3lette.rars.assertions.assertMemoryWord
 import xyz.om3lette.rars.assertions.assertRegister
 import xyz.om3lette.rars.enums.Reg
 import xyz.om3lette.rars.testSuite.annotations.RarsTest
 import xyz.om3lette.rars.testSuite.annotations.RarsTestSuite
-import xyz.om3lette.rars.testSuite.testCase.extensions.withMemory
 import xyz.om3lette.rars.testSuite.testCase.extensions.withRegister
 import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
@@ -24,7 +22,7 @@ class MemoryAllocTests {
             .assert {
                 // Expect initial words - allocated - 1 for the header of the new allocation
                 assertMemoryWord(
-                    MemoryBaseAddresses.HEAP,
+                    TestsConstants.HEAP_BASE,
                     TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAlloc - 1
                 )
                 // Expect the words to be allocated from the back of the free list
@@ -44,7 +42,7 @@ class MemoryAllocTests {
             .assert {
                 // * 2 to account for headers
                 assertMemoryWord(
-                    MemoryBaseAddresses.HEAP,
+                    TestsConstants.HEAP_BASE,
                     TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAlloc * 2
                 )
                 // Last allocated word

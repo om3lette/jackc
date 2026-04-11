@@ -76,7 +76,7 @@ double fixed_hashmap_load_factor(const fixed_hash_map* map) {
     return (double)map->inserted / FIXED_HASH_MAP_BUCKETS;
 }
 
-void fixed_hashmap_free(fixed_hash_map** map_ptr, bool free_allocator) {
+void fixed_hashmap_free(fixed_hash_map** map_ptr) {
     if (!map_ptr || !*map_ptr) return;
     fixed_hash_map* map = *map_ptr;
 
@@ -93,8 +93,5 @@ void fixed_hashmap_free(fixed_hash_map** map_ptr, bool free_allocator) {
         map->buckets[i] = NULL;
     }
     allocator->free(map, sizeof(fixed_hash_map), allocator->context);
-    if (free_allocator) {
-        allocator->free(allocator, sizeof(Allocator), allocator->context);
-    }
     *map_ptr = NULL;
 }

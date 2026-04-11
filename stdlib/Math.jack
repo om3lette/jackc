@@ -15,14 +15,16 @@ class Math {
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-        var int i;
-        let i = 0;
-
-        while ((i < 46341) & ~((i * i) > x)) {
-            let i = i + 1;
+        var int low, high, mid, mid2;
+        let low = 0;
+        let high = 46341;
+        while (low < high - 1) {
+            let mid = (low + high) / 2;
+            let mid2 = mid * mid;
+            if (mid2 > x) { let high = mid; }
+            else          { let low = mid;  }
         }
-
-        return i - 1;
+        return low;
     }
 
     /** Returns the greater number. */

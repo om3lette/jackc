@@ -1,6 +1,6 @@
 package math
 
-import xyz.om3lette.rars.MemoryBaseAddresses
+import TestsConstants
 import xyz.om3lette.rars.MemoryEntry
 import xyz.om3lette.rars.assertions.assertRegister
 import xyz.om3lette.rars.enums.Reg
@@ -12,7 +12,7 @@ import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
 @RarsTestSuite(name = "Math.max", defaultResource = "math/max/out.asm")
 class MathMaxTests {
-    private val baseAddress: Int = MemoryBaseAddresses.HEAP + 32
+    private val baseAddress: Int = TestsConstants.HEAP_BASE + 32
     private val baseAddressWord: Int = baseAddress / 4
 
     @RarsTest("Positive values")

@@ -1,0 +1,101 @@
+class Screen {
+    static int _current_color;
+    static int _screen_base_address;
+
+    static int _screen_words;
+    static int _screen_width;
+    static int _screen_height;
+
+    /** Initializes the Screen. */
+    function void init() {
+        let _current_color = -1;
+        let _screen_base_address = 67174400; // 0xffff0000 / 4
+
+        let _screen_width = 512;
+        let _screen_height = 256;
+
+        let _screen_words = _screen_width * _screen_height;
+
+        return;
+    }
+
+    /** Erases the entire screen. */
+    function void clearScreen() {
+        var int i;
+        let i = 0;
+        while (i < _screen_words) {
+            do Memory.poke(_screen_base_address + i, 0);
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** Sets the current color, to be used for all subsequent drawXXX commands.
+     *  Black is represented by true, white by false. */
+    function void setColor(boolean b) {
+        if (b) { let _current_color = -1; }
+        else   { let _current_color = 0;  }
+        return;
+    }
+
+    /** Draws the (x,y) pixel, using the current color. */
+    function void drawPixel(int x, int y) {
+        do Memory.poke(_screen_base_address + (y * _screen_width) + x, _current_color);
+        return;
+    }
+
+    /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+        var int dx, dy, sx, sy, err, e2;
+        var int x, y;
+
+        let x = x1;
+        let y = y1;
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+
+        let sx = 1;
+        if (dx < 0) { let sx = -1; let dx = -dx; }
+
+        let sy = 1;
+        if (dy < 0) { let sy = -1; let dy = -dy; }
+
+        let err = dx - dy;
+
+        while ((x < x2) | (x > x2) | (y < y2) | (y > y2)) {
+            do Screen.drawPixel(x, y);
+            let e2 = err + err;
+            if (e2 > -dy) { let err = err - dy; let x = x + sx; }
+            if (e2 < dx)  { let err = err + dx; let y = y + sy; }
+        }
+        do Screen.drawPixel(x2, y2);
+        return;
+    }
+
+    /** Draws a filled rectangle whose top left corner is (x1, y1)
+     *  and bottom right corner is (x2,y2), using the current color. */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+        var int cur_y;
+
+        let cur_y = y1;
+        while (~(cur_y > y2)) {
+            do Screen.drawLine(x1, cur_y, x2, cur_y);
+            let cur_y = cur_y + 1;
+        }
+
+        return;
+    }
+
+    /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
+    function void drawCircle(int x, int y, int r) {
+        var int sqrt_, dy, new_y;
+        let dy = -Math.min(Math.abs(r), 181);
+        while (~(dy > r)) {
+            let sqrt_ = Math.sqrt((r * r) - (dy * dy));
+            let new_y = y + dy;
+            do Screen.drawLine(x - sqrt_, new_y, x + sqrt_, new_y);
+            let dy = dy + 1;
+        }
+        return;
+    }
+}

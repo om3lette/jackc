@@ -1,13 +1,11 @@
 package memory
 
-import xyz.om3lette.rars.MemoryBaseAddresses
-import xyz.om3lette.rars.MemoryEntry
+import TestsConstants
 import xyz.om3lette.rars.assertions.assertMemoryWord
 import xyz.om3lette.rars.assertions.assertRegister
 import xyz.om3lette.rars.enums.Reg
 import xyz.om3lette.rars.testSuite.annotations.RarsTest
 import xyz.om3lette.rars.testSuite.annotations.RarsTestSuite
-import xyz.om3lette.rars.testSuite.testCase.extensions.withMemory
 import xyz.om3lette.rars.testSuite.testCase.extensions.withRegister
 import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
@@ -21,7 +19,7 @@ class MemoryDeallocTests {
             .execute()
             .assert {
                 assertMemoryWord(
-                    MemoryBaseAddresses.HEAP,
+                    TestsConstants.HEAP_BASE,
                     TestsConstants.INITIAL_N_HEAP_WORDS - 11
                 )
             }
@@ -38,7 +36,7 @@ class MemoryDeallocTests {
             .execute()
             .assert {
                 assertMemoryWord(
-                    MemoryBaseAddresses.HEAP,
+                    TestsConstants.HEAP_BASE,
                     TestsConstants.INITIAL_N_HEAP_WORDS - wordsToAllocate - 1
                 )
                 assertRegister(Reg.A0, TestsConstants.LAST_HEAP_WORD - wordsToAllocate)

@@ -7,6 +7,7 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
+#include "core/data-structures/hashmap.h"
 #include "vm-translator/code-gen/regs.h"
 #include "vm-translator/parser/vm_parser.h"
 #include <stdint.h>
@@ -285,7 +286,6 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
 }
 
 void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_traversal_context* ctx) {
-    ctx->symtab = sym_table_init(nullptr, ctx->allocator);
     for (const ast_var_dec* class_var = class->class_vars; class_var; class_var = class_var->next) {
         register_var(ctx->symtab, class_var);
     }
@@ -309,5 +309,8 @@ void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_tra
         visit_subroutine(ctx, sub);
     }
 
-    sym_table_pop(ctx->symtab);
+    // FIXME: Kind of hacky
+    // Clean the symtable while preserving the index data (pop will not do)
+    fixed_hash_map* tmp = ctx->symtab->tokens;
+    fixed_hashmap_free(&tmp);
 }
