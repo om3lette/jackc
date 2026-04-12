@@ -118,6 +118,9 @@ static bool generate_vm_code(
         .registry = registry,
         .symtab = sym_table_init(nullptr, allocator),
         .allocator = allocator,
+        .this = ast_variable_declaration(
+            allocator, &jackc_string_from_str("this"), VAR_ARG, (ast_type){}, nullptr
+        ),
         .if_label_index = 0,
         .while_label_index = 0
     };

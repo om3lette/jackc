@@ -61,6 +61,8 @@ void asm_emit_la(const emitter* e, const char* dst, const jackc_string* label);
 void asm_emit_add(const emitter* e, const char* dst, const char* s1, const char* s2);
 void asm_emit_addi(const emitter* e, const char* dst, const char* s1, int32_t imm);
 void asm_emit_sub(const emitter* e, const char* dst, const char* s1, const char* s2);
+void asm_emit_slli(const emitter* e, const char* dst, const char* src, uint8_t shift);
+void asm_emit_srli(const emitter* e, const char* dst, const char* src, uint8_t shift);
 
 //============================
 // Control flow

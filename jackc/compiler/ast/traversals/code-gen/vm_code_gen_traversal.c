@@ -8,6 +8,8 @@
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/data-structures/hashmap.h"
+#include "core/logging/logger.h"
+#include "std/jackc_string.h"
 #include "vm-translator/code-gen/regs.h"
 #include "vm-translator/parser/vm_parser.h"
 #include <stdint.h>
@@ -64,20 +66,22 @@ static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, con
         ++n_args;
     }
 
-    const jackc_string* receiver = &call->receiver;
+    const jackc_string* resolved_receiver_class = &call->receiver;
+    const jackc_string* resolved_receiver = resolved_receiver_class;
 
     // Resolve receiver
     sym_table_token receiver_var;
     if (call->implicit_this_receiver) {
-        receiver = &ctx->class_name;
-    } else if (sym_table_find(ctx->symtab, receiver, &receiver_var)) {
+        resolved_receiver_class = &ctx->class_name;
+        resolved_receiver = resolved_receiver_class;
+    } else if (sym_table_find(ctx->symtab, resolved_receiver, &receiver_var)) {
         // receiver is a variable of class type -> resolve to the class name
         jackc_assert(receiver_var.type == JACK_CLASS);
-        receiver = &receiver_var.class_name;
+        resolved_receiver_class = &receiver_var.class_name;
     }
 
     function_signature signature;
-    if (!function_registry_contains(ctx->registry, receiver, &call->subroutine_name, &signature)) {
+    if (!function_registry_contains(ctx->registry, resolved_receiver_class, &call->subroutine_name, &signature)) {
         ctx->had_error = true;
         return;
     }
@@ -90,12 +94,16 @@ static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, con
     if (is_method_call) {
         if (call->implicit_this_receiver) {
             emit_push(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
-        } else if (sym_table_find(ctx->symtab, receiver, &receiver_var)) {
+        } else if (sym_table_find(ctx->symtab, resolved_receiver, &receiver_var)) {
             emit_push(ctx->fd, jack_var_kind_to_vm_segment(receiver_var.var.kind), receiver_var.var.idx);
+        } else {
+            LOG_FATAL("%.*s\n", resolved_receiver_class->length, resolved_receiver_class->data);
+            ctx->had_error = true;
+            return;
         }
     }
 
-    emit_call(ctx->fd, receiver, &call->subroutine_name, n_args);
+    emit_call(ctx->fd, resolved_receiver_class, &call->subroutine_name, n_args);
 }
 
 static void visit_expression(vm_code_generation_traversal_context* ctx, const ast_expr* expr) {
@@ -139,9 +147,6 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
             visit_expression(ctx, expr->array_access.index);
             emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
 
-            emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
-            emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
-
             emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
             emit_push(ctx->fd, SEGMENT_THAT, 0);
             break;
@@ -179,9 +184,6 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
                 emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
                 visit_expression(ctx, stmt->let_stmt.index);
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
-
-                emit_push(ctx->fd, SEGMENT_CONSTANT, 4);
-                emit_binary_arithmetic_op(ctx->fd, BINARY_OP_MUL);
 
                 // Calculate offset = array_base + index_offset
                 emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
@@ -249,6 +251,11 @@ static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ct
 
 static void visit_subroutine(vm_code_generation_traversal_context* ctx, const ast_subroutine* sub) {
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
+    if (ctx->subroutine_signature.kind == SUB_METHOD) {
+        // Not used directly, but is needed to keep the correct indexes
+        register_var(ctx->symtab, ctx->this);
+    }
+
     for (const ast_var_dec* argument = sub->params; argument; argument = argument->next) {
         register_var(ctx->symtab, argument);
     }

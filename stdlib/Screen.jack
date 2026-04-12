@@ -9,7 +9,7 @@ class Screen {
     /** Initializes the Screen. */
     function void init() {
         let _current_color = -1;
-        let _screen_base_address = 67174400; // 0xffff0000 / 4
+        let _screen_base_address = 67174400; // 0x10040000 / 4
 
         let _screen_width = 512;
         let _screen_height = 256;
@@ -62,7 +62,7 @@ class Screen {
 
         let err = dx - dy;
 
-        while ((x < x2) | (x > x2) | (y < y2) | (y > y2)) {
+        while (~(x = x2) | ~(y = y2)) {
             do Screen.drawPixel(x, y);
             let e2 = err + err;
             if (e2 > -dy) { let err = err - dy; let x = x + sx; }

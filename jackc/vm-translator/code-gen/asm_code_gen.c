@@ -24,6 +24,7 @@ asm_context* asm_context_init(int fd, const jackc_config* config, Allocator* all
     };
     ctx->cfg = (frame_config){
         .word_size = 4,
+        .word_bits = 2,
         .n_regs_saved = FRAME_SLOT_COUNT,
         .grows_up = config->is_stack_growing_upwards,
         .stack_size = config->upward_stack_size
@@ -48,9 +49,12 @@ static void codegen_push(asm_context* ctx, vm_segment seg, int idx) {
 
     const char* base_reg = REG_SP;
     switch (seg) {
-        case SEGMENT_POINTER:
-            vstack_push_reg(&ctx->s, idx == POINTER_THIS ? REG_THIS : REG_THAT);
+        case SEGMENT_POINTER: {
+            const char* target_reg = idx ==  POINTER_THIS ? REG_THIS : REG_THAT;
+            asm_emit_srli(&ctx->e, REG_RES, target_reg, ctx->cfg.word_bits);
+            vstack_push_reg(&ctx->s, REG_RES);
             return;
+        }
         case SEGMENT_CONSTANT:
             vstack_push_imm(&ctx->s, idx);
             return;
@@ -74,9 +78,12 @@ static void codegen_pop(asm_context* ctx, vm_segment seg, int idx) {
 
     const char* base_reg = REG_SP;
     switch (seg) {
-        case SEGMENT_POINTER:
-            vstack_pop_reg(&ctx->s, idx == POINTER_THIS ? REG_THIS : REG_THAT);
+        case SEGMENT_POINTER: {
+            const char* target_reg = idx ==  POINTER_THIS ? REG_THIS : REG_THAT;
+            vstack_pop_reg(&ctx->s, REG_OP1);
+            asm_emit_slli(&ctx->e, target_reg, REG_OP1, ctx->cfg.word_bits);
             return;
+        }
         case SEGMENT_CONSTANT:
             // Parser should have filtered out this case
             jackc_assert(false && "Invalid operation.");
@@ -235,6 +242,7 @@ void asm_code_gen_bootstrap(const asm_context* ctx) {
     asm_emit_label(&ctx->e, &jackc_string_from_str("Sys.init"));
     asm_emit_call(&ctx->e, &jackc_string_from_str("Memory.init"));
     asm_emit_call(&ctx->e, &jackc_string_from_str("Screen.init"));
+    asm_emit_call(&ctx->e, &jackc_string_from_str("Output.init"));
 
     asm_emit_call(&ctx->e, &jackc_string_from_str("Main.main"));
 

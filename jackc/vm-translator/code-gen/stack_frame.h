@@ -4,10 +4,11 @@
 #include <stdint.h>
 
 typedef struct {
-    uint8_t word_size;       // bytes per word (4 for rv32)
-    uint8_t n_regs_saved;    // how many regs saved on call
-    bool grows_up;           // stack growth direction
-    uint32_t stack_size;
+    uint8_t word_size;    // Bytes per word (4 for rv32)
+    uint8_t word_bits;    // Bits required to store one word
+    uint8_t n_regs_saved; // How many regs saved on call
+    bool grows_up;        // Stack growth direction
+    uint32_t stack_size;  // Stack size in bytes (valid only if `grows_up` is set to `true`)
 } frame_config;
 
 /**

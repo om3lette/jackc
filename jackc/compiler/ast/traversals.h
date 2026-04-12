@@ -53,6 +53,8 @@ typedef struct {
     uint16_t n_fields;
     function_signature subroutine_signature;
 
+    ast_var_dec* this;
+
     uint32_t if_label_index;
     uint32_t while_label_index;
 } vm_code_generation_traversal_context;

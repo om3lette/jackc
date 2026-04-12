@@ -1,8 +1,8 @@
 #include "asm_emit.h"
-#include <stdarg.h>
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "vm-translator/code-gen/regs.h"
+#include <stdarg.h>
 
 //============================
 // Sections and directives
@@ -66,6 +66,12 @@ void asm_emit_addi(const emitter* e, const char* dst, const char* s1, int32_t im
 }
 void asm_emit_sub(const emitter* e, const char* dst, const char* s1, const char* s2) {
     jackc_fprintf(e->fd, "\tadd %s, %s, %s\n", dst, s1, s2);
+}
+void asm_emit_slli(const emitter* e, const char* dst, const char* src, uint8_t shift) {
+    jackc_fprintf(e->fd, "\tslli %s, %s, %d\n", dst, src, shift);
+}
+void asm_emit_srli(const emitter* e, const char* dst, const char* src, uint8_t shift) {
+    jackc_fprintf(e->fd, "\tsrli %s, %s, %d\n", dst, src, shift);
 }
 
 //============================

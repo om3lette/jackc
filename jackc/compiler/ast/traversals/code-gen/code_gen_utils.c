@@ -117,11 +117,13 @@ void emit_string_from_string_literal(int fd, const jackc_string* string_literal)
             .length = string_literal->length
         }
     });
+    emit_pop(fd, SEGMENT_TEMP, 0);
     for (uint32_t i = 0; i < string_literal->length; ++i) {
         emit_std_call(fd, (std_subroutine_call){
             .kind = STD_STRING_APPEND_CHAR,
             .string_append_char = {
-                .c = (uint8_t)string_literal->data[i]
+                .c = (uint8_t)string_literal->data[i],
+                .fetch_this_from_temp = true
             }
         });
     }

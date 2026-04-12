@@ -22,6 +22,7 @@ void emit_std_call(int fd, std_subroutine_call sub) {
             break;
         case STD_STRING_APPEND_CHAR:
             emit_push(fd, SEGMENT_CONSTANT, sub.string_append_char.c);
+            emit_push(fd, SEGMENT_TEMP, 0);
             class_name = STD_STRING_CLASS;
             break;
         case STD_MEMORY_ALLOC:
