@@ -108,7 +108,6 @@ static bool generate_vm_code(
 ) {
     // There is no reliable way to create directories while running in RARS
     // The solution is to flatten the directory structure for .vm files
-    uint32_t file_idx = 0;
     char out_file_path[4096];
     bool had_error = false;
 
@@ -133,10 +132,9 @@ static bool generate_vm_code(
         }
         jackc_sprintf(
             out_file_path,
-            "%s/%.*s_%d.vm",
+            "%s/%.*s.vm",
             out_base_dir,
-            filename.length, filename.data,
-            file_idx++
+            filename.length, filename.data
         );
         int fd = jackc_open(out_file_path, O_CREAT | O_WRONLY | O_TRUNC);
         if (fd < 0) {
