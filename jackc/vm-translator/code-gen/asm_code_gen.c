@@ -20,7 +20,9 @@ asm_context* asm_context_init(int fd, const jackc_config* config, Allocator* all
     ctx->static_label = jackc_string_from_str("_JACKC_STATIC");
     ctx->temp_label = jackc_string_from_str("_JACKC_TMP");
     ctx->e = (emitter){
-        .fd = fd
+        .fd = fd,
+        .branch_label = jackc_string_from_str("_JACKC_BRANCH_HELPER"),
+        .branch_label_idx = 0
     };
     ctx->cfg = (frame_config){
         .word_size = 4,

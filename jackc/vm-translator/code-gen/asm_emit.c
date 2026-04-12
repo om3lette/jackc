@@ -90,21 +90,31 @@ void asm_emit_ecall(const emitter* e) {
 }
 
 static const char* branch_cond_strs[] = {
-    [BRANCH_EQ]  = "beq",
-    [BRANCH_NE]  = "bne",
+    [BRANCH_EQ]  = "bne",
+    [BRANCH_NE]  = "beq",
 };
 void asm_emit_branch(
-    const emitter* e,
+    emitter* e,
     branch_cond cond,
     const char* r1,
     const char* r2,
     const jackc_string* label
 ) {
+    asm_emit_comment(e, "RISC-V branches only support jumps which fit into 12 bits, while j can handle 20 bits");
     jackc_fprintf(
-        e->fd, "\t%s %s, %s, %.*s\n",
+        e->fd,
+        "\t%s %s, %s, %s_%d\n",
         branch_cond_strs[cond], r1, r2,
-        label->length, label->data
+        e->branch_label.data, e->branch_label_idx
     );
+    asm_emit_j(e, label);
+    jackc_fprintf(
+        e->fd,
+        "%s_%d:\n",
+        e->branch_label.data, e->branch_label_idx
+    );
+
+    ++e->branch_label_idx;
 }
 void asm_emit_ret(const emitter* e) {
     jackc_fprintf(e->fd, "\tret\n");

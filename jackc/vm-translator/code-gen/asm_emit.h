@@ -6,6 +6,8 @@
 
 typedef struct {
     int fd;
+    uint32_t branch_label_idx;
+    jackc_string branch_label;
 } emitter;
 
 typedef enum {
@@ -70,7 +72,7 @@ void asm_emit_srli(const emitter* e, const char* dst, const char* src, uint8_t s
 void asm_emit_call(const emitter* e, const jackc_string* target);
 void asm_emit_j(const emitter* e, const jackc_string* target);
 void asm_emit_branch(
-    const emitter* e,
+    emitter* e,
     branch_cond cond,
     const char* r1,
     const char* r2,

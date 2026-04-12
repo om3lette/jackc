@@ -16,6 +16,7 @@ jack-vm-sources.txt
 notes.md
 *.S
 *.s
+!stdlib/stdlib.s
 *.asm
 
 tests/compiler/jack-code
