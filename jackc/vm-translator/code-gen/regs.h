@@ -1,6 +1,9 @@
 #ifndef JACKC_ASM_CODE_GEN_H
 #define JACKC_ASM_CODE_GEN_H
 
+// On change also replace all the entries in
+// `/stdlib/stdlib.s`
+
 #define REG_ZERO     "x0"
 #define REG_RET_ADDR "ra"
 #define REG_SP       "sp"
