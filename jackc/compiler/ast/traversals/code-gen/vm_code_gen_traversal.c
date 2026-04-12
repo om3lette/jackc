@@ -250,6 +250,13 @@ static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ct
 }
 
 static void visit_subroutine(vm_code_generation_traversal_context* ctx, const ast_subroutine* sub) {
+    if (sub->is_native) {
+        // Implemented elsewhere for example assembly.
+        // Intended for std subroutines which cannot be implemented in Jack
+        // Or are considered hot path and will benefit from hand optimized assembly
+        // as jackc is not an optimizing compiler
+        return;
+    }
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
     if (ctx->subroutine_signature.kind == SUB_METHOD) {
         // Not used directly, but is needed to keep the correct indexes

@@ -30,6 +30,7 @@ typedef enum {
     TOKEN_TRUE,
     TOKEN_FALSE,
     TOKEN_NULL,
+    TOKEN_NATIVE,
     TOKEN_THIS,
     TOKEN_LET,
     TOKEN_DO,

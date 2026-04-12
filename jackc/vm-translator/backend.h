@@ -1,10 +1,12 @@
 #ifndef JACKC_BACKEND_H
 #define JACKC_BACKEND_H
 
+#include "core/allocators/allocators.h"
 #include "core/config.h"
 #include <stdint.h>
 
 #define OUT_FILENAME "out.asm"
+#define STD_ASM_FILENAME "stdlib.s"
 
 typedef enum {
     BACKEND_OK                          = 0,
@@ -12,14 +14,19 @@ typedef enum {
     BACKEND_INVALID_ARGUMENT            = 1000,
     BACKEND_INVALID_SYNTAX              = 1001,
     BACKEND_FAILED_TO_OPEN_SOURCE_FILE  = 1002,
-    BACKEND_FAILED_TO_OPEN_SAVE_FILE    = 1003,
-    BACKEND_NO_SOURCE_FILES             = 1004
+    BACKEND_FAULED_TO_OPEN_STD_NATIVE   = 1003,
+    BACKEND_FAILED_TO_OPEN_SAVE_FILE    = 1004,
+    BACKEND_NO_SOURCE_FILES             = 1005,
+    BACKEND_SAVE_PATH_TOO_LONG          = 1006,
+    BACKEND_BASE_PATH_TOO_LONG          = 1007
 } jackc_backend_return_code;
 
 jackc_backend_return_code jackc_backend_compile(
     const char* base_path,
     const char* output_dir,
-    const jackc_config* config
+    const char* std_path,
+    const jackc_config* config,
+    Allocator* allocator
 );
 
 #endif

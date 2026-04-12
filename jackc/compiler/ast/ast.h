@@ -273,6 +273,7 @@ typedef struct ast_subroutine ast_subroutine;
 struct ast_subroutine {
     ast_sub_kind kind;
     ast_type return_type;
+    bool is_native;
     jackc_string name;
 
     ast_var_dec* params; // Linked list of VAR_ARG
@@ -290,6 +291,7 @@ ast_subroutine* ast_subroutine_create(
     ast_var_dec* params,
     ast_var_dec* locals,
     ast_stmt* body,
+    bool is_native,
     ast_subroutine* next
 );
 

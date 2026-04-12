@@ -196,6 +196,12 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
 ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
     jack_sync_context_push(parser, SYNC_SUBROUTINE);
 
+    bool is_native = false;
+    if (jack_parser_check(parser, TOKEN_NATIVE)) {
+        jack_parser_advance(parser);
+        is_native = true;
+    }
+
     ast_sub_kind sub_kind = SUB_FUNCTION;
 
     switch (parser->current.type) {
@@ -303,6 +309,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
         params,
         locals,
         body,
+        is_native,
         nullptr
     );
 }
@@ -800,6 +807,7 @@ static bool is_sync_token(jack_parser* parser) {
             case TOKEN_METHOD:
             case TOKEN_FUNCTION:
             case TOKEN_CONSTRUCTOR:
+            case TOKEN_NATIVE:
             case '}':
                 return true;
             default:
@@ -813,6 +821,7 @@ static bool is_sync_token(jack_parser* parser) {
             case TOKEN_METHOD:
             case TOKEN_FUNCTION:
             case TOKEN_CONSTRUCTOR:
+            case TOKEN_NATIVE:
             case '}':
                 return true;
             default:

@@ -23,7 +23,7 @@ typedef struct {
 
 asm_context* asm_context_init(int fd, const jackc_config* config, Allocator* allocator);
 
-void asm_code_gen_bootstrap(const asm_context* ctx);
+void asm_code_gen_bootstrap(const asm_context* ctx, const char* std_native_content);
 
 void asm_code_gen_process_line(asm_context* ctx, const vm_parser* parser);
 

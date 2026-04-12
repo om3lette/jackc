@@ -210,7 +210,7 @@ void asm_code_gen_process_line(asm_context* ctx, const vm_parser* parser) {
     }
 }
 
-void asm_code_gen_bootstrap(const asm_context* ctx) {
+void asm_code_gen_bootstrap(const asm_context* ctx, const char* std_native_content) {
     asm_emit_section(&ctx->e, SECTION_TEXT);
     asm_emit_label(&ctx->e, &jackc_string_from_str("_start"));
 
@@ -234,29 +234,16 @@ void asm_code_gen_bootstrap(const asm_context* ctx) {
 
     asm_emit_comment(&ctx->e, "Prepare argc, argv for Main.main");
     vstack_alloc(&ctx->s, 2);
-
     asm_emit_sw(&ctx->e, "a1", frame_offset_bytes(cfg, 1), REG_SP);
     asm_emit_sw(&ctx->e, "a0", 0, REG_SP);
 
     asm_emit_addi(&ctx->e, REG_ARG, REG_SP, 0);
 
-    // TODO: Generalize
-    asm_emit_label(&ctx->e, &jackc_string_from_str("Sys.init"));
-    asm_emit_call(&ctx->e, &jackc_string_from_str("Memory.init"));
-    asm_emit_call(&ctx->e, &jackc_string_from_str("Screen.init"));
-    asm_emit_call(&ctx->e, &jackc_string_from_str("Output.init"));
+    asm_emit_j(&ctx->e, &jackc_string_from_str("Sys.init"));
 
-    asm_emit_call(&ctx->e, &jackc_string_from_str("Main.main"));
-
-    #ifndef NDEBUG
-        asm_emit_comment(&ctx->e, "Print return value");
-        asm_emit_li(&ctx->e, "a7", 1);
-        asm_emit_ecall(&ctx->e);
-    #endif
-
-    asm_emit_comment(&ctx->e, "Exit with return value as exit code");
-    asm_emit_li(&ctx->e, "a7", 93);
-    asm_emit_ecall(&ctx->e);
+    asm_emit(&ctx->e, "\n# STD NATIVE START\n");
+    asm_emit(&ctx->e, std_native_content);
+    asm_emit(&ctx->e, "# STD NATIVE END\n\n");
 }
 
 void asm_code_gen_finalize(const asm_context* ctx) {

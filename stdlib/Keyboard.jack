@@ -1,6 +1,5 @@
 class Keyboard {
-    // Implemented in assembly
-    function char keyPressed() {}
+    native function char keyPressed() {}
 
     function char readChar() {
         var char key;

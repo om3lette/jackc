@@ -248,6 +248,7 @@ ast_subroutine* ast_subroutine_create(
     ast_var_dec* params,
     ast_var_dec* locals,
     ast_stmt* body,
+    bool is_native,
     ast_subroutine* next
 ) {
     ast_subroutine* subroutine = allocator->alloc(sizeof(ast_subroutine), allocator->context);
@@ -259,6 +260,7 @@ ast_subroutine* ast_subroutine_create(
     subroutine->body = body;
     subroutine->next = next;
     subroutine->name = *name;
+    subroutine->is_native = is_native;
 
     return subroutine;
 }

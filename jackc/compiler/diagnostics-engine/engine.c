@@ -92,6 +92,8 @@ static char* token_type_to_str(jack_token_type token) {
             return "\"string literal\"";
         case TOKEN_IDENTIFIER:
             return "<identifier>";
+        case TOKEN_NATIVE:
+            return "native";
     }
     return nullptr;
 }

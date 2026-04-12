@@ -4,6 +4,10 @@
 #include "vm-translator/code-gen/regs.h"
 #include <stdarg.h>
 
+void asm_emit(const emitter* e, const char* content) {
+    jackc_fprintf(e->fd, "%s", content);
+}
+
 //============================
 // Sections and directives
 //============================

@@ -37,6 +37,7 @@ typedef enum {
     SECTION_DATA,
 } asm_section;
 
+void asm_emit(const emitter* e, const char* content);
 
 //============================
 // Sections and directives

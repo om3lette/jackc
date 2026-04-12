@@ -2,14 +2,19 @@ Sys.init:
     call Memory.init
     call Screen.init
     call Output.init
-    ret
-Sys.halt:
-    li a7, 93
-    li a0, 0
+
+    call Main.main
+    li   a7, 93
     ecall
+
+Sys.halt:
+    li   a7, 93
+    li   a0, 0
+    ecall
+
 Sys.wait:
-    li a7, 32
-    lw a0, 0(s2)
+    li   a7, 32
+    lw   a0, 0(s2)
     ecall
     ret
 
