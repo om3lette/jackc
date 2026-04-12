@@ -11,13 +11,15 @@ typedef struct {
     const char* out_dir;
     const char* stdlib_dir;
     bool reversed_stack;
+    bool code_comments;
     uint32_t stack_size;
 } cmd_arguments;
 
 static cmd_arguments cmd_args = {
     .stdlib_dir = nullptr,
     .reversed_stack = false,
-    .stack_size = 256 * 1024
+    .stack_size = 256 * 1024,
+    .code_comments = false
 };
 static arg_spec argument_specs[] = {
     arg_spec_create("-s", "--source-dir", "Source files directory", ARG_STRING, offsetof(cmd_arguments, source_dir), true),
@@ -25,6 +27,7 @@ static arg_spec argument_specs[] = {
     arg_spec_create("-std", "--stdlib-dir", "Path to the stdlib directory", ARG_STRING, offsetof(cmd_arguments, stdlib_dir), true),
     arg_spec_create(nullptr, "--reversed-stack", "Stack will grow towards higher addresses", ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
     arg_spec_create(nullptr, "--stack-size", "Fixed stack size (only works with --reversed-stack)", ARG_UINT, offsetof(cmd_arguments, stack_size), false),
+    arg_spec_create(nullptr, "--code-comments", "Enables generation of code comments", ARG_BOOL, offsetof(cmd_arguments, code_comments), false),
 };
 
 int main(int argc, char** argv) {
@@ -33,7 +36,7 @@ int main(int argc, char** argv) {
         jackc_exit(BACKEND_INVALID_ARGUMENT);
     }
 
-    jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size);
+    jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size, cmd_args.code_comments);
 
     jackc_backend_return_code return_code = jackc_backend_compile(
         cmd_args.source_dir, cmd_args.out_dir, cmd_args.stdlib_dir, &config, &allocator

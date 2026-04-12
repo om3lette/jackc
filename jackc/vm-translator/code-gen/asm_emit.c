@@ -29,6 +29,8 @@ void asm_emit_directive_space(const emitter* e, uint16_t bytes) {
 // Comments and label
 //============================
 void asm_emit_comment(const emitter* e, const char* fmt, ...) {
+    if (!e->emit_comments)
+        return;
     jackc_fprintf(e->fd, "\t# ");
     va_list args;
     va_start(args, fmt);

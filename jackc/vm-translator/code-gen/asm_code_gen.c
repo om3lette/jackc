@@ -21,6 +21,7 @@ asm_context* asm_context_init(int fd, const jackc_config* config, Allocator* all
     ctx->temp_label = jackc_string_from_str("_JACKC_TMP");
     ctx->e = (emitter){
         .fd = fd,
+        .emit_comments = config->code_comments,
         .branch_label = jackc_string_from_str("_JACKC_BRANCH_HELPER"),
         .branch_label_idx = 0
     };

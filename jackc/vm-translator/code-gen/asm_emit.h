@@ -6,6 +6,7 @@
 
 typedef struct {
     int fd;
+    bool emit_comments;
     uint32_t branch_label_idx;
     jackc_string branch_label;
 } emitter;
