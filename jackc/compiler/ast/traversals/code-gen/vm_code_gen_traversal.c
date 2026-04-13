@@ -323,8 +323,10 @@ void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_tra
         visit_subroutine(ctx, sub);
     }
 
-    // FIXME: Kind of hacky
+    // FIXME: Kind of hacky.
+    // Some of the symtable content needs to be preserved, while the rest needs to be reset
     // Clean the symtable while preserving the index data (pop will not do)
     fixed_hash_map* tmp = ctx->symtab->tokens;
     fixed_hashmap_free(&tmp);
+    ctx->symtab->field_idx = 0;
 }
