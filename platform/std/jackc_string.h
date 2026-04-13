@@ -29,6 +29,12 @@ void jackc_string_print(const jackc_string* str);
 
 [[ nodiscard ]] char jackc_tolower(char c);
 
+[[ nodiscard ]] bool jackc_isalpha(char c);
+
+[[ nodiscard ]] bool jackc_isdigit(char c);
+
+[[ nodiscard ]] bool jackc_iseol(char c);
+
 [[ nodiscard ]] char* jackc_strrchr(const char* s, char c);
 
 void jackc_strcpy(char* dest, const char* src);

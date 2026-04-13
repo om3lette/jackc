@@ -23,6 +23,11 @@ typedef struct {
     bool had_error;
 } jackc_parse_result;
 
+typedef struct {
+    bool had_syntax_error;
+    bool failed_to_open_source_file;
+} jackc_dir_parse_result;
+
 typedef struct jack_ast_collection {
     ast_class* ast;
     const char* filepath;
@@ -32,7 +37,8 @@ typedef struct jack_ast_collection {
 } jack_source;
 
 jackc_frontend_return_code jackc_frontend_compile(
-    const char* base_path,
+    const char* input_paths[],
+    uint32_t n_paths,
     const char* output_dir,
     Allocator* allocator,
     bool skip_vm_code_gen

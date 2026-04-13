@@ -1,0 +1,13 @@
+class Main {
+    function int main(int x) {
+        var int i, ptr;
+        let i = 100;
+
+        while (i > 0) {
+            let ptr = Memory.alloc(x);
+            do Memory.deAlloc(ptr);
+            let i = i - 1;
+        }
+        return Memory.alloc(x);
+    }
+}

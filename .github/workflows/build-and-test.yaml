@@ -18,7 +18,7 @@ jobs:
     name: "${{matrix.config.compiler}} ${{matrix.config.version}} (C${{matrix.config.std}}, ${{matrix.config.build_type}})"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup compiler and build system
         uses: aminya/setup-cpp@v1
@@ -33,6 +33,12 @@ jobs:
       - name: Build
         run: cmake --build --preset release
 
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "gradle"
+
       - name: Test
-        run: |
-          ctest --preset release
+        run: ctest --preset release

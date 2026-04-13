@@ -72,7 +72,7 @@ static ast_var_dec* jack_parser_parse_variables(
         }
 
         ast_var_dec* new_node = ast_variable_declaration(
-            parser->allocator, &var_name.str, kind, *type, NULL
+            parser->allocator, &var_name.str, kind, *type, nullptr
         );
         if (!declarations) {
             declarations = new_node;
@@ -196,6 +196,12 @@ ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
 ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
     jack_sync_context_push(parser, SYNC_SUBROUTINE);
 
+    bool is_native = false;
+    if (jack_parser_check(parser, TOKEN_NATIVE)) {
+        jack_parser_advance(parser);
+        is_native = true;
+    }
+
     ast_sub_kind sub_kind = SUB_FUNCTION;
 
     switch (parser->current.type) {
@@ -286,6 +292,9 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
             if (!body)
                 body = stmt_tail;
         } else {
+            jackc_diag_builder d = diagnostic_begin(parser, DIAG_ERROR, DIAG_INVALID_TOKEN_SUBROUTINE_BODY);
+            d.diag.data.invalid_token.got = parser->current.str;
+            jackc_diag_emit(&d);
             jack_parser_sync(parser);
         }
     }
@@ -300,6 +309,7 @@ ast_subroutine* jack_parser_parse_subroutine(jack_parser* parser) {
         params,
         locals,
         body,
+        is_native,
         nullptr
     );
 }
@@ -797,6 +807,7 @@ static bool is_sync_token(jack_parser* parser) {
             case TOKEN_METHOD:
             case TOKEN_FUNCTION:
             case TOKEN_CONSTRUCTOR:
+            case TOKEN_NATIVE:
             case '}':
                 return true;
             default:
@@ -810,6 +821,7 @@ static bool is_sync_token(jack_parser* parser) {
             case TOKEN_METHOD:
             case TOKEN_FUNCTION:
             case TOKEN_CONSTRUCTOR:
+            case TOKEN_NATIVE:
             case '}':
                 return true;
             default:

@@ -108,6 +108,20 @@ target_link_libraries(compiler_integration_tests
         compiler
 )
 
+add_executable(vm_parser_tests
+    main.c
+    vm-translator/parser/instructions.c
+    vm-translator/parser/multi_line.c
+    vm-translator/parser/errors.c
+)
+target_link_libraries(vm_parser_tests
+    PRIVATE
+        Tau
+        vm-translator
+)
+
+add_test(NAME vm_parser_tests COMMAND vm_parser_tests)
+
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
 add_test(NAME compiler_symtab_tests COMMAND compiler_symtab_tests)
 add_test(NAME data_structure_tests COMMAND data_structure_tests)
@@ -116,3 +130,5 @@ add_test(NAME compiler_parser_tests COMMAND compiler_parser_tests)
 add_test(NAME diagnostics_engine_tests COMMAND diagnostics_engine_tests)
 add_test(NAME function_registry_tests COMMAND function_registry_tests)
 add_test(NAME compiler_integration_tests COMMAND compiler_integration_tests)
+
+add_test(NAME stdlib_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/gradlew -p ${CMAKE_CURRENT_SOURCE_DIR}/stdlib run)

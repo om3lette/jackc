@@ -1,4 +1,5 @@
 #include "compiler_parser_utils.h"
+#include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser_internal.h"
 
 bool is_statement_start(jack_parser* parser) {
@@ -12,7 +13,8 @@ bool is_statement_start(jack_parser* parser) {
 bool is_subroutine_start(jack_parser* parser) {
     return jack_parser_check(parser, TOKEN_FUNCTION)
         || jack_parser_check(parser, TOKEN_METHOD)
-        || jack_parser_check(parser, TOKEN_CONSTRUCTOR);
+        || jack_parser_check(parser, TOKEN_CONSTRUCTOR)
+        || jack_parser_check(parser, TOKEN_NATIVE);
 }
 
 bool is_class_var_start(jack_parser* parser) {

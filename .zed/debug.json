@@ -56,7 +56,29 @@
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/jackc/compiler/jackc_frontend",
-        "args": ["./.tmp/sources", "./.tmp/output"],
+        "args": ["-s", "./.tmp/sources", "-o", "./.tmp/output", "-std", "../stdlib"],
+        "request": "launch",
+        "adapter": "CodeLLDB"
+    },
+    {
+        "label": "jackc backend",
+        "build": {
+            "command": "just build",
+            "cwd": "$ZED_WORKTREE_ROOT"
+        },
+        "program": "$ZED_WORKTREE_ROOT/build/jackc/vm-translator/jackc_backend",
+        "args": ["-s", "./.tmp/sources", "-o", "./.tmp/output"],
+        "request": "launch",
+        "adapter": "CodeLLDB"
+    },
+    {
+        "label": "jackc",
+        "build": {
+            "command": "just build",
+            "cwd": "$ZED_WORKTREE_ROOT"
+        },
+        "program": "$ZED_WORKTREE_ROOT/build/jackc/jackc",
+        "args": ["-s", "./.tmp/sources", "-o", "./.tmp/output", "-std", "../stdlib"],
         "request": "launch",
         "adapter": "CodeLLDB"
     },
@@ -67,6 +89,16 @@
             "cwd": "$ZED_WORKTREE_ROOT"
         },
         "program": "$ZED_WORKTREE_ROOT/build/tests/function_registry_tests",
+        "request": "launch",
+        "adapter": "CodeLLDB"
+    },
+    {
+        "label": "VM parser tests",
+        "build": {
+            "command": "just build",
+            "cwd": "$ZED_WORKTREE_ROOT"
+        },
+        "program": "$ZED_WORKTREE_ROOT/build/tests/vm_parser_tests",
         "request": "launch",
         "adapter": "CodeLLDB"
     }

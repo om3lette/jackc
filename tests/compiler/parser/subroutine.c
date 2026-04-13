@@ -101,6 +101,15 @@ static const subroutine_test tests[] = {
         .expected_statements_count = 0,
     },
     {
+        .source = "native function void main() {}",
+        .kind = SUB_FUNCTION,
+        .return_type = VOID,
+        .name = "main",
+        .expected_arg_count = 0,
+        .expected_vars_count = 0,
+        .expected_statements_count = 0,
+    },
+    {
         .source = "function void main() { var int x, y; var char a, b; }",
         .kind = SUB_FUNCTION,
         .return_type = VOID,
@@ -167,6 +176,7 @@ static const subroutine_test tests[] = {
 };
 
 REGISTER_TEST(subroutine_test_function)
+REGISTER_TEST(subroutine_test_native_function)
 REGISTER_TEST(subroutine_test_function_many_var_decs)
 REGISTER_TEST(subroutine_test_method)
 REGISTER_TEST(subroutine_test_constructor)

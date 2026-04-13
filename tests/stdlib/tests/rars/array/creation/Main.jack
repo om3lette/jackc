@@ -1,0 +1,7 @@
+class Main {
+    function void main(int arraySize) {
+        var Array x;
+        let x = Array.new(arraySize);
+        do x.dispose();
+    }
+}

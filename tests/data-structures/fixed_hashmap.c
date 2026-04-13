@@ -1,9 +1,8 @@
-#include "std/jackc_stdlib.h"
 #include "tau.h"
 #include "core/data-structures/hashmap.h"
 #include "core/allocators/allocators.h"
+#include "core/allocators/adapters.h"
 #include <stdint.h>
-#include <stdlib.h>
 
 uint32_t hasher(const void* value) {
     return *(uint32_t*)value;
@@ -15,30 +14,19 @@ int comparator(const void* a, const void* b) {
     return aa == bb ? 0 : 1;
 }
 
-void* test_alloc(size_t bytes, void *context) {
-    (void)context;
-    return malloc(bytes);
-}
-
-void test_free(void *ptr, size_t bytes, void *context) {
-    (void)context; (void) bytes;
-    free(ptr);
-}
-
 struct hashmap_fixture {
     fixed_hash_map* hashmap;
+    Allocator allocator;
 };
 
 TEST_F_SETUP(hashmap_fixture) {
-    Allocator* allocator = jackc_alloc(sizeof(Allocator));
-    allocator->alloc = test_alloc;
-    allocator->free = test_free;
-    allocator->context = NULL;
-    tau->hashmap = fixed_hashmap_init(uint32_t, uint32_t, hasher, comparator, allocator);
+    tau->allocator = arena_allocator_adapter();
+    tau->hashmap = fixed_hashmap_init(uint32_t, uint32_t, hasher, comparator, &tau->allocator);
 }
 
 TEST_F_TEARDOWN(hashmap_fixture) {
-    fixed_hashmap_free(&tau->hashmap, true);
+    fixed_hashmap_free(&tau->hashmap);
+    arena_allocator_destroy(tau->allocator.context);
 }
 
 TEST_F(hashmap_fixture, insert_one) {

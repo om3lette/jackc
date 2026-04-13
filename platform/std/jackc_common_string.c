@@ -60,6 +60,19 @@ char jackc_tolower(char c) {
     return (c >= 'A' && c <= 'Z') ? c + 32 : c;
 }
 
+bool jackc_isalpha(char c) {
+    c = jackc_tolower(c);
+    return 'a' <= c && c <= 'z';
+}
+
+bool jackc_isdigit(char c) {
+    return '0' <= c && c <= '9';
+}
+
+bool jackc_iseol(char c) {
+    return c == '\n' || c == '\r' || c == '\0';
+}
+
 void jackc_string_print(const jackc_string* str) {
     const char* str_ptr = str->data;
     const char* str_end = str->data + str->length;

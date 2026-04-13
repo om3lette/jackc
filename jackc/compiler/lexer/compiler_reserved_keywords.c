@@ -19,6 +19,7 @@ static const jack_keyword keywords[] = {
     {"true",        TOKEN_TRUE},
     {"false",       TOKEN_FALSE},
     {"null",        TOKEN_NULL},
+    {"native",      TOKEN_NATIVE},
     {"this",        TOKEN_THIS},
     {"let",         TOKEN_LET},
     {"do",          TOKEN_DO},

@@ -1,0 +1,45 @@
+class Math {
+
+    /** Initializes the library. */
+    function void init() {
+        return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        if (x < 0) {
+            return -x;
+        }
+        return x;
+    }
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+        var int low, high, mid, mid2;
+        let low = 0;
+        let high = 46341;
+        while (low < high - 1) {
+            let mid = (low + high) / 2;
+            let mid2 = mid * mid;
+            if (mid2 > x) { let high = mid; }
+            else          { let low = mid;  }
+        }
+        return low;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        }
+        return b;
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+        if (a < b) {
+            return a;
+        }
+        return b;
+    }
+}

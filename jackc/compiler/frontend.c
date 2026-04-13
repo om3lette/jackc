@@ -6,7 +6,9 @@
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
 #include "compiler/parser/compiler_parser_internal.h"
+#include "compiler/symtable/compiler_symtable.h"
 #include "core/allocators/allocators.h"
+#include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
@@ -106,10 +108,21 @@ static bool generate_vm_code(
 ) {
     // There is no reliable way to create directories while running in RARS
     // The solution is to flatten the directory structure for .vm files
-    uint32_t file_idx = 0;
     char out_file_path[4096];
     bool had_error = false;
 
+    // Label indexes need to persist through the whole compilation
+    vm_code_generation_traversal_context ctx = (vm_code_generation_traversal_context){
+        .fd = -1,
+        .registry = registry,
+        .symtab = sym_table_init(nullptr, allocator),
+        .allocator = allocator,
+        .this = ast_variable_declaration(
+            allocator, &jackc_string_from_str("this"), VAR_ARG, (ast_type){}, nullptr
+        ),
+        .if_label_index = 0,
+        .while_label_index = 0
+    };
     for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
         jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
         if (!filename.data) {
@@ -119,25 +132,19 @@ static bool generate_vm_code(
         }
         jackc_sprintf(
             out_file_path,
-            "%s/%.*s_%d.vm",
+            "%s/%.*s.vm",
             out_base_dir,
-            filename.length, filename.data,
-            file_idx++
+            filename.length, filename.data
         );
         int fd = jackc_open(out_file_path, O_CREAT | O_WRONLY | O_TRUNC);
         if (fd < 0) {
             had_error = true;
             continue;
         }
+        ctx.fd = fd;
+        ctx.had_error = false;
 
-        vm_code_generation_traversal_context ctx = (vm_code_generation_traversal_context){
-            .fd = fd,
-            .had_error = false,
-            .registry = registry,
-            .allocator = allocator,
-            .if_label_index = 0,
-            .while_label_index = 0
-        };
+        jackc_assert(ctx.fd != -1 && !ctx.had_error && "Context state is invalid");
         vm_code_genetation_traversal(current_file->ast, &ctx);
         had_error |= ctx.had_error;
 
@@ -161,7 +168,8 @@ static void source_file_free(const jack_source* source_files) {
 } while (0);
 
 jackc_frontend_return_code jackc_frontend_compile(
-    const char* base_path,
+    const char* input_paths[],
+    uint32_t n_paths,
     const char* output_dir,
     Allocator* allocator,
     bool skip_vm_code_gen
@@ -172,28 +180,43 @@ jackc_frontend_return_code jackc_frontend_compile(
     bool failed_to_open_source_file = false;
     jack_source* source_files = nullptr;
 
-    while ((source_file_path = jackc_next_source_file(base_path, ".jack"))) {
-        const char* file_content_raw = jackc_read_file_content(source_file_path);
-
-        if (!file_content_raw) {
-            LOG_ERROR("Failed to open file at %s\n", source_file_path);
-            failed_to_open_source_file = true;
+    for (size_t i = 0; i < n_paths; ++i) {
+        const char* current_path = input_paths[i];
+        if (!current_path)
             continue;
+
+        while ((source_file_path = jackc_next_source_file(current_path, ".jack"))) {
+            const char* file_content_raw = jackc_read_file_content(source_file_path);
+
+            if (!file_content_raw) {
+                LOG_ERROR("Failed to open file at %s\n", source_file_path);
+                failed_to_open_source_file = true;
+                continue;
+            }
+
+            jackc_string file_content = jackc_string_from_str(file_content_raw);
+            jackc_parse_result result = jackc_parse_file(source_file_path, file_content, allocator);
+
+            had_syntax_error |= result.had_error;
+            if (!result.ast) continue;
+
+            source_files = jack_source_add(
+                source_files,
+                result.ast,
+                source_file_path,
+                file_content,
+                result.lines,
+                allocator
+            );
         }
-
-        jackc_string file_content = jackc_string_from_str(file_content_raw);
-        jackc_parse_result result = jackc_parse_file(source_file_path, file_content, allocator);
-
-        had_syntax_error |= result.had_error;
-        if (!result.ast) continue;
-
-        source_files = jack_source_add(source_files, result.ast, source_file_path, file_content, result.lines, allocator);
     }
-
-    if (!source_files)
-        RETURN_WITH_CLEANUP(FRONTEND_NO_SOURCE_FILES);
+    // Report syntax error before source files
+    // Because if all files had an error there will be no source files, which will cause
+    // FRONTEND_NO_SOURCE_FILES to be mistakenly returned
     if (had_syntax_error)
         RETURN_WITH_CLEANUP(FRONTEND_SYNTAX_ERROR);
+    if (!source_files)
+        RETURN_WITH_CLEANUP(FRONTEND_NO_SOURCE_FILES);
     if (failed_to_open_source_file)
         RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_OPEN_SOURCE_FILE);
 

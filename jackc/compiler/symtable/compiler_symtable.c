@@ -53,7 +53,7 @@ sym_table* sym_table_pop(sym_table* current) {
     jackc_assert(current != NULL && "Current symtable is NULL");
 
     sym_table* prev = (sym_table*)current->prev;
-    fixed_hashmap_free(&current->tokens, true);
+    fixed_hashmap_free(&current->tokens);
     current->allocator->free(current, sizeof(sym_table), current->allocator->context);
     return prev;
 }

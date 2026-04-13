@@ -74,6 +74,16 @@ static bool register_var(semantic_validity_traversal_context* ctx, const ast_var
     if (convert_type_with_diagnostic(var_dec, ctx, &type))
         return true;
 
+    // Class used as a variable type is not defined
+    if (
+        var_dec->type.kind == TYPE_CLASS
+        && !function_registry_contains_class(ctx->registry, &var_dec->type.class_name, nullptr)
+    ) {
+        jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_ERROR, DIAG_USE_OF_UNDECLARED_IDENTIFIER, var_dec->type.class_name);
+        jackc_diag_emit(&d);
+        return true;
+    }
+
     sym_table_token token = sym_table_token_init(
         type,
         var_dec->kind,
@@ -98,9 +108,10 @@ static bool symtab_find_or_diagnostic(semantic_validity_traversal_context* ctx, 
     return true;
 }
 
-static bool is_valid_var_name_or_diagnostic(semantic_validity_traversal_context* ctx, const jackc_string* var_name) {
-    // Is not defined
-    if (!symtab_find_or_diagnostic(ctx, *var_name, nullptr))
+static bool is_valid_var_or_diagnostic(semantic_validity_traversal_context* ctx, const jackc_string* var_name) {
+    // Variable is not defined
+    sym_table_token token;
+    if (!symtab_find_or_diagnostic(ctx, *var_name, &token))
         return false;
     // Shadows a subroutine name in the same class
     // static int m;
@@ -134,6 +145,8 @@ static bool function_registry_find_or_diagnostic(
 
     return true;
 }
+
+static void visit_expression(const ast_expr* expr, semantic_validity_traversal_context* ctx);
 
 static void visit_subroutine_call(const ast_call* call, semantic_validity_traversal_context* ctx) {
     jackc_string receiver_class = ctx->class_name;
@@ -190,8 +203,10 @@ static void visit_subroutine_call(const ast_call* call, semantic_validity_traver
         INVALID_STATE(ctx);
     }
 
+    // TODO: Precalc for ast_call?
     uint16_t n_args = 0;
     for (ast_expr_list* arg = call->args; arg; arg = arg->next) {
+        visit_expression(arg->expr, ctx);
         ++n_args;
     }
     if (n_args != signature.n_args) {
@@ -222,10 +237,10 @@ static void visit_expression(const ast_expr* expr, semantic_validity_traversal_c
         case EXPR_KEYWORD:
             break;
         case EXPR_VAR:
-            is_valid_var_name_or_diagnostic(ctx, &expr->var_name);
+            is_valid_var_or_diagnostic(ctx, &expr->var_name);
             break;
         case EXPR_ARRAY_ACCESS: // varName[expr]
-            is_valid_var_name_or_diagnostic(ctx, &expr->array_access.var_name);
+            is_valid_var_or_diagnostic(ctx, &expr->array_access.var_name);
             visit_expression(expr->array_access.index, ctx);
             break;
         case EXPR_CALL:         // subroutineCall
@@ -247,7 +262,7 @@ static void visit_statements(const ast_stmt* stmts, semantic_validity_traversal_
 static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_context* ctx) {
     switch (stmt->kind) {
         case STMT_LET:
-            is_valid_var_name_or_diagnostic(ctx, &stmt->let_stmt.var_name);
+            is_valid_var_or_diagnostic(ctx, &stmt->let_stmt.var_name);
 
             if (stmt->let_stmt.value->kind == EXPR_STRING) {
                 sym_table_token token;
@@ -334,11 +349,13 @@ static void visit_subroutine_dec(const ast_subroutine* sub, semantic_validity_tr
 
     // Register arguments
     for (const ast_var_dec* argument = sub->params; argument; argument = argument->next) {
-        register_var(ctx, argument);
+        if (register_var(ctx, argument))
+            INVALID_STATE(ctx);
     }
     // Register local vars
     for (const ast_var_dec* local_var_dec = sub->locals; local_var_dec; local_var_dec = local_var_dec->next) {
-        register_var(ctx, local_var_dec);
+        if (register_var(ctx, local_var_dec))
+            INVALID_STATE(ctx);
     }
     visit_statements(sub->body, ctx);
 
@@ -356,7 +373,8 @@ bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_t
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
     for (const ast_var_dec* class_var = class->class_vars; class_var; class_var = class_var->next) {
         jackc_assert(class_var->kind == VAR_STATIC || class_var->kind == VAR_FIELD);
-        register_var(ctx, class_var);
+        if (register_var(ctx, class_var))
+            INVALID_STATE(ctx);
     }
 
     for (ast_subroutine* sub = class->subroutines; sub; sub = sub->next) {

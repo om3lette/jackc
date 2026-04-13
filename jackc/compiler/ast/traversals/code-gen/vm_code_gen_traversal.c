@@ -7,7 +7,10 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
-#include "vm-translator/constants.h"
+#include "core/data-structures/hashmap.h"
+#include "core/logging/logger.h"
+#include "std/jackc_string.h"
+#include "vm-translator/code-gen/regs.h"
 #include "vm-translator/parser/vm_parser.h"
 #include <stdint.h>
 
@@ -25,8 +28,19 @@ static jack_type ast_type_to_jack_type(const ast_type* type) {
         case TYPE_VOID:
             jackc_assert(false && "Semantically invalid");
     }
-    // Will not happen
+    // Make the compiler happy
     return JACK_CLASS;
+}
+
+static vm_segment jack_var_kind_to_vm_segment(jack_variable_kind var_kind) {
+    switch (var_kind) {
+        case VAR_STATIC: return SEGMENT_STATIC;
+        case VAR_ARG:    return SEGMENT_ARG;
+        case VAR_LOCAL:  return SEGMENT_LOCAL;
+        case VAR_FIELD:  return SEGMENT_THIS;
+    }
+    // Make the compiler happy
+    return SEGMENT_LOCAL;
 }
 
 static void register_var(sym_table* symtab, const ast_var_dec* var_dec) {
@@ -43,24 +57,53 @@ static void register_var(sym_table* symtab, const ast_var_dec* var_dec) {
 static void visit_expression(vm_code_generation_traversal_context* ctx, const ast_expr* expr);
 
 static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, const ast_call* call) {
-    // TODO: Add support for stack rotation?
     uint16_t n_args = 0;
-    for (const ast_expr_list* arg = call->args; arg; arg = arg->next) {
+    const ast_expr_list* last_arg = call->args;
+    for (last_arg = call->args; last_arg && last_arg->next; last_arg = last_arg->next) {}
+
+    for (const ast_expr_list* arg = last_arg; arg; arg = arg->prev) {
         visit_expression(ctx, arg->expr);
         ++n_args;
     }
 
-    const jackc_string* receiver = &call->receiver;
+    const jackc_string* resolved_receiver_class = &call->receiver;
+    const jackc_string* resolved_receiver = resolved_receiver_class;
 
+    // Resolve receiver
     sym_table_token receiver_var;
     if (call->implicit_this_receiver) {
-        receiver = &ctx->class_name;
-    } else if (sym_table_find(ctx->symtab, receiver, &receiver_var)) {
+        resolved_receiver_class = &ctx->class_name;
+        resolved_receiver = resolved_receiver_class;
+    } else if (sym_table_find(ctx->symtab, resolved_receiver, &receiver_var)) {
         // receiver is a variable of class type -> resolve to the class name
         jackc_assert(receiver_var.type == JACK_CLASS);
-        receiver = &receiver_var.class_name;
+        resolved_receiver_class = &receiver_var.class_name;
     }
-    emit_call(ctx->fd, receiver, &call->subroutine_name, n_args);
+
+    function_signature signature;
+    if (!function_registry_contains(ctx->registry, resolved_receiver_class, &call->subroutine_name, &signature)) {
+        ctx->had_error = true;
+        return;
+    }
+    bool is_method_call = signature.kind == SUB_METHOD;
+    // Implicit this
+    if (is_method_call)
+        ++n_args;
+
+    // Push 'this' for methods
+    if (is_method_call) {
+        if (call->implicit_this_receiver) {
+            emit_push(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
+        } else if (sym_table_find(ctx->symtab, resolved_receiver, &receiver_var)) {
+            emit_push(ctx->fd, jack_var_kind_to_vm_segment(receiver_var.var.kind), receiver_var.var.idx);
+        } else {
+            LOG_FATAL("%.*s\n", resolved_receiver_class->length, resolved_receiver_class->data);
+            ctx->had_error = true;
+            return;
+        }
+    }
+
+    emit_call(ctx->fd, resolved_receiver_class, &call->subroutine_name, n_args);
 }
 
 static void visit_expression(vm_code_generation_traversal_context* ctx, const ast_expr* expr) {
@@ -103,6 +146,7 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
             emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
             visit_expression(ctx, expr->array_access.index);
             emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
+
             emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
             emit_push(ctx->fd, SEGMENT_THAT, 0);
             break;
@@ -124,7 +168,7 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
 }
 
 // Forward declaration for visit_statement
-static void visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts);
+static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts);
 
 static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt* stmt) {
     switch (stmt->kind) {
@@ -137,11 +181,11 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             visit_expression(ctx, stmt->let_stmt.value);
 
             if (stmt->let_stmt.index) {
-                // Compute index value
-                visit_expression(ctx, stmt->let_stmt.index);
                 emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
-                // Calculate offset = array_base + index (index = words)
+                visit_expression(ctx, stmt->let_stmt.index);
                 emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
+
+                // Calculate offset = array_base + index_offset
                 emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
                 emit_pop(ctx->fd, SEGMENT_THAT, 0);
             } else {
@@ -184,20 +228,41 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             visit_subroutine_call(ctx, stmt->do_stmt);
             break;
         case STMT_RETURN:
-            if (stmt->return_stmt) visit_expression(ctx, stmt->return_stmt);
+            if (stmt->return_stmt) {
+                // TODO: Verify that expression result is not void
+                // Not returning a value does not break the backend, but it is conventional to return 0
+                visit_expression(ctx, stmt->return_stmt);
+            } else {
+                emit_signed_const(ctx->fd, 0);
+            }
             emit_return(ctx->fd);
             break;
     }
 }
 
-static void visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts) {
+static const ast_stmt* visit_statements(vm_code_generation_traversal_context* ctx, const ast_stmt* stmts) {
+    const ast_stmt* prev = nullptr;
     for (const ast_stmt* stmt = stmts; stmt; stmt = stmt->next) {
         visit_stmt(ctx, stmt);
+        prev = stmt;
     }
+    return prev;
 }
 
 static void visit_subroutine(vm_code_generation_traversal_context* ctx, const ast_subroutine* sub) {
+    if (sub->is_native) {
+        // Implemented elsewhere for example assembly.
+        // Intended for std subroutines which cannot be implemented in Jack
+        // Or are considered hot path and will benefit from hand optimized assembly
+        // as jackc is not an optimizing compiler
+        return;
+    }
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
+    if (ctx->subroutine_signature.kind == SUB_METHOD) {
+        // Not used directly, but is needed to keep the correct indexes
+        register_var(ctx->symtab, ctx->this);
+    }
+
     for (const ast_var_dec* argument = sub->params; argument; argument = argument->next) {
         register_var(ctx->symtab, argument);
     }
@@ -206,22 +271,35 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
     }
 
     emit_function(ctx->fd, &ctx->class_name, &ctx->subroutine_signature);
-    if (ctx->subroutine_signature.kind == SUB_CONSTRUCTOR) {
-        emit_std_call(ctx->fd, (std_subroutine_call){
-            .kind = STD_MEMORY_ALLOC,
-            .memory_alloc = {
-                .words_to_allocate = ctx->n_fields
-            }
-        });
-        emit_pop(ctx->fd, SEGMENT_POINTER, 0);
+    switch (ctx->subroutine_signature.kind) {
+        case SUB_CONSTRUCTOR:
+            emit_std_call(ctx->fd, (std_subroutine_call){
+                .kind = STD_MEMORY_ALLOC,
+                .memory_alloc = {
+                    .words_to_allocate = ctx->n_fields
+                }
+            });
+            emit_pop(ctx->fd, SEGMENT_POINTER, 0);
+            break;
+        case SUB_METHOD:
+            emit_push(ctx->fd, SEGMENT_ARG, 0);
+            emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
+            break;
+        case SUB_FUNCTION:
+            break;
     }
-    visit_statements(ctx, sub->body);
+
+    const ast_stmt* last_stmt = visit_statements(ctx, sub->body);
+    // Add `return 0` to avoid fallthrough
+    if (!last_stmt || last_stmt->kind != STMT_RETURN) {
+        emit_signed_const(ctx->fd, 0);
+        emit_return(ctx->fd);
+    }
 
     ctx->symtab = sym_table_pop(ctx->symtab);
 }
 
 void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_traversal_context* ctx) {
-    ctx->symtab = sym_table_init(nullptr, ctx->allocator);
     for (const ast_var_dec* class_var = class->class_vars; class_var; class_var = class_var->next) {
         register_var(ctx->symtab, class_var);
     }
@@ -245,5 +323,10 @@ void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_tra
         visit_subroutine(ctx, sub);
     }
 
-    sym_table_pop(ctx->symtab);
+    // FIXME: Kind of hacky.
+    // Some of the symtable content needs to be preserved, while the rest needs to be reset
+    // Clean the symtable while preserving the index data (pop will not do)
+    fixed_hash_map* tmp = ctx->symtab->tokens;
+    fixed_hashmap_free(&tmp);
+    ctx->symtab->field_idx = 0;
 }

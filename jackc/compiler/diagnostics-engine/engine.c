@@ -92,6 +92,8 @@ static char* token_type_to_str(jack_token_type token) {
             return "\"string literal\"";
         case TOKEN_IDENTIFIER:
             return "<identifier>";
+        case TOKEN_NATIVE:
+            return "native";
     }
     return nullptr;
 }
@@ -220,6 +222,7 @@ static void diagnostic_engine_report_one(
                 diagnostic->data.unexpected_token.got.data
             );
             break;
+        case DIAG_INVALID_TOKEN_SUBROUTINE_BODY:
         case DIAG_INVALID_TOKEN_CLASS_BODY:
         case DIAG_INVALID_TOKEN_TERM:
             jackc_fprintf(

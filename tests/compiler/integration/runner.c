@@ -26,14 +26,15 @@ TEST_F_TEARDOWN(integration_fixture) {
  * @param _path The path to the test folder relative to the `tests` folder.
  * @param _outcome The expected outcome of the test case. (jackc_frontend_return_code)
  */
-#define REGISTER_TEST(name, _path, _outcome)                                   \
-    TEST_F(integration_fixture, name) {                                        \
-        char full_path[PATH_MAX];                                              \
-        path_join(full_path, sizeof(full_path), tau->test_folder_path, _path); \
-        CHECK_EQ(                                                              \
-            jackc_frontend_compile(full_path, nullptr, &tau->allocator, true), \
-            _outcome                                                           \
-        );                                                                     \
+#define REGISTER_TEST(name, _path, _outcome)                                        \
+    TEST_F(integration_fixture, name) {                                             \
+        char full_path[PATH_MAX];                                                   \
+        path_join(full_path, sizeof(full_path), tau->test_folder_path, _path);      \
+        const char* input_paths[] = { full_path };                                  \
+        CHECK_EQ(                                                                   \
+            jackc_frontend_compile(input_paths, 1, nullptr, &tau->allocator, true), \
+            _outcome                                                                \
+        );                                                                          \
     }
 
 REGISTER_TEST(one_file_program, "one-file-program", FRONTEND_OK)
@@ -52,3 +53,5 @@ REGISTER_TEST(missing_subroutine, "missing-subroutine", FRONTEND_SEMANTICALLY_IN
 REGISTER_TEST(class_filename_mismatch, "class-filename-mismatch", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(string_literal_assignment_to_non_string, "string-literal-assignment-to-non-string", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(subroutine_call_args_number_mismatch, "subroutine-call-args-number-mismatch", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(undefined_var_as_subroutine_arg, "undefined-var-as-subroutine-arg", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(variable_undefined_class_type, "variable-undefined-class-type", FRONTEND_SEMANTICALLY_INVALID)

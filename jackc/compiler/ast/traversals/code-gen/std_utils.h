@@ -26,6 +26,7 @@ typedef struct {
         } string_new;
         struct {
             uint8_t c;
+            bool fetch_this_from_temp;
         } string_append_char;
         struct {
             uint32_t words_to_allocate;
