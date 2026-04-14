@@ -16,7 +16,6 @@ add_compile_options(
     -Werror
     -Wconversion
     -Wshadow
-    # -Wcast-qual TODO: Think about void*
 )
 
 # CFLAGS / LDFLAGS

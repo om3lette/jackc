@@ -1,7 +1,7 @@
 class Main {
     function void main() {
         var Array x;
-        // TODO: STD let x = Array.new(10);
+        // STD is not "linked" here => no Array.new is possible
         let x[0] = "Hello world!";
     }
 }

@@ -8,7 +8,6 @@ static bool jackc_should_log(jackc_log_level_t log_level) {
 void jackc_log(const char* fmt, jackc_log_level_t level, const char* caller, ...) {
     if (!jackc_should_log(level)) return;
 
-    // TODO: Improve if strcat is introduced
     if (caller[0] != '\0') {
         switch (level) {
             case LOG_LEVEL_DEBUG:

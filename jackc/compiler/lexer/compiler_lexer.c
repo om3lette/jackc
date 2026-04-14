@@ -39,7 +39,6 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
     if (lexer->c == '"') {
         const char* str_start = jack_lexer_cur_pos(lexer) + 1;
         jack_lexer_read_char(lexer);
-        // TODO: Get "is_end_of_line" function
         while (lexer->c != '"' && !jackc_iseol(lexer->c)) {
             jack_lexer_read_char(lexer);
         }
@@ -60,7 +59,6 @@ jack_token jack_lexer_next_token(jack_lexer* lexer) {
             c = jackc_tolower(lexer->c);
         } while ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_');
 
-        // TODO: Make a separate function?
         size_t length = (size_t)(jack_lexer_cur_pos(lexer) - start_ptr);
         return jack_lexer_new_str_token(lexer, (int32_t)jack_lexer_lookup_keyword(start_ptr, length), start_ptr);
     }
