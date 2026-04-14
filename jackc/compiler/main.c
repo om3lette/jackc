@@ -4,18 +4,22 @@
 #include "core/localization/locale.h"
 #include "std/jackc_stdlib.h"
 #include "frontend.h"
+#include <stddef.h>
 
 typedef struct {
-    const char* source_dir;
-    const char* out_dir;
-    const char* stdlib_dir;
+    jackc_cli_args common;
+    const char* lang;
 } cmd_arguments;
 
-static cmd_arguments cmd_args = {0};
+static cmd_arguments cmd_args = {
+    .common = COMMON_CLI_ARGS,
+    .lang = nullptr
+};
 static arg_spec argument_specs[] = {
-    arg_spec_create("-s", "--source-dir", "Source files directory", ARG_STRING, offsetof(cmd_arguments, source_dir), true),
-    arg_spec_create("-o", "--out-dir", "Output directory", ARG_STRING, offsetof(cmd_arguments, out_dir), true),
-    arg_spec_create("-std", "--stdlib-dir", "Path to the stdlib directory", ARG_STRING, offsetof(cmd_arguments, stdlib_dir), true),
+    arg_spec_create("-s", "--source-dir", "Source files directory", ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, source_dir), true),
+    arg_spec_create("-o", "--out-dir", "Output directory", ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, out_dir), true),
+    arg_spec_create("-std", "--stdlib-dir", "Path to the stdlib directory", ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, stdlib_dir), true),
+    arg_spec_create(nullptr, "--lang", "Language (en/ru)", ARG_STRING, offsetof(cmd_arguments, lang), false)
 };
 
 int main(int argc, char** argv) {
@@ -24,10 +28,16 @@ int main(int argc, char** argv) {
         jackc_exit(FRONTEND_INVALID_ARGUMENT);
     }
 
-    const jackc_locale* locale = jackc_locale_get(JACKC_DEFAULT_LOCALE);
-    const char* input_paths[] = { cmd_args.source_dir, cmd_args.stdlib_dir };
+    jackc_language_code lang_code;
+    if (!jackc_cli_parse_lang(cmd_args.lang, &lang_code)) {
+        jackc_printf("Invalid language specified, using default (%s)\n", jackc_lang_to_readable(lang_code));
+        lang_code = JACKC_DEFAULT_LOCALE;
+    }
+    const jackc_locale* locale = jackc_locale_get(lang_code);
+
+    const char* input_paths[] = { cmd_args.common.source_dir, cmd_args.common.stdlib_dir };
     jackc_frontend_return_code return_code = jackc_frontend_compile(
-        input_paths, 2, cmd_args.out_dir, locale, &allocator, false
+        input_paths, 2, cmd_args.common.out_dir, locale, &allocator, false
     );
 
     if (return_code != FRONTEND_OK) {

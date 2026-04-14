@@ -1,6 +1,7 @@
 #include "core/cli.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
+#include "core/localization/locale.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "std/jackc_stdlib.h"
@@ -149,4 +150,29 @@ void print_specs(arg_spec* specs, int n_specs) {
             jackc_printf("%s", cur.description);
         jackc_putchar('\n');
     }
+}
+
+bool jackc_cli_parse_lang(const char* str, jackc_language_code* out_code) {
+    if (str == nullptr || out_code == nullptr) {
+        return false;
+    }
+    if (jackc_strcmp(str, "en") == 0) {
+        *out_code = JACKC_LANG_EN;
+        return true;
+    }
+    if (jackc_strcmp(str, "ru") == 0) {
+        *out_code = JACKC_LANG_RU;
+        return true;
+    }
+    return false;
+}
+
+const char* jackc_lang_to_readable(jackc_language_code code) {
+    switch (code) {
+        case JACKC_LANG_EN: return "en";
+        case JACKC_LANG_RU: return "ru";
+        case JACKC_LANG_COUNT: jackc_assert(false && "Invalid language code");
+    }
+
+    return "en";
 }
