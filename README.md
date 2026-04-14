@@ -58,8 +58,12 @@ To configure and build the project.
 Run an executable
 
 ```bash
-<BUILD_DIR>/jackc/jackc <SOURCE_DIR> <OUTPUT_DIR>
+<BUILD_DIR>/jackc/jackc -s <SOURCE_DIR> -o <OUTPUT_DIR> -std <STDLIB_DIR>
 ```
+
+> [!IMPORTANT]
+> Make sure that stdlib is not a subdirectory of SOURCE_DIR
+> Otherwise it will be compiled twice which will cause redeclarations to happen
 
 ### RARS
 
@@ -67,10 +71,13 @@ Run an executable
 2. Build the project using the `rars` preset (or using `just rars`)
 3. Move `jackc_backend.s`, `jackc_frontend.s` from `build-riscv` to the CWD
 
+> [!IMPORTANT]
+> `jackc` in RARS has some limitations. One of which requires stdlib to be inside of the source dir in order for it to be located by `scripts/locate-jack-files` or the internals of `scripts/jackc_compile.sh`. This is, indeed, the exact opposite of what was said in "Native" section.
+
 #### "One" step compilation
 
 ```bash
-./scripts/jackc <PATH_TO_RARS_JAR> <SOURCES_DIR> <OUTPUT_DIR>
+./scripts/jackc_compile <PATH_TO_RARS_JAR> <SOURCES_DIR> <OUTPUT_DIR> <STDLIB_DIR>
 ```
 This is a shortcut for what is described below
 
@@ -91,16 +98,6 @@ This will generate a `.vm` file for every `.jack` source file.
 java -jar <PATH_TO_RARS_JAR> jackc_backend.s pa jack-vm-sources.txt <ASM_OUT_DIR>
 ```
 This will produce a single assembly file for the program.
-
-> [!IMPORTANT]
-> `jackc` does not yet implement standard library for Jack so the following lines need to be added to the produced file after `j Sys.init` in `_start`:
-```asm
-Sys.init:
-    call Main.main
-    li a7, 93
-    li a0, 0
-    ecall
-```
 
 5. We can finally run the program!
 ```bash
