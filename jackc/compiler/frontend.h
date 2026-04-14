@@ -3,6 +3,7 @@
 
 #include "compiler/ast/ast.h"
 #include "core/allocators/allocators.h"
+#include "core/localization/locale.h"
 #include <stdint.h>
 
 typedef enum {
@@ -40,6 +41,7 @@ jackc_frontend_return_code jackc_frontend_compile(
     const char* input_paths[],
     uint32_t n_paths,
     const char* output_dir,
+    const jackc_locale* locale,
     Allocator* allocator,
     bool skip_vm_code_gen
 );

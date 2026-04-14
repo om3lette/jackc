@@ -9,6 +9,9 @@ add_library(core STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/config.c
     ${CMAKE_CURRENT_SOURCE_DIR}/file-utils/common_file_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/file-utils/${PLATFORM}_file_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/localization/locale.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/localization/translations/en.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/localization/translations/ru.c
 )
 
 target_link_libraries(core

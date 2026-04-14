@@ -1,7 +1,7 @@
 #ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_ENGINE_H
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_ENGINE_H
 
-#include "compiler/diagnostics-engine/translations/translation.h"
+#include "core/localization/locale.h"
 #include "core/allocators/allocators.h"
 #include "std/jackc_string.h"
 #include "diagnostic.h"
@@ -15,7 +15,7 @@ typedef struct {
 typedef struct {
     jackc_string source;
     const char* filename;
-    const jackc_diagnostic_translation* translations;
+    const jackc_locale* locale;
     int output_fd;
 
     size_t size;
@@ -26,7 +26,7 @@ typedef struct {
 [[ nodiscard ]] jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
     const char* filename,
-    const jackc_diagnostic_translation* translations,
+    const jackc_locale* locale,
     int output_fd
 );
 void jackc_diag_engine_reset(

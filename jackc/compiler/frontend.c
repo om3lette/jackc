@@ -10,14 +10,13 @@
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"
+#include "core/localization/locale.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
 #include "core/jackc_file_utils.h"
 #include "frontend.h"
-
-extern const jackc_diagnostic_translation diagnostic_translations[];
 
 static jack_source* jack_source_add(
     jack_source* collection,
@@ -36,9 +35,9 @@ static jack_source* jack_source_add(
     return node;
 }
 
-static jackc_parse_result jackc_parse_file(const char* filename, jackc_string source, Allocator* allocator) {
+static jackc_parse_result jackc_parse_file(const char* filename, jackc_string source, const jackc_locale* locale, Allocator* allocator) {
     jack_lexer lexer = jack_lexer_init(source.data);
-    jackc_diagnostic_engine engine = jackc_diag_engine_init(source, filename, diagnostic_translations, 1);
+    jackc_diagnostic_engine engine = jackc_diag_engine_init(source, filename, locale, 1);
     jack_parser parser = jack_parser_init(&lexer, &engine, allocator);
 
     ast_class* ast = jack_parser_parse_class(&parser);
@@ -49,6 +48,7 @@ static jackc_parse_result jackc_parse_file(const char* filename, jackc_string so
 
 static bool build_global_symtable(
     const jack_source* source_files,
+    const jackc_locale* locale,
     function_registry* func_registry
 ) {
     function_registry_traversal_context symtab_ctx = {
@@ -58,7 +58,7 @@ static bool build_global_symtable(
     };
     const jack_source* current_file = source_files;
     while (current_file) {
-        symtab_ctx.engine = jackc_diag_engine_init(current_file->content, current_file->filepath, diagnostic_translations, 1);
+        symtab_ctx.engine = jackc_diag_engine_init(current_file->content, current_file->filepath, locale, 1);
         ast_function_registry_build_traversal(current_file->ast, &symtab_ctx);
         jackc_diagnostic_engine_report(&symtab_ctx.engine, current_file->lines);
         current_file = current_file->next;
@@ -68,12 +68,13 @@ static bool build_global_symtable(
 
 static bool is_semantically_invalid(
     const jack_source* source_files,
+    const jackc_locale* locale,
     function_registry* registry,
     Allocator* allocator
 ) {
     bool is_invalid = false;
     for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
-        jackc_diagnostic_engine engine = jackc_diag_engine_init(current_file->content, current_file->filepath, diagnostic_translations, 1);
+        jackc_diagnostic_engine engine = jackc_diag_engine_init(current_file->content, current_file->filepath, locale, 1);
         semantic_validity_traversal_context ctx = semantic_validity_traversal_context_init(
             &current_file->ast->name, registry, &engine, allocator
         );
@@ -171,6 +172,7 @@ jackc_frontend_return_code jackc_frontend_compile(
     const char* input_paths[],
     uint32_t n_paths,
     const char* output_dir,
+    const jackc_locale* locale,
     Allocator* allocator,
     bool skip_vm_code_gen
 ) {
@@ -195,7 +197,7 @@ jackc_frontend_return_code jackc_frontend_compile(
             }
 
             jackc_string file_content = jackc_string_from_str(file_content_raw);
-            jackc_parse_result result = jackc_parse_file(source_file_path, file_content, allocator);
+            jackc_parse_result result = jackc_parse_file(source_file_path, file_content, locale, allocator);
 
             had_syntax_error |= result.had_error;
             if (!result.ast) continue;
@@ -223,11 +225,11 @@ jackc_frontend_return_code jackc_frontend_compile(
     // The first AST pass - build symbol table of class names and function signatures
     // Will report Class redeclarations
     function_registry* registry = function_registry_init(allocator);
-    if (build_global_symtable(source_files, registry))
+    if (build_global_symtable(source_files, locale, registry))
         RETURN_WITH_CLEANUP(FRONTEND_SYMBOL_TABLE_BUILD_ERROR);
 
     // The second AST pass - check that program is semantically valid
-    if (is_semantically_invalid(source_files, registry, allocator))
+    if (is_semantically_invalid(source_files, locale, registry, allocator))
         RETURN_WITH_CLEANUP(FRONTEND_SEMANTICALLY_INVALID);
 
     if (!skip_vm_code_gen) {

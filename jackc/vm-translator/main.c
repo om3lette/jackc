@@ -2,6 +2,7 @@
 #include "core/allocators/adapters.h"
 #include "core/cli.h"
 #include "core/config.h"
+#include "core/localization/locale.h"
 #include "std/jackc_stdlib.h"
 #include "vm-translator/backend.h"
 #include <stddef.h>
@@ -36,6 +37,9 @@ int main(int argc, char** argv) {
         jackc_exit(BACKEND_INVALID_ARGUMENT);
     }
 
+    // TODO
+    const jackc_locale* locale = jackc_locale_get(JACKC_DEFAULT_LOCALE);
+    (void)locale;
     jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size, cmd_args.code_comments);
 
     jackc_backend_return_code return_code = jackc_backend_compile(

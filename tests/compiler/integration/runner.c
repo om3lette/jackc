@@ -1,6 +1,7 @@
 #include "compiler/frontend.h"
 #include "core/allocators/allocators.h"
 #include "core/allocators/adapters.h"
+#include "core/localization/locale.h"
 #include "tau.h"
 #include "test_path_utils.h"
 
@@ -32,7 +33,9 @@ TEST_F_TEARDOWN(integration_fixture) {
         path_join(full_path, sizeof(full_path), tau->test_folder_path, _path);      \
         const char* input_paths[] = { full_path };                                  \
         CHECK_EQ(                                                                   \
-            jackc_frontend_compile(input_paths, 1, nullptr, &tau->allocator, true), \
+            jackc_frontend_compile(                                                 \
+                input_paths, 1, nullptr, &jackc_locale_en, &tau->allocator, true    \
+            ),                                                                      \
             _outcome                                                                \
         );                                                                          \
     }

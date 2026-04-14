@@ -1,6 +1,6 @@
 #include "engine.h"
 #include "compiler/diagnostics-engine/diagnostic.h"
-#include "compiler/diagnostics-engine/translations/translation.h"
+#include "core/localization/locale.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
@@ -11,13 +11,13 @@
 jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
     const char* filename,
-    const jackc_diagnostic_translation* translations,
+    const jackc_locale* locale,
     int output_fd
 ) {
     jackc_diagnostic_engine engine = {
         .source = source,
         .filename = filename,
-        .translations = translations,
+        .locale = locale,
         .output_fd = output_fd,
         .size = 0,
         .overflow = false
@@ -210,7 +210,7 @@ static void diagnostic_engine_report_one(
     char* severity_str = diagnostic_severity_str(diagnostic->severity);
     jackc_fprintf(engine->output_fd, "%s: ", severity_str);
 
-    jackc_diagnostic_translation translation = engine->translations[diagnostic->code];
+    jackc_diagnostic_translation translation = engine->locale->diagnostics.entries[diagnostic->code];
 
     switch (diagnostic->code) {
         case DIAG_UNEXPECTED_TOKEN:
