@@ -1,5 +1,6 @@
 #include "vm-translator/backend.h"
 #include "core/allocators/allocators.h"
+#include "core/localization/locale.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
@@ -14,6 +15,7 @@ jackc_backend_return_code jackc_backend_compile(
     const char* output_dir,
     const char* std_path,
     const jackc_config* config,
+    const jackc_locale* locale,
     Allocator* allocator
 ) {
     if (!std_path)
@@ -33,23 +35,34 @@ jackc_backend_return_code jackc_backend_compile(
 
     asm_context* ctx = asm_context_init(fd, config, allocator);
 
+
     if (std_dir_length + jackc_strlen(STD_ASM_FILENAME) >= 4096)
         return BACKEND_BASE_PATH_TOO_LONG;
     jackc_sprintf(file_path, "%s/%s", std_path, STD_ASM_FILENAME);
-    const char* std_native_content = jackc_read_file_content(file_path);
-    if (!std_native_content)
+
+    jackc_file_return_code source_file_ret_code, file_read_ret_code;
+    char* std_native_content = nullptr;
+    file_read_ret_code = jackc_read_file_content(file_path, &std_native_content);
+    if (file_read_ret_code != FILE_OK) {
+        jackc_report_file_error(locale, file_read_ret_code, file_path);
         return BACKEND_FAULED_TO_OPEN_STD_NATIVE;
+    }
     asm_code_gen_bootstrap(ctx, std_native_content);
     jackc_free((void*)std_native_content);
 
     size_t vm_files_cnt = 0;
-    const char* source_file_path = NULL;
-    while ((source_file_path = jackc_next_source_file(base_path, ".vm")) != NULL) {
+    const char* source_file_path = nullptr;
+    while (
+        (source_file_ret_code = jackc_next_source_file(base_path, ".vm", &source_file_path)) == FILE_OK
+    ) {
         ++vm_files_cnt;
 
-        const char* file_content = jackc_read_file_content(source_file_path);
-        if (!file_content)
+        char* file_content = nullptr;
+        file_read_ret_code = jackc_read_file_content(source_file_path, &file_content);
+        if (file_read_ret_code != FILE_OK) {
+            jackc_report_file_error(locale, file_read_ret_code, source_file_path);
             return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
+        }
         vm_parser parser = jackc_parser_init(&jackc_string_from_str(file_content));
 
         while (vm_parser_has_more_lines(&parser)) {

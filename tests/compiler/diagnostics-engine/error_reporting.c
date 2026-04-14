@@ -1,6 +1,6 @@
 #include "compiler/diagnostics-engine/engine.h"
+#include "core/jackc_file_utils.h"
 #include "core/logging/logger.h"
-#include "std/jackc_stdlib.h"
 #include "test_parser_utils.h"
 #include "test_lexer_common.h"
 #include "tau.h"
@@ -91,14 +91,15 @@ TEST_F(parser_fixture, error_reporting) {
         path_join(expected_path, sizeof(expected_path), test_dir, EXPECTED_FILENAME);
         path_join(output_path, sizeof(output_path), test_dir, OUTPUT_FILENAME);
 
-        char* source = jackc_read_file_content(source_path);
-        if (!source) {
+        char* source = nullptr;
+        if (jackc_read_file_content(source_path, &source) != FILE_OK) {
             is_success = false;
             LOG_ERROR("Missing %s for test %s\n", TEST_FILENAME, test_dir);
             continue;
         }
-        char* expected = jackc_read_file_content(expected_path);
-        if (!expected) {
+        char* expected = nullptr;
+
+        if (jackc_read_file_content(expected_path, &expected) != FILE_OK) {
             is_success = false;
             LOG_ERROR("Missing %s for test %s\n", EXPECTED_FILENAME, test_dir);
             free(source);
@@ -119,8 +120,10 @@ TEST_F(parser_fixture, error_reporting) {
         fflush(out);
         fclose(out);
 
-        char* actual = jackc_read_file_content(output_path);
-        bool result = strcmp(actual, expected) == 0;
+        char* actual = nullptr;
+        jackc_read_file_content(output_path, &actual);
+
+        bool result = actual ? strcmp(actual, expected) == 0 : false;
         ++tests_total;
         tests_passed += result;
         if (!result) {

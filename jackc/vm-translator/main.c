@@ -53,7 +53,8 @@ int main(int argc, char** argv) {
     jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size, cmd_args.code_comments);
 
     jackc_backend_return_code return_code = jackc_backend_compile(
-        cmd_args.common.source_dir, cmd_args.common.out_dir, cmd_args.common.stdlib_dir, &config, &allocator
+        cmd_args.common.source_dir, cmd_args.common.out_dir,
+        cmd_args.common.stdlib_dir, &config, locale, &allocator
     );
     if (return_code != BACKEND_OK) {
         jackc_printf(locale->msgs.backend_failed, return_code);

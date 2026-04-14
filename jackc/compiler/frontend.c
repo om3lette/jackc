@@ -105,6 +105,7 @@ static bool generate_vm_code(
     const char* out_base_dir,
     const jack_source* source_files,
     const function_registry* registry,
+    const jackc_locale* locale,
     Allocator* allocator
 ) {
     // There is no reliable way to create directories while running in RARS
@@ -127,7 +128,7 @@ static bool generate_vm_code(
     for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
         jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
         if (!filename.data) {
-            LOG_ERROR("Failed to extract filename from %s\n", current_file->filepath);
+            jackc_report_file_error(locale, FILE_FAILED_TO_EXTRACT_NAME, current_file->filepath);
             had_error = true;
             continue;
         }
@@ -187,11 +188,13 @@ jackc_frontend_return_code jackc_frontend_compile(
         if (!current_path)
             continue;
 
-        while ((source_file_path = jackc_next_source_file(current_path, ".jack"))) {
-            const char* file_content_raw = jackc_read_file_content(source_file_path);
-
-            if (!file_content_raw) {
-                LOG_ERROR("Failed to open file at %s\n", source_file_path);
+        jackc_file_return_code source_file_ret_code, file_read_ret_code;
+        while (
+            (source_file_ret_code = jackc_next_source_file(current_path, ".jack", &source_file_path)) == FILE_OK
+        ) {
+            char* file_content_raw = nullptr;
+            if ((file_read_ret_code = jackc_read_file_content(source_file_path, &file_content_raw)) != FILE_OK) {
+                jackc_report_file_error(locale, file_read_ret_code, source_file_path);
                 failed_to_open_source_file = true;
                 continue;
             }
@@ -211,6 +214,7 @@ jackc_frontend_return_code jackc_frontend_compile(
                 allocator
             );
         }
+        jackc_report_file_error(locale, source_file_ret_code, current_path);
     }
     // Report syntax error before source files
     // Because if all files had an error there will be no source files, which will cause
@@ -234,7 +238,7 @@ jackc_frontend_return_code jackc_frontend_compile(
 
     if (!skip_vm_code_gen) {
         // The third AST pass - knowing that the code is valid, generate the vm code
-        if (generate_vm_code(output_dir, source_files, registry, allocator))
+        if (generate_vm_code(output_dir, source_files, registry, locale, allocator))
             RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_GENERATE_VM_CODE);
     }
 

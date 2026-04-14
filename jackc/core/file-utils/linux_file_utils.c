@@ -1,4 +1,4 @@
-#include "core/logging/logger.h"
+#include "core/jackc_file_utils.h"
 #include "std/jackc_stdlib.h"
 #include <fcntl.h>
 #include <stdarg.h>
@@ -33,13 +33,11 @@ static char* join_path(const char* dir, const char* file) {
     return full_path;
 }
 
-const char* jackc_next_source_file(const char* base_path, const char* extension) {
+jackc_file_return_code jackc_next_source_file(const char* base_path, const char* extension, const char** out_next_file) {
     if (stack_top == -1) {
         DIR* d = opendir(base_path);
-        if (!d) {
-            LOG_ERROR("Failed to open base directory %s\n", base_path);
-            return NULL;
-        }
+        if (!d)
+            return FILE_FAILED_TO_OPEN_DIR;
 
         stack_top++;
         dir_stack[stack_top].dir_handle = d;
@@ -66,9 +64,8 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
 
         struct stat s;
         if (stat(full_path, &s) == -1) {
-            LOG_ERROR("Failed to stat %s\n", full_path);
             jackc_free(full_path);
-            continue;
+            return FILE_FAILED_STAT;
         }
 
         if (S_ISDIR(s.st_mode)) {
@@ -81,11 +78,15 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
                     continue;
                 }
             } else {
-                LOG_ERROR("Max directory depth reached\n");
+                jackc_free(full_path);
+                return FILE_MAX_DIR_DEPTH_REACHED;
             }
             jackc_free(full_path);
         } else if (S_ISREG(s.st_mode)) {
-            if (has_extension(entry->d_name, extension)) return full_path;
+            if (has_extension(entry->d_name, extension)) {
+                *out_next_file = full_path;
+                return FILE_OK;
+            }
             // Undesired file type
             jackc_free(full_path);
         } else {
@@ -93,5 +94,6 @@ const char* jackc_next_source_file(const char* base_path, const char* extension)
         }
     }
 
-    return NULL;
+    *out_next_file = nullptr;
+    return FILE_EXHAUSTED_DIR;
 }

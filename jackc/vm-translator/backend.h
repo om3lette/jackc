@@ -3,6 +3,7 @@
 
 #include "core/allocators/allocators.h"
 #include "core/config.h"
+#include "core/localization/locale.h"
 #include <stdint.h>
 
 #define OUT_FILENAME "out.asm"
@@ -26,6 +27,7 @@ jackc_backend_return_code jackc_backend_compile(
     const char* output_dir,
     const char* std_path,
     const jackc_config* config,
+    const jackc_locale* locale,
     Allocator* allocator
 );
 

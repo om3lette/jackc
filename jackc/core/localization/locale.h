@@ -2,6 +2,7 @@
 #define JACKC_CORE_LOCALIZATION_LOCALE_H
 
 #include "compiler/diagnostics-engine/diagnostic.h"
+#include "core/jackc_file_utils.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -78,5 +79,7 @@ extern const jackc_locale jackc_locale_en;
 extern const jackc_locale jackc_locale_ru;
 
 const jackc_locale* jackc_locale_get(jackc_language_code code);
+
+void jackc_report_file_error(const jackc_locale* locale, jackc_file_return_code code, const char* path);
 
 #endif
