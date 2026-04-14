@@ -1,6 +1,7 @@
 #ifndef JACKC_CORE_LOCALIZATION_LOCALE_H
 #define JACKC_CORE_LOCALIZATION_LOCALE_H
 
+#include "compiler/diagnostics-engine/diagnostic.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -50,7 +51,7 @@ typedef struct {
 } jackc_file_utils_translations;
 
 typedef struct {
-    const char* code;
+    jackc_diagnostic_code code;
     const char* fmt;
     const char* desc;
 } jackc_diagnostic_translation;
