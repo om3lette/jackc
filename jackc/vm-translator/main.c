@@ -4,6 +4,7 @@
 #include "core/config.h"
 #include "core/localization/locale.h"
 #include "std/jackc_stdlib.h"
+#include "std/jackc_string.h"
 #include "vm-translator/backend.h"
 #include <stddef.h>
 
@@ -23,28 +24,31 @@ static cmd_arguments cmd_args = {
     .lang = nullptr
 };
 static arg_spec argument_specs[] = {
-    arg_spec_create("-s", "--source-dir", "Source files directory", ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, source_dir), true),
-    arg_spec_create("-o", "--out-dir", "Output directory", ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, out_dir), true),
-    arg_spec_create("-std", "--stdlib-dir", "Path to the stdlib directory", ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, stdlib_dir), true),
-    // arg_spec_create(nullptr, "--reversed-stack", "Stack will grow towards higher addresses", ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
-    // arg_spec_create(nullptr, "--stack-size", "Fixed stack size (only works with --reversed-stack)", ARG_UINT, offsetof(cmd_arguments, stack_size), false),
-    arg_spec_create(nullptr, "--code-comments", "Enables generation of code comments", ARG_BOOL, offsetof(cmd_arguments, code_comments), false),
-    arg_spec_create(nullptr, "--lang", "Language (en/ru)", ARG_STRING, offsetof(cmd_arguments, lang), false)
+    arg_spec_create("-s", "--source-dir", CLI_SOURCE_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, source_dir), true),
+    arg_spec_create("-o", "--out-dir", CLI_OUT_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, out_dir), true),
+    arg_spec_create("-std", "--stdlib-dir", CLI_STD_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, stdlib_dir), true),
+    // arg_spec_create(nullptr, "--reversed-stack", CLI_REVERSED_STACK, ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
+    // arg_spec_create(nullptr, "--stack-size", CLI_STACK_SIZE, ARG_UINT, offsetof(cmd_arguments, stack_size), false),
+    arg_spec_create(nullptr, "--code-comments", CLI_CODE_COMMENTS, ARG_BOOL, offsetof(cmd_arguments, code_comments), false),
+    arg_spec_create(nullptr, "--lang", CLI_LANGUAGE, ARG_STRING, offsetof(cmd_arguments, lang), false)
 };
+
 
 int main(int argc, char** argv) {
     Allocator allocator = arena_allocator_adapter();
-    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, &allocator)) {
-        jackc_exit(BACKEND_INVALID_ARGUMENT);
-    }
 
-    jackc_language_code lang_code;
-    if (!jackc_cli_parse_lang(cmd_args.lang, &lang_code)) {
-        jackc_printf("Invalid language specified, using default (%s)\n", jackc_lang_to_readable(lang_code));
-        lang_code = JACKC_DEFAULT_LOCALE;
+    jackc_language_code lang_code = JACKC_DEFAULT_LOCALE;
+    for (int i = 1; i < argc; ++i) {
+        if (jackc_strcmp(argv[i], "--lang") == 0 && i + 1 < argc) {
+            jackc_cli_parse_lang(argv[i + 1], &lang_code);
+            break;
+        }
     }
     const jackc_locale* locale = jackc_locale_get(lang_code);
-    (void)locale;
+
+    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, locale, &allocator)) {
+        jackc_exit(BACKEND_INVALID_ARGUMENT);
+    }
 
     jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size, cmd_args.code_comments);
 
@@ -52,7 +56,8 @@ int main(int argc, char** argv) {
         cmd_args.common.source_dir, cmd_args.common.out_dir, cmd_args.common.stdlib_dir, &config, &allocator
     );
     if (return_code != BACKEND_OK) {
-        jackc_printf("Backend failed with exit code: %d\n", return_code);
+        jackc_printf(locale->msgs.backend_failed, return_code);
+        jackc_putchar('\n');
     }
     jackc_exit((int)return_code);
 }

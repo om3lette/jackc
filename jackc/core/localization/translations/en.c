@@ -40,7 +40,30 @@ const jackc_locale jackc_locale_en = {
         .usage = "Usage: jackc [options]",
         .options = "Options (* - required):",
         .unknown_arg = "Unknown argument: %s",
-        .required_arg = "Required argument '%s' was not provided"
+        .required_arg = "Required argument '%s' was not provided",
+        .option_descriptions = {
+            {CLI_SOURCE_DIR, "Source files directory"},
+            {CLI_OUT_DIR, "Output directory"},
+            {CLI_STD_DIR, "Path to the stdlib directory"},
+            {CLI_CODE_COMMENTS,  "Enables generation of code comments"},
+            {CLI_LANGUAGE, "Language (en/ru)"},
+            {CLI_REVERSED_STACK, "Stack will grow towards higher addresses"},
+            {CLI_STACK_SIZE, "Fixed stack size (only works with --reversed-stack)"}
+        }
+    },
+    .msgs = {
+        .frontend_failed = "Frontend failed with exit code: %d",
+        .backend_failed = "Backend failed with exit code: %d",
+    },
+    .files = {
+        .failed_open_base_dir = "Failed to open base directory %s",
+        .failed_stat = "Failed to stat %s",
+        .failed_close = "Failed to close file descriptor",
+        .failed_read = "Failed to read file",
+        .failed_rewind = "Failed to rewind file",
+        .max_dir_depth = "Max directory depth reached",
+        .failed_extract_filename = "Failed to extract filename from %s",
+        .failed_open_file = "Failed to open file at %s"
     },
     .diagnostics = {
         .entries = diagnostic_translations_en,

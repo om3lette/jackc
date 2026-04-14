@@ -40,7 +40,30 @@ const jackc_locale jackc_locale_ru = {
         .usage = "Использование: jackc [параметры]",
         .options = "Параметры (* - обязательно):",
         .unknown_arg = "Неизвестный аргумент: %s",
-        .required_arg = "Обязательный аргумент '%s' не был предоставлен"
+        .required_arg = "Обязательный аргумент '%s' не был предоставлен",
+        .option_descriptions = {
+            {CLI_SOURCE_DIR, "Директория с исходным кодом"},
+            {CLI_OUT_DIR, "Директория для сохранения выходных файлов"},
+            {CLI_STD_DIR, "Путь до директории со стандартной библиотекой"},
+            {CLI_CODE_COMMENTS,  "Включает генерацию комментариев в коде"},
+            {CLI_LANGUAGE, "Язык сообщений (en/ru)"},
+            {CLI_REVERSED_STACK, "Стэк будет расти в сторону высоких адресов"},
+            {CLI_STACK_SIZE, "Фиксированный размер стека (работает только в связке с --reversed-stack)"}
+        }
+    },
+    .msgs = {
+        .frontend_failed = "Ошибка компилятора: код завершения %d",
+        .backend_failed = "Ошибка генератора: код завершения %d",
+    },
+    .files = {
+        .failed_open_base_dir = "Не удалось открыть базовую директорию %s",
+        .failed_stat = "Не удалось получить статистику %s",
+        .failed_close = "Не удалось закрыть файловый дескриптор",
+        .failed_read = "Не удалось прочитать файл",
+        .failed_rewind = "Не удалось перемотать файл",
+        .max_dir_depth = "Достигнута максимальная глубина директорий",
+        .failed_extract_filename = "Не удалось извлечь имя файла из %s",
+        .failed_open_file = "Не удалось открыть файл %s"
     },
     .diagnostics = {
         .entries = diagnostic_translations_ru,

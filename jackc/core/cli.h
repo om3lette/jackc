@@ -15,7 +15,7 @@ typedef enum {
 typedef struct {
     const char* long_name;
     const char* short_name;
-    const char* description;
+    jackc_cli_option description;
     arg_type type;
     size_t offset;
     bool required;
@@ -28,10 +28,11 @@ typedef struct {
     int n_specs,
     int argc,
     char** argv,
+    const jackc_locale* locale,
     Allocator* allocator
 );
 
-void print_specs(arg_spec* specs, int n_specs);
+void print_specs(arg_spec* specs, int n_specs, const jackc_locale* locale);
 
 #define arg_spec_create(         \
     _short_name,                 \
