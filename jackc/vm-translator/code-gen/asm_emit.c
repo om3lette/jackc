@@ -109,7 +109,7 @@ void asm_emit_branch(
     asm_emit_comment(e, "RISC-V branches only support jumps which fit into 12 bits, while j can handle 20 bits");
     jackc_fprintf(
         e->fd,
-        "\t%s %s, %s, %s_%d\n",
+        "\t%s %s %s, %s_%d\n",
         branch_cond_strs[cond], r1, r2,
         e->branch_label.data, e->branch_label_idx
     );

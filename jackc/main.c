@@ -26,8 +26,8 @@ static arg_spec argument_specs[] = {
     arg_spec_create("-s", "--source-dir", "Source files directory", ARG_STRING, offsetof(cmd_arguments, source_dir), true),
     arg_spec_create("-o", "--out-dir", "Output directory", ARG_STRING, offsetof(cmd_arguments, out_dir), true),
     arg_spec_create("-std", "--stdlib-dir", "Path to the stdlib directory", ARG_STRING, offsetof(cmd_arguments, stdlib_dir), true),
-    arg_spec_create(nullptr, "--reversed-stack", "Stack will grow towards higher addresses", ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
-    arg_spec_create(nullptr, "--stack-size", "Fixed stack size (only works with --reversed-stack)", ARG_UINT, offsetof(cmd_arguments, stack_size), false),
+    // arg_spec_create(nullptr, "--reversed-stack", "Stack will grow towards higher addresses", ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
+    // arg_spec_create(nullptr, "--stack-size", "Fixed stack size (only works with --reversed-stack)", ARG_UINT, offsetof(cmd_arguments, stack_size), false),
     arg_spec_create(nullptr, "--code-comments", "Enables generation of code comments", ARG_BOOL, offsetof(cmd_arguments, code_comments), false),
 };
 
