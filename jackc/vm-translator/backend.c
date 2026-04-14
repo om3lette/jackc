@@ -69,7 +69,8 @@ jackc_backend_return_code jackc_backend_compile(
             asm_code_gen_process_line(ctx, &parser);
             vm_parser_advance(&parser);
             if (!is_valid_state(&parser)) {
-                jackc_printf("Parser failed with exit code %d: %s\n", parser.status, source_file_path);
+                jackc_printf(locale->msgs.parser_failed_with_exit_code, parser.status);
+                jackc_putchar('\n');
                 break;
             }
         }

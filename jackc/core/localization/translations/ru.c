@@ -54,6 +54,7 @@ const jackc_locale jackc_locale_ru = {
     .msgs = {
         .frontend_failed = "Ошибка компилятора: код завершения %d",
         .backend_failed = "Ошибка генератора: код завершения %d",
+        .parser_failed_with_exit_code = "Ошибка парсера: код завершения %d"
     },
     .files = {
         .failed_open_base_dir = "Не удалось открыть базовую директорию %s",

@@ -1,6 +1,7 @@
 #include "compiler/diagnostics-engine/engine.h"
 #include "core/jackc_file_utils.h"
 #include "core/logging/logger.h"
+#include "std/jackc_syscalls.h"
 #include "test_parser_utils.h"
 #include "test_lexer_common.h"
 #include "tau.h"
@@ -106,19 +107,18 @@ TEST_F(parser_fixture, error_reporting) {
             continue;
         }
 
-        FILE* out = fopen(output_path, "w");
-        if (!out) {
-            perror("fopen");
+        int out = jackc_open(output_path, O_WRONLY | O_CREAT | O_TRUNC);
+        if (out < 0) {
+            perror("open");
             continue;
         }
 
         test_jack_lexer_new_buffer(&tau->lexer, source);
-        jackc_diag_engine_reset(&tau->engine, tau->lexer.buffer, TEST_FILENAME, fileno(out));
+        jackc_diag_engine_reset(&tau->engine, tau->lexer.buffer, TEST_FILENAME, out);
 
         parse_class(source, tau);
         jackc_diagnostic_engine_report(&tau->engine, tau->lexer.line);
-        fflush(out);
-        fclose(out);
+        jackc_close(out);
 
         char* actual = nullptr;
         jackc_read_file_content(output_path, &actual);

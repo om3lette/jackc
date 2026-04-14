@@ -9,7 +9,6 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
-#include "core/logging/logger.h"
 #include "core/localization/locale.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
@@ -82,7 +81,7 @@ static bool is_semantically_invalid(
 
         jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
         if (!filename.data) {
-            LOG_ERROR("Failed to extract filename from %s\n", current_file->filepath);
+            jackc_report_file_error(locale, FILE_FAILED_TO_EXTRACT_NAME, current_file->filepath);
             is_invalid = true;
             continue;
         }

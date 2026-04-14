@@ -54,6 +54,7 @@ const jackc_locale jackc_locale_en = {
     .msgs = {
         .frontend_failed = "Frontend failed with exit code: %d",
         .backend_failed = "Backend failed with exit code: %d",
+        .parser_failed_with_exit_code = "Parser failed with exit code %d: %s"
     },
     .files = {
         .failed_open_base_dir = "Failed to open base directory %s",
