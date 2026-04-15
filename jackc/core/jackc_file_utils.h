@@ -17,7 +17,7 @@ typedef enum {
     FILE_FAILED_TO_EXTRACT_NAME
 } jackc_file_return_code;
 
-jackc_file_return_code jackc_next_source_file(const char* base_path, const char* extension, const char** out_next_file);
+[[ nodiscard ]] jackc_file_return_code jackc_next_source_file(const char* base_path, const char* extension, const char** out_next_file);
 
 /**
  * Opens a file by given path, reads file content, returns a pointer to a buffer.

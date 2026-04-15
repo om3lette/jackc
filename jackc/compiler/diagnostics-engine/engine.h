@@ -27,7 +27,8 @@ typedef struct {
     jackc_string source,
     const char* filename,
     const jackc_locale* locale,
-    int output_fd
+    int output_fd,
+    bool override_filename
 );
 void jackc_diag_engine_reset(
     jackc_diagnostic_engine* engine,

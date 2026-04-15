@@ -11,53 +11,6 @@
 #include <sys/stat.h>
 #include "test_path_utils.h"
 
-#define TEST_FILENAME "source.jack"
-#define EXPECTED_FILENAME "expected.txt"
-#define OUTPUT_FILENAME "output.txt"
-
-bool next_test_case(const char* base_path, char* out_dir) {
-    static DIR* dir = nullptr;
-
-    if (!dir) {
-        dir = opendir(base_path);
-        if (!dir) {
-            perror("opendir");
-            return false;
-        }
-    }
-
-    struct dirent* entry;
-
-    while ((entry = readdir(dir)) != nullptr) {
-        if (strcmp(entry->d_name, ".") == 0 ||
-            strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-
-        char subdir[PATH_MAX];
-        path_join(subdir, sizeof(subdir), base_path, entry->d_name);
-
-        struct stat st;
-        if (stat(subdir, &st) != 0 || !S_ISDIR(st.st_mode)) {
-            continue;
-        }
-
-        // check if source.jack exists
-        char test_file[PATH_MAX];
-        path_join(test_file, sizeof(test_file), subdir, TEST_FILENAME);
-
-        if (stat(test_file, &st) == 0 && S_ISREG(st.st_mode)) {
-            strncpy(out_dir, subdir, PATH_MAX);
-            out_dir[PATH_MAX - 1] = '\0';
-            return true;
-        }
-    }
-
-    closedir(dir);
-    dir = nullptr;
-    return false;
-}
-
 TEST_F_SETUP(parser_fixture) {
     test_parser_fixture_init(tau, "");
 }

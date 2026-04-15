@@ -32,9 +32,14 @@ TEST_F_TEARDOWN(integration_fixture) {
         char full_path[PATH_MAX];                                                   \
         path_join(full_path, sizeof(full_path), tau->test_folder_path, _path);      \
         const char* input_paths[] = { full_path };                                  \
+        jackc_frontend_config config = {                                            \
+            .locale = &jackc_locale_en,                                             \
+            .diag_engine_output_fd = -1,                                            \
+            .skip_vm_code_gen = true                                                \
+        };                                                                          \
         CHECK_EQ(                                                                   \
             jackc_frontend_compile(                                                 \
-                input_paths, 1, nullptr, &jackc_locale_en, &tau->allocator, true    \
+                input_paths, 1, nullptr, &config, &tau->allocator                   \
             ),                                                                      \
             _outcome                                                                \
         );                                                                          \

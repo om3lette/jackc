@@ -37,13 +37,19 @@ typedef struct jack_ast_collection {
     struct jack_ast_collection* next;
 } jack_source;
 
+typedef struct {
+    const jackc_locale* locale;
+    int diag_engine_output_fd;
+    bool diag_engine_filename_override;
+    bool skip_vm_code_gen;
+} jackc_frontend_config;
+
 jackc_frontend_return_code jackc_frontend_compile(
     const char* input_paths[],
     uint32_t n_paths,
     const char* output_dir,
-    const jackc_locale* locale,
-    Allocator* allocator,
-    bool skip_vm_code_gen
+    const jackc_frontend_config* config,
+    Allocator* allocator
 );
 
 #endif

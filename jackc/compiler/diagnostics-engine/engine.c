@@ -12,11 +12,12 @@ jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
     const char* filename,
     const jackc_locale* locale,
-    int output_fd
+    int output_fd,
+    bool override_filename
 ) {
     jackc_diagnostic_engine engine = {
         .source = source,
-        .filename = filename,
+        .filename = override_filename ? "Override.jack" : filename,
         .locale = locale,
         .output_fd = output_fd,
         .size = 0,
@@ -183,14 +184,14 @@ static void print_prefix_with_line(int fd, uint32_t line, uint32_t max_line_leng
 
 #define PUTCHAR(c) jackc_fprintf(engine->output_fd, "%c", c)
 
-static char* diagnostic_severity_str(jackc_diagnostic_severity severity) {
+static const char* diagnostic_severity_str(const jackc_locale* locale, jackc_diagnostic_severity severity) {
     switch (severity) {
         case DIAG_ERROR:
-            return "error";
+            return locale->diagnostics.error;
         case DIAG_WARNING:
-            return "warning";
+            return locale->diagnostics.warning;
         case DIAG_NOTE:
-            return "note";
+            return locale->diagnostics.note;
     }
 
     jackc_assert(false);
@@ -207,7 +208,7 @@ static void diagnostic_engine_report_one(
     jackc_span span = diagnostic->span;
     jack_location loc = source_map_resolve(line_starts, lines_total, span.start);
 
-    char* severity_str = diagnostic_severity_str(diagnostic->severity);
+    const char* severity_str = diagnostic_severity_str(engine->locale, diagnostic->severity);
     jackc_fprintf(engine->output_fd, "%s: ", severity_str);
 
     jackc_diagnostic_translation translation = engine->locale->diagnostics.entries[diagnostic->code];
@@ -302,7 +303,11 @@ static void diagnostic_engine_report_one(
     }
 
     if (translation.desc) {
-        jackc_fprintf(engine->output_fd, "\n%s: %s", diagnostic_severity_str(DIAG_NOTE), translation.desc);
+        jackc_fprintf(
+            engine->output_fd,
+            "\n%s: %s",
+            diagnostic_severity_str(engine->locale, DIAG_NOTE), translation.desc
+        );
     }
     if (diagnostic->note) {
         // Only one note per diagnostic struct is supported
@@ -334,7 +339,12 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
     }
 
     if (engine->overflow) {
-        jackc_fprintf(engine->output_fd, "\n%s: Diagnostic engine overflowed.\n", diagnostic_severity_str(DIAG_WARNING));
+        jackc_fprintf(
+            engine->output_fd,
+            "\n%s: %s\n",
+            diagnostic_severity_str(engine->locale, DIAG_WARNING),
+            engine->locale->diagnostics.engine_overflow
+        );
     }
 }
 

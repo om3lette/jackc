@@ -62,6 +62,11 @@ typedef struct {
 typedef struct {
     const jackc_diagnostic_translation* entries;
     uint32_t count;
+
+    const char* error;
+    const char* warning;
+    const char* note;
+    const char* engine_overflow;
 } jackc_diagnostic_translations;
 
 typedef struct {

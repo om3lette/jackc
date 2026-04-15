@@ -88,7 +88,8 @@ target_link_libraries(compiler_parser_tests
 
 add_executable(diagnostics_engine_tests
     main.c
-    compiler/diagnostics-engine/error_reporting.c
+    compiler/diagnostics-engine/parsing-errors/error_reporting.c
+    compiler/diagnostics-engine/frontend-errors/error_reporting.c
 )
 target_link_libraries(diagnostics_engine_tests
     PRIVATE

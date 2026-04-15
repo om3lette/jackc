@@ -69,6 +69,11 @@ const jackc_locale jackc_locale_en = {
     },
     .diagnostics = {
         .entries = diagnostic_translations_en,
-        .count = NUMBER_OF_DIAGNOSTICS
+        .count = NUMBER_OF_DIAGNOSTICS,
+
+        .error = "Error",
+        .warning = "Warning",
+        .note = "Note",
+        .engine_overflow = "Diagnostic engine overflowed"
     }
 };

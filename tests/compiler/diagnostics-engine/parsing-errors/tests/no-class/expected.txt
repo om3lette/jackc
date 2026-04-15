@@ -1,0 +1,5 @@
+Error: Expected 'class', got 'function'
+ --> Main.jack:1:1
+  |
+1 | function void multiply(int x, int y) {
+  | ^~~~~~~~

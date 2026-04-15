@@ -69,6 +69,11 @@ const jackc_locale jackc_locale_ru = {
     },
     .diagnostics = {
         .entries = diagnostic_translations_ru,
-        .count = NUMBER_OF_DIAGNOSTICS
+        .count = NUMBER_OF_DIAGNOSTICS,
+
+        .error = "Ошибка",
+        .warning = "Предупреждение",
+        .note = "Замечание",
+        .engine_overflow = "Диагностический модуль переполнен"
     }
 };

@@ -50,8 +50,15 @@ int main(int argc, char** argv) {
         jackc_exit(JACKC_INVALID_NUMBER_OF_ARGUMENTS);
 
     const char* input_paths[] = { cmd_args.common.stdlib_dir, cmd_args.common.source_dir };
+
+    jackc_frontend_config frontend_config = {
+        .locale = locale,
+        .diag_engine_output_fd = 1,
+        .diag_engine_filename_override = false,
+        .skip_vm_code_gen = false
+    };
     jackc_frontend_return_code frontend_ret_code = jackc_frontend_compile(
-        input_paths, 2, cmd_args.common.out_dir, locale, &allocator, false
+        input_paths, 2, cmd_args.common.out_dir, &frontend_config, &allocator
     );
 
     if (frontend_ret_code != FRONTEND_OK) {

@@ -34,9 +34,12 @@ static jack_source* jack_source_add(
     return node;
 }
 
-static jackc_parse_result jackc_parse_file(const char* filename, jackc_string source, const jackc_locale* locale, Allocator* allocator) {
+static jackc_parse_result jackc_parse_file(const char* filename, jackc_string source, const jackc_frontend_config* cfg, Allocator* allocator) {
     jack_lexer lexer = jack_lexer_init(source.data);
-    jackc_diagnostic_engine engine = jackc_diag_engine_init(source, filename, locale, 1);
+    jackc_diagnostic_engine engine = jackc_diag_engine_init(
+        source, filename,
+        cfg->locale, cfg->diag_engine_output_fd, cfg->diag_engine_filename_override
+    );
     jack_parser parser = jack_parser_init(&lexer, &engine, allocator);
 
     ast_class* ast = jack_parser_parse_class(&parser);
@@ -47,7 +50,7 @@ static jackc_parse_result jackc_parse_file(const char* filename, jackc_string so
 
 static bool build_global_symtable(
     const jack_source* source_files,
-    const jackc_locale* locale,
+    const jackc_frontend_config* cfg,
     function_registry* func_registry
 ) {
     function_registry_traversal_context symtab_ctx = {
@@ -57,7 +60,10 @@ static bool build_global_symtable(
     };
     const jack_source* current_file = source_files;
     while (current_file) {
-        symtab_ctx.engine = jackc_diag_engine_init(current_file->content, current_file->filepath, locale, 1);
+        symtab_ctx.engine = jackc_diag_engine_init(
+            current_file->content, current_file->filepath,
+            cfg->locale, cfg->diag_engine_output_fd, cfg->diag_engine_filename_override
+        );
         ast_function_registry_build_traversal(current_file->ast, &symtab_ctx);
         jackc_diagnostic_engine_report(&symtab_ctx.engine, current_file->lines);
         current_file = current_file->next;
@@ -67,13 +73,16 @@ static bool build_global_symtable(
 
 static bool is_semantically_invalid(
     const jack_source* source_files,
-    const jackc_locale* locale,
+    const jackc_frontend_config* cfg,
     function_registry* registry,
     Allocator* allocator
 ) {
     bool is_invalid = false;
     for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
-        jackc_diagnostic_engine engine = jackc_diag_engine_init(current_file->content, current_file->filepath, locale, 1);
+        jackc_diagnostic_engine engine = jackc_diag_engine_init(
+            current_file->content, current_file->filepath,
+            cfg->locale, cfg->diag_engine_output_fd, cfg->diag_engine_filename_override
+        );
         semantic_validity_traversal_context ctx = semantic_validity_traversal_context_init(
             &current_file->ast->name, registry, &engine, allocator
         );
@@ -81,7 +90,7 @@ static bool is_semantically_invalid(
 
         jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
         if (!filename.data) {
-            jackc_report_file_error(locale, FILE_FAILED_TO_EXTRACT_NAME, current_file->filepath);
+            jackc_report_file_error(cfg->locale, FILE_FAILED_TO_EXTRACT_NAME, current_file->filepath);
             is_invalid = true;
             continue;
         }
@@ -97,7 +106,7 @@ static bool is_semantically_invalid(
         jackc_diagnostic_engine_report(&ctx.engine, current_file->lines);
     }
     if (!function_registry_contains(registry, &jackc_string_from_str("Main"), &jackc_string_from_str("main"), nullptr)) {
-        jackc_printf(locale->msgs.program_entrypoint_not_found);
+        jackc_printf(cfg->locale->msgs.program_entrypoint_not_found);
         jackc_putchar('\n');
         is_invalid = true;
     }
@@ -109,7 +118,7 @@ static bool generate_vm_code(
     const char* out_base_dir,
     const jack_source* source_files,
     const function_registry* registry,
-    const jackc_locale* locale,
+    const jackc_frontend_config* config,
     Allocator* allocator
 ) {
     // There is no reliable way to create directories while running in RARS
@@ -132,7 +141,7 @@ static bool generate_vm_code(
     for (const jack_source* current_file = source_files; current_file; current_file = current_file->next) {
         jackc_string filename = jackc_find_filename_no_ext(current_file->filepath);
         if (!filename.data) {
-            jackc_report_file_error(locale, FILE_FAILED_TO_EXTRACT_NAME, current_file->filepath);
+            jackc_report_file_error(config->locale, FILE_FAILED_TO_EXTRACT_NAME, current_file->filepath);
             had_error = true;
             continue;
         }
@@ -177,9 +186,8 @@ jackc_frontend_return_code jackc_frontend_compile(
     const char* input_paths[],
     uint32_t n_paths,
     const char* output_dir,
-    const jackc_locale* locale,
-    Allocator* allocator,
-    bool skip_vm_code_gen
+    const jackc_frontend_config* config,
+    Allocator* allocator
 ) {
     const char* source_file_path = nullptr;
 
@@ -198,13 +206,13 @@ jackc_frontend_return_code jackc_frontend_compile(
         ) {
             char* file_content_raw = nullptr;
             if ((file_read_ret_code = jackc_read_file_content(source_file_path, &file_content_raw)) != FILE_OK) {
-                jackc_report_file_error(locale, file_read_ret_code, source_file_path);
+                jackc_report_file_error(config->locale, file_read_ret_code, source_file_path);
                 failed_to_open_source_file = true;
                 continue;
             }
 
             jackc_string file_content = jackc_string_from_str(file_content_raw);
-            jackc_parse_result result = jackc_parse_file(source_file_path, file_content, locale, allocator);
+            jackc_parse_result result = jackc_parse_file(source_file_path, file_content, config, allocator);
 
             had_syntax_error |= result.had_error;
             if (!result.ast) {
@@ -222,7 +230,7 @@ jackc_frontend_return_code jackc_frontend_compile(
                 allocator
             );
         }
-        jackc_report_file_error(locale, source_file_ret_code, current_path);
+        jackc_report_file_error(config->locale, source_file_ret_code, current_path);
     }
     // Report syntax error before source files
     // Because if all files had an error there will be no source files, which will cause
@@ -237,16 +245,16 @@ jackc_frontend_return_code jackc_frontend_compile(
     // The first AST pass - build symbol table of class names and function signatures
     // Will report Class redeclarations
     function_registry* registry = function_registry_init(allocator);
-    if (build_global_symtable(source_files, locale, registry))
+    if (build_global_symtable(source_files, config, registry))
         RETURN_WITH_CLEANUP(FRONTEND_SYMBOL_TABLE_BUILD_ERROR);
 
     // The second AST pass - check that program is semantically valid
-    if (is_semantically_invalid(source_files, locale, registry, allocator))
+    if (is_semantically_invalid(source_files, config, registry, allocator))
         RETURN_WITH_CLEANUP(FRONTEND_SEMANTICALLY_INVALID);
 
-    if (!skip_vm_code_gen) {
+    if (!config->skip_vm_code_gen) {
         // The third AST pass - knowing that the code is valid, generate the vm code
-        if (generate_vm_code(output_dir, source_files, registry, locale, allocator))
+        if (generate_vm_code(output_dir, source_files, registry, config, allocator))
             RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_GENERATE_VM_CODE);
     }
 

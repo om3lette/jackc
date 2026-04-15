@@ -1,6 +1,0 @@
-error: Invalid subroutine body: found 'x'.
- --> source.jack:4:9
-  |
-4 |         x = Memory.alloc(4);
-  |         ^
-note: Expected a variable declaration or a statement.

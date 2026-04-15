@@ -1,0 +1,4 @@
+class Main {
+    function int main() { return; }
+    function int nonVoid() {}
+}

@@ -1,5 +1,5 @@
-error: Missing semicolon.
- --> source.jack:2:35
+Error: Missing semicolon.
+ --> Main.jack:2:35
   |
 2 |     field int x, missing_semicolon
   |                                   ^
