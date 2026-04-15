@@ -207,7 +207,11 @@ jackc_frontend_return_code jackc_frontend_compile(
             jackc_parse_result result = jackc_parse_file(source_file_path, file_content, locale, allocator);
 
             had_syntax_error |= result.had_error;
-            if (!result.ast) continue;
+            if (!result.ast) {
+                jackc_free((void*)source_file_path);
+                jackc_free((void*)file_content_raw);
+                continue;
+            }
 
             source_files = jack_source_add(
                 source_files,
