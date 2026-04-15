@@ -3,7 +3,7 @@
  */
 class Main {
     // One and only 'main' function
-    function void main() {
+    function int main() {
         var int x, y;
         let x = 2;
         let y = 3;

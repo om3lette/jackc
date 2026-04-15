@@ -22,6 +22,7 @@ static const jackc_diagnostic_translation diagnostic_translations_en[] = {
     { DIAG_CALLED_OBJECT_TYPE_IS_NOT_A_CLASS, "Called object is not of class type.", nullptr },
     { DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL, "Too few arguments to subroutine call, expected %d, have %d", nullptr },
     { DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL, "Too many arguments to subroutine call, expected %d, have %d", nullptr },
+    { DIAG_INCOMPATIBLE_TYPE_CONVERSION, "Incompatible conversion from '%.*s' to '%.*s'", nullptr },
 
     { DIAG_EMPTY_IF_STATEMENT, "Empty if statement body", nullptr },
     { DIAG_INVALID_OPERATION, "Invalid operation.", nullptr },
@@ -29,7 +30,7 @@ static const jackc_diagnostic_translation diagnostic_translations_en[] = {
     { DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, "The class name '%.*s' does not match the filename '%.*s'.", nullptr },
 
     { DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, "Previous definition is here", nullptr },
-    { DIAG_NOTE_DECLATED_HERE, "Declared here", nullptr },
+    { DIAG_NOTE_DECLARED_HERE, "Declared here", nullptr },
 
     { DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE, "No 'dispose' method for non static class", "Will cause memory leaks" },
 };

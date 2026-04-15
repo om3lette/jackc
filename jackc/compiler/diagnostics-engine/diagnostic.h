@@ -1,6 +1,7 @@
 #ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_DIAGNOSTIC_H
 
+#include "compiler/ast/ast.h"
 #include "std/jackc_string.h"
 #include <stdint.h>
 
@@ -35,6 +36,7 @@ typedef enum {
     DIAG_CALLED_OBJECT_TYPE_IS_NOT_A_CLASS,
     DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL,
     DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL,
+    DIAG_INCOMPATIBLE_TYPE_CONVERSION,
 
     DIAG_EMPTY_IF_STATEMENT,
     DIAG_INVALID_OPERATION,
@@ -43,7 +45,7 @@ typedef enum {
 
     // Notes
     DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE,
-    DIAG_NOTE_DECLATED_HERE,
+    DIAG_NOTE_DECLARED_HERE,
 
     // Warnings
     DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE,
@@ -77,6 +79,10 @@ struct jackc_diagnostic {
             uint16_t got;
             uint16_t expected;
         } subroutine_n_args_mismatch;
+        struct {
+            ast_type left;
+            ast_type right;
+        } incompatible_type_cast;
     } data;
 };
 

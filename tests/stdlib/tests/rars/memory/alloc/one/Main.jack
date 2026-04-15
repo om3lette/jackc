@@ -1,5 +1,5 @@
 class Main {
-    function void main(int size) {
+    function int main(int size) {
         return Memory.alloc(size);
     }
 }

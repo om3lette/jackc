@@ -1,5 +1,5 @@
 class Main {
-    function void main() {
+    function int main() {
         var Array a, b;
 
         let a = Array.new(10);

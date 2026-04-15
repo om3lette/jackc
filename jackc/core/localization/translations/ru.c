@@ -22,6 +22,7 @@ static const jackc_diagnostic_translation diagnostic_translations_ru[] = {
     { DIAG_CALLED_OBJECT_TYPE_IS_NOT_A_CLASS, "Вызываемый объект не имеет тип класса.", nullptr },
     { DIAG_TOO_FEW_ARGUMENTS_TO_FUNCTION_CALL, "Недостаточно аргументов при вызове подпрограммы, ожидалось %d, получено %d", nullptr },
     { DIAG_TOO_MANY_ARGUMENTS_TO_FUNCTION_CALL, "Слишком много аргументов при вызове подпрограммы, ожидалось %d, получено %d", nullptr },
+    { DIAG_INCOMPATIBLE_TYPE_CONVERSION, "Невозможно преобразовать '%.*s' в '%.*s'", nullptr },
 
     { DIAG_EMPTY_IF_STATEMENT, "Пустое тело оператора if", nullptr },
     { DIAG_INVALID_OPERATION, "Неверная операция.", nullptr },
@@ -29,7 +30,7 @@ static const jackc_diagnostic_translation diagnostic_translations_ru[] = {
     { DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, "Имя класса '%.*s' не совпадает с именем файла '%.*s'.", nullptr },
 
     { DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, "Предыдущее определение здесь", nullptr },
-    { DIAG_NOTE_DECLATED_HERE, "Объявлено здесь", nullptr },
+    { DIAG_NOTE_DECLARED_HERE, "Объявлено здесь", nullptr },
 
     { DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE, "Нет метода 'dispose' для не статического класса", "Вызовет утечку памяти" },
 };

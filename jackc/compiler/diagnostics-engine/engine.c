@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "compiler/diagnostics-engine/diagnostic.h"
+#include "common/type_mappers.h"
 #include "core/localization/locale.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/allocators/allocators.h"
@@ -39,64 +40,6 @@ void jackc_diag_engine_reset(
     engine->output_fd = output_fd;
     engine->size = 0;
     engine->overflow = false;
-}
-
-static char* token_type_to_str(jack_token_type token) {
-    switch (token) {
-        case TOKEN_EOF:
-            return "EOF";
-        case TOKEN_CLASS:
-            return "class";
-        case TOKEN_CONSTRUCTOR:
-            return "constructor";
-        case TOKEN_FUNCTION:
-            return "function";
-        case TOKEN_METHOD:
-            return "method";
-        case TOKEN_FIELD:
-            return "field";
-        case TOKEN_STATIC:
-            return "static";
-        case TOKEN_VAR:
-            return "var";
-        case TOKEN_INT:
-            return "int";
-        case TOKEN_CHAR:
-            return "char";
-        case TOKEN_BOOLEAN:
-            return "boolean";
-        case TOKEN_VOID:
-            return "void";
-        case TOKEN_TRUE:
-            return "true";
-        case TOKEN_FALSE:
-            return "false";
-        case TOKEN_NULL:
-            return "null";
-        case TOKEN_THIS:
-            return "this";
-        case TOKEN_LET:
-            return "let";
-        case TOKEN_DO:
-            return "do";
-        case TOKEN_IF:
-            return "if";
-        case TOKEN_ELSE:
-            return "else";
-        case TOKEN_WHILE:
-            return "while";
-        case TOKEN_RETURN:
-            return "return";
-        case TOKEN_INT_LITERAL:
-            return "<integer literal>";
-        case TOKEN_STR_LITERAL:
-            return "\"string literal\"";
-        case TOKEN_IDENTIFIER:
-            return "<identifier>";
-        case TOKEN_NATIVE:
-            return "native";
-    }
-    return nullptr;
 }
 
 char char_to_str_buf[2];
@@ -270,6 +213,19 @@ static void diagnostic_engine_report_one(
                 engine->source.data + diagnostic->span.start
             );
             break;
+        case DIAG_INCOMPATIBLE_TYPE_CONVERSION: {
+            // Note that the message is "failed to convert x to y"
+            // So the first argument is the value, therefore rhs
+            jackc_string lhs_str = ast_type_to_str(&diagnostic->data.incompatible_type_cast.left);
+            jackc_string rhs_str = ast_type_to_str(&diagnostic->data.incompatible_type_cast.right);
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                rhs_str.length, rhs_str.data,
+                lhs_str.length, lhs_str.data
+            );
+            break;
+        }
         default:
             jackc_fprintf(engine->output_fd, translation.fmt);
             break;

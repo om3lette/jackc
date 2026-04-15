@@ -1,0 +1,5 @@
+Error: Incompatible conversion from 'Test2' to 'Test1'
+ --> Override.jack:5:17
+   |
+ 5 |         let x = Test2.new();
+   |                 ^~~~~

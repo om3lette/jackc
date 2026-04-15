@@ -1,5 +1,5 @@
 class Main {
-    function void main() {
+    function int main() {
         var int x, y, ans;
         let x = 2;
         let y = 3;

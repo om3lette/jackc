@@ -1,5 +1,5 @@
 class Main {
-    function void main(int timesToAllocate) {
+    function int main(int timesToAllocate) {
         var int x, ptr;
         let x = 0;
         while (x < timesToAllocate) {

@@ -51,6 +51,7 @@ REGISTER_TEST(var_shadowing_class, "var-shadowing-class", FRONTEND_OK)
 REGISTER_TEST(method_call_inside_constructor, "method-call-inside-constructor", FRONTEND_OK)
 REGISTER_TEST(string_literal_assignment, "string-literal-assignment", FRONTEND_OK)
 REGISTER_TEST(string_literal_assignment_array, "string-literal-assignment-array", FRONTEND_OK)
+REGISTER_TEST(subroutine_class_can_be_casted_to_primitives, "subroutine-class-can-be-casted-to-primitives", FRONTEND_OK)
 
 REGISTER_TEST(mixing_declarations_and_code_1, "mixing-declarations-and-code-1", FRONTEND_SYNTAX_ERROR)
 REGISTER_TEST(mixing_declarations_and_code_2, "mixing-declarations-and-code-2", FRONTEND_SYNTAX_ERROR)
@@ -64,3 +65,5 @@ REGISTER_TEST(subroutine_call_args_number_mismatch, "subroutine-call-args-number
 REGISTER_TEST(undefined_var_as_subroutine_arg, "undefined-var-as-subroutine-arg", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(variable_undefined_class_type, "variable-undefined-class-type", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(missing_entrypoint, "missing-entrypoint", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(subroutine_explicitly_returning_void, "subroutine-explicitly-returning-void", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(subroutine_return_type_mismatch_primitive, "subroutine-return-type-mismatch-primitive", FRONTEND_SEMANTICALLY_INVALID)

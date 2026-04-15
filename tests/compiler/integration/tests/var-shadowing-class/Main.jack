@@ -1,6 +1,6 @@
 class Main {
     static int Main;
-    method void main() {
+    method int main() {
         var int y;
         let y = 3;
 

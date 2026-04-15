@@ -1,5 +1,5 @@
 class Main {
-    function void main(int arg) {
+    function int main(int arg) {
         return Math.abs(arg);
     }
 }

@@ -1,0 +1,5 @@
+Error: Incompatible conversion from 'int' to 'void'
+ --> Override.jack:3:9
+  |
+3 |         return 10;
+  |         ^~~~~~

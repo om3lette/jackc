@@ -1,5 +1,5 @@
 #include "vm-translator/code-gen/asm_code_gen.h"
-#include "common/common.h"
+#include "common/type_mappers.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"

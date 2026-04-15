@@ -1,5 +1,3 @@
-add_subdirectory(diagnostics-engine)
-
 add_library(compiler STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/lexer/compiler_lexer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/lexer/compiler_lexer_internal.c
@@ -11,8 +9,11 @@ add_library(compiler STATIC
 
     ${CMAKE_CURRENT_SOURCE_DIR}/symtable/compiler_symtable.c
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics-engine/engine.c
+
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/ast.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/ast_traversal_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/symtab_traversal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/semantic_validity_traversal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ast/traversals/code-gen/std_utils.c
@@ -22,13 +23,11 @@ add_library(compiler STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/function-registry/function_registry.c
 
     ${CMAKE_CURRENT_SOURCE_DIR}/frontend.c
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/../common/common.c
 )
 target_link_libraries(compiler
     PUBLIC
         core
-        diagnostics_engine
+        common
 )
 
 add_executable(jackc_frontend
