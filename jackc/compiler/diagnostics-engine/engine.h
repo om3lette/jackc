@@ -48,12 +48,25 @@ typedef struct {
     jackc_diagnostic_engine* engine,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_string str
+    jackc_span span
 );
+[[ nodiscard ]] jackc_diag_builder jackc_diag_begin_str(
+    jackc_diagnostic_engine* engine,
+    jackc_diagnostic_severity severity,
+    jackc_diagnostic_code code,
+    const jackc_string* str
+);
+
 void jackc_diag_add_note(
     jackc_diag_builder* builder,
     jackc_diagnostic_code code,
-    jackc_string str,
+    jackc_span span,
+    Allocator* allocator
+);
+void jackc_diag_add_note_str(
+    jackc_diag_builder* builder,
+    jackc_diagnostic_code code,
+    const jackc_string* str,
     Allocator* allocator
 );
 

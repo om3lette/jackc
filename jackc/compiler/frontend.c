@@ -95,8 +95,8 @@ static bool is_semantically_invalid(
             continue;
         }
         if (jackc_string_cmp(&filename, &current_file->ast->name) != 0) {
-            jackc_diag_builder d = jackc_diag_begin(
-                &ctx.engine, DIAG_ERROR, DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, current_file->ast->name
+            jackc_diag_builder d = jackc_diag_begin_str(
+                &ctx.engine, DIAG_ERROR, DIAG_CLASS_NAME_DOES_NOT_MATCH_THE_FILENAME, &current_file->ast->name
             );
             d.diag.data.expected_class_name.filename = filename;
             jackc_diag_emit(&d);
@@ -133,7 +133,8 @@ static bool generate_vm_code(
         .symtab = sym_table_init(nullptr, allocator),
         .allocator = allocator,
         .this = ast_variable_declaration(
-            allocator, &jackc_string_from_str("this"), VAR_ARG, (ast_type){}, nullptr
+            allocator, &jackc_string_from_str("this"), &(jackc_span) {0},
+            VAR_ARG, (ast_type){}, nullptr
         ),
         .if_label_index = 0,
         .while_label_index = 0

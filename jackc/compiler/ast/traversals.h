@@ -17,8 +17,10 @@ void ast_function_registry_build_traversal(const ast_class* class, function_regi
 
 typedef struct {
     jackc_string class_name;
+    jackc_span class_span;
 
     jackc_string subroutine_name;
+    jackc_span subroutine_span;
     function_signature sub_signature;
 
     sym_table* symtab;

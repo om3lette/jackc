@@ -1,7 +1,6 @@
 #ifndef JACKC_COMPILER_LEXER_H
 #define JACKC_COMPILER_LEXER_H
 
-#include "compiler/diagnostics-engine/diagnostic.h"
 #include "std/jackc_string.h"
 #include <stdint.h>
 

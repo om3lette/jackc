@@ -6,7 +6,7 @@ void ast_function_registry_build_traversal(const ast_class* class, function_regi
     switch (function_registry_insert(ctx->registry, class)) {
         case SYMTAB_ALREADY_EXISTS:
             ctx->had_redeclaration = true;
-            jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_ERROR, DIAG_REDEFINITION, class->name);
+            jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_ERROR, DIAG_REDEFINITION, class->node.span);
             jackc_diag_emit(&d);
             break;
         case SYMTAB_OK:

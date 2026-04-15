@@ -5,7 +5,7 @@
 static ast_expr* ast_expr_common_init(
     Allocator* allocator,
     ast_expr_kind kind,
-    const jackc_string* span
+    const jackc_span* span
 ) {
     ast_expr* expr = allocator->alloc(sizeof(ast_expr), allocator->context);
 
@@ -16,7 +16,7 @@ static ast_expr* ast_expr_common_init(
 
 ast_expr* ast_expr_int(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     int32_t value
 ) {
     ast_expr* expr = ast_expr_common_init(allocator, EXPR_INT, span);
@@ -27,7 +27,7 @@ ast_expr* ast_expr_int(
 
 ast_expr* ast_expr_string(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* value
 ) {
     ast_expr* expr = ast_expr_common_init(allocator, EXPR_STRING, span);
@@ -38,7 +38,7 @@ ast_expr* ast_expr_string(
 
 ast_expr* ast_expr_keyword(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_keyword_const keyword
 ) {
     ast_expr* expr = ast_expr_common_init(allocator, EXPR_KEYWORD, span);
@@ -49,7 +49,7 @@ ast_expr* ast_expr_keyword(
 
 ast_expr* ast_expr_var(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* name
 ) {
     ast_expr* expr = ast_expr_common_init(allocator, EXPR_VAR, span);
@@ -60,7 +60,7 @@ ast_expr* ast_expr_var(
 
 ast_expr* ast_expr_binary(
     Allocator* allocator,
-    const jackc_string* left_span,
+    const jackc_span* left_span,
     ast_expr* left,
     ast_binary_op op,
     ast_expr* right
@@ -77,7 +77,7 @@ ast_expr* ast_expr_binary(
 
 ast_expr* ast_expr_unary(
     Allocator* allocator,
-    const jackc_string* op_span,
+    const jackc_span* op_span,
     ast_unary_op op,
     ast_expr* operand
 ) {
@@ -92,7 +92,7 @@ ast_expr* ast_expr_unary(
 
 ast_expr* ast_expr_call(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* receiver,
     const jackc_string* subroutine_name,
     ast_expr_list* args
@@ -110,7 +110,7 @@ ast_expr* ast_expr_call(
 
 ast_expr* ast_expr_array_access(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* var_name,
     ast_expr* index
 ) {
@@ -139,7 +139,7 @@ ast_expr_list* ast_expr_list_push_back(
 static ast_stmt* ast_stmt_common_init(
     Allocator* allocator,
     ast_stmt_kind kind,
-    const jackc_string* span
+    const jackc_span* span
 ) {
     ast_stmt* stmt = allocator->alloc(sizeof(ast_stmt), allocator->context);
 
@@ -161,7 +161,7 @@ ast_stmt* ast_stmt_list_push_back(
 
 ast_stmt* ast_stmt_let(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* var_name,
     ast_expr* index,
     ast_expr* value
@@ -177,7 +177,7 @@ ast_stmt* ast_stmt_let(
 
 ast_stmt* ast_stmt_if(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_expr* cond,
     ast_stmt* true_branch,
     ast_stmt* false_branch
@@ -193,7 +193,7 @@ ast_stmt* ast_stmt_if(
 
 ast_stmt* ast_stmt_while(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_expr* cond,
     ast_stmt* body
 ) {
@@ -208,7 +208,7 @@ ast_stmt* ast_stmt_while(
 
 ast_stmt* ast_stmt_do(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_call* subroutine_call
 ) {
     ast_stmt* stmt = ast_stmt_common_init(a, STMT_DO, span);
@@ -221,7 +221,7 @@ ast_stmt* ast_stmt_do(
 
 ast_stmt* ast_stmt_return(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_expr* value
 ) {
     ast_stmt* stmt = ast_stmt_common_init(a, STMT_RETURN, span);
@@ -234,11 +234,13 @@ ast_stmt* ast_stmt_return(
 ast_var_dec* ast_variable_declaration(
     Allocator* allocator,
     const jackc_string* name,
+    const jackc_span* span,
     jack_variable_kind kind,
     ast_type type,
     ast_var_dec* next
 ) {
     ast_var_dec* var = allocator->alloc(sizeof(ast_var_dec), allocator->context);
+    var->node.span = *span;
 
     var->kind = kind;
     var->type = type;
@@ -264,6 +266,7 @@ ast_subroutine* ast_subroutine_create(
     ast_sub_kind kind,
     const ast_type* return_type,
     const jackc_string* name,
+    const jackc_span* span,
     ast_var_dec* params,
     ast_var_dec* locals,
     ast_stmt* body,
@@ -271,6 +274,8 @@ ast_subroutine* ast_subroutine_create(
     ast_subroutine* next
 ) {
     ast_subroutine* subroutine = allocator->alloc(sizeof(ast_subroutine), allocator->context);
+
+    subroutine->node.span = *span;
 
     subroutine->return_type = *return_type;
     subroutine->kind = kind;
@@ -298,6 +303,7 @@ ast_subroutine* ast_subroutine_push_back(
 ast_class* ast_class_create(
     Allocator* allocator,
     const jackc_string* name,
+    const jackc_span* span,
     ast_var_dec* class_vars,
     ast_subroutine* subroutines
 ) {
@@ -306,6 +312,7 @@ ast_class* ast_class_create(
     class->class_vars = class_vars;
     class->subroutines = subroutines;
     class->name = *name;
+    class->node.span = *span;
 
     return class;
 }

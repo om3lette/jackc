@@ -349,16 +349,14 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
 }
 
 static jackc_diagnostic create_diagnostic(
-    const jackc_string* source,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_string str
+    jackc_span span
 ) {
-    uint32_t span_start = (uint32_t)(str.data - source->data);
     return (jackc_diagnostic) {
         .severity = severity,
         .code = code,
-        .span = { .start = span_start, .end = (uint32_t)(span_start + str.length) },
+        .span = span,
         .note = nullptr
     };
 }
@@ -367,24 +365,41 @@ jackc_diag_builder jackc_diag_begin(
     jackc_diagnostic_engine* engine,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_string str
+    jackc_span span
 ) {
     return (jackc_diag_builder){
         .engine = engine,
-        .diag = create_diagnostic(&engine->source, severity, code, str)
+        .diag = create_diagnostic(severity, code, span)
     };
 }
+jackc_diag_builder jackc_diag_begin_str(
+    jackc_diagnostic_engine* engine,
+    jackc_diagnostic_severity severity,
+    jackc_diagnostic_code code,
+    const jackc_string* str
+) {
+    return jackc_diag_begin(engine, severity, code, jackc_span_from_str(&engine->source, str));
+}
+
 void jackc_diag_add_note(
     jackc_diag_builder* builder,
     jackc_diagnostic_code code,
-    jackc_string str,
+    jackc_span span,
     Allocator* allocator
 ) {
     if (builder->diag.note) return;
-    jackc_diagnostic d = create_diagnostic(&builder->engine->source, DIAG_NOTE, code, str);
+    jackc_diagnostic d = create_diagnostic(DIAG_NOTE, code, span);
 
     builder->diag.note = allocator->alloc(sizeof(jackc_diagnostic), allocator->context);
     jackc_memcpy(builder->diag.note, &d, sizeof(jackc_diagnostic));
+}
+void jackc_diag_add_note_str(
+    jackc_diag_builder* builder,
+    jackc_diagnostic_code code,
+    const jackc_string* str,
+    Allocator* allocator
+) {
+    jackc_diag_add_note(builder, code, jackc_span_from_str(&builder->engine->source, str), allocator);
 }
 
 void jackc_diag_emit(const jackc_diag_builder* builder) {

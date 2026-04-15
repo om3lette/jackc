@@ -6,11 +6,6 @@
 
 #define MAX_DIAGNOSTICS 128
 
-typedef struct {
-    uint32_t start;
-    uint32_t end;
-} jackc_span;
-
 typedef enum {
     DIAG_ERROR,
     DIAG_WARNING,

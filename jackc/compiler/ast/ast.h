@@ -71,7 +71,7 @@ ast_stmt* ast_stmt_list_push_back(
 // ==================
 
 typedef struct ast_node {
-    jackc_string span;
+    jackc_span span;
 } ast_node;
 
 // ==================
@@ -116,14 +116,14 @@ struct ast_expr {
 
         struct {
             ast_expr* left;
-            jackc_string left_span;
+            jackc_span left_span;
             ast_binary_op op;
             ast_expr* right;
         } binary;
 
         struct {
             ast_unary_op op;
-            jackc_string op_span;
+            jackc_span op_span;
             ast_expr* operand;
         } unary;
     };
@@ -131,31 +131,31 @@ struct ast_expr {
 
 ast_expr* ast_expr_int(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     int32_t value
 );
 
 ast_expr* ast_expr_string(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* value
 );
 
 ast_expr* ast_expr_keyword(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_keyword_const keyword
 );
 
 ast_expr* ast_expr_var(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* name
 );
 
 ast_expr* ast_expr_binary(
     Allocator* allocator,
-    const jackc_string* left_span,
+    const jackc_span* left_span,
     ast_expr* left,
     ast_binary_op op,
     ast_expr* right
@@ -163,14 +163,14 @@ ast_expr* ast_expr_binary(
 
 ast_expr* ast_expr_unary(
     Allocator* allocator,
-    const jackc_string* op_span,
+    const jackc_span* op_span,
     ast_unary_op op,
     ast_expr* operand
 );
 
 ast_expr* ast_expr_call(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* receiver,
     const jackc_string* subroutine_name,
     ast_expr_list* args
@@ -178,7 +178,7 @@ ast_expr* ast_expr_call(
 
 ast_expr* ast_expr_array_access(
     Allocator* allocator,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* var_name,
     ast_expr* index
 );
@@ -231,7 +231,7 @@ struct ast_stmt {
 
 ast_stmt* ast_stmt_let(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     const jackc_string* var_name,
     ast_expr* index,
     ast_expr* value
@@ -239,7 +239,7 @@ ast_stmt* ast_stmt_let(
 
 ast_stmt* ast_stmt_if(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_expr* cond,
     ast_stmt* true_branch,
     ast_stmt* false_branch
@@ -247,26 +247,28 @@ ast_stmt* ast_stmt_if(
 
 ast_stmt* ast_stmt_while(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_expr* cond,
     ast_stmt* body
 );
 
 ast_stmt* ast_stmt_do(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_call* subroutine_call
 );
 
 ast_stmt* ast_stmt_return(
     Allocator* a,
-    const jackc_string* span,
+    const jackc_span* span,
     ast_expr* value
 );
 
 typedef struct ast_var_dec ast_var_dec;
 
 struct ast_var_dec {
+    ast_node node;
+
     jack_variable_kind kind;
     ast_type type;
     jackc_string name;
@@ -281,6 +283,7 @@ ast_var_dec* ast_var_dec_list_push_back(
 ast_var_dec* ast_variable_declaration(
     Allocator* allocator,
     const jackc_string* name,
+    const jackc_span* span,
     jack_variable_kind kind,
     ast_type type,
     ast_var_dec* next
@@ -296,6 +299,8 @@ typedef enum {
 typedef struct ast_subroutine ast_subroutine;
 
 struct ast_subroutine {
+    ast_node node;
+
     ast_sub_kind kind;
     ast_type return_type;
     bool is_native;
@@ -313,6 +318,7 @@ ast_subroutine* ast_subroutine_create(
     ast_sub_kind kind,
     const ast_type* return_type,
     const jackc_string* name,
+    const jackc_span* span,
     ast_var_dec* params,
     ast_var_dec* locals,
     ast_stmt* body,
@@ -327,6 +333,7 @@ ast_subroutine* ast_subroutine_push_back(
 
 // The Root Node
 typedef struct {
+    ast_node node;
     jackc_string name;
     ast_var_dec* class_vars;      // Linked list of VAR_STATIC and VAR_FIELD
     ast_subroutine* subroutines;  // Linked list of methods/funcs/constructors
@@ -335,6 +342,7 @@ typedef struct {
 ast_class* ast_class_create(
     Allocator* allocator,
     const jackc_string* name,
+    const jackc_span* span,
     ast_var_dec* class_vars,
     ast_subroutine* subroutines
 );
