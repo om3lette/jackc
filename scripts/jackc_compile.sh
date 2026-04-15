@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ $# -lt 1 ]; then
+if [ $# -lt 4 ]; then
     echo "Usage: $0 <path_to_rars> <jack_sources_dir> <output_dir> <stdlib_dir>"
     exit 1
 fi
