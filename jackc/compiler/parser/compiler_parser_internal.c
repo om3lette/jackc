@@ -422,7 +422,7 @@ ast_stmt* jack_parser_parse_statements(jack_parser* parser) {
 }
 
 ast_stmt* jack_parser_parse_let(jack_parser* parser) {
-    jack_parser_expect(parser, TOKEN_LET);
+    jack_token let_token = jack_parser_expect(parser, TOKEN_LET);
     RETURN_IF_PANIC(parser);
 
     jack_token var_token = jack_parser_expect(parser, TOKEN_IDENTIFIER);
@@ -443,6 +443,7 @@ ast_stmt* jack_parser_parse_let(jack_parser* parser) {
     EXPECT_SEMICOLON(parser);
     return ast_stmt_let(
         parser->allocator,
+        &let_token.str,
         &var_token.str,
         index,
         value
@@ -450,7 +451,7 @@ ast_stmt* jack_parser_parse_let(jack_parser* parser) {
 }
 
 ast_stmt* jack_parser_parse_if(jack_parser* parser) {
-    jack_parser_expect(parser, TOKEN_IF);
+    jack_token if_token = jack_parser_expect(parser, TOKEN_IF);
     RETURN_IF_PANIC(parser);
 
     EXPECT_LEFT_PAREN(parser);
@@ -474,6 +475,7 @@ ast_stmt* jack_parser_parse_if(jack_parser* parser) {
 
     return ast_stmt_if(
         parser->allocator,
+        &if_token.str,
         condition,
         true_branch,
         false_branch
@@ -481,7 +483,7 @@ ast_stmt* jack_parser_parse_if(jack_parser* parser) {
 }
 
 ast_stmt* jack_parser_parse_while(jack_parser* parser) {
-    jack_parser_expect(parser, TOKEN_WHILE);
+    jack_token while_token = jack_parser_expect(parser, TOKEN_WHILE);
     RETURN_IF_PANIC(parser);
 
     EXPECT_LEFT_PAREN(parser);
@@ -495,25 +497,26 @@ ast_stmt* jack_parser_parse_while(jack_parser* parser) {
     EXPECT_RIGHT_CURLY_BRACE(parser);
 
     return ast_stmt_while(
-        parser->allocator, condition, body
+        parser->allocator, &while_token.str, condition, body
     );
 }
 
 ast_stmt* jack_parser_parse_do(jack_parser* parser) {
-    jack_parser_expect(parser, TOKEN_DO);
+    jack_token do_token = jack_parser_expect(parser, TOKEN_DO);
     RETURN_IF_PANIC(parser);
 
     ast_expr* body = jack_parser_parse_subroutine_call(parser);
     RETURN_IF_PANIC(parser);
 
     EXPECT_SEMICOLON(parser);
+
     return ast_stmt_do(
-        parser->allocator, &body->call
+        parser->allocator, &do_token.str, &body->call
     );
 }
 
 ast_stmt* jack_parser_parse_return(jack_parser* parser) {
-    jack_parser_expect(parser, TOKEN_RETURN);
+    jack_token return_token = jack_parser_expect(parser, TOKEN_RETURN);
     RETURN_IF_PANIC(parser);
 
     ast_expr* return_value = nullptr;
@@ -525,7 +528,7 @@ ast_stmt* jack_parser_parse_return(jack_parser* parser) {
 
     EXPECT_SEMICOLON(parser);
     return ast_stmt_return(
-        parser->allocator, return_value
+        parser->allocator, &return_token.str, return_value
     );
 }
 
@@ -581,7 +584,7 @@ ast_expr* jack_parser_parse_expression(jack_parser* parser, binding_power min_bp
         ast_expr* rhs = jack_parser_parse_expression(parser, rbp);
         RETURN_IF_PANIC(parser);
 
-        lhs = ast_expr_binary(parser->allocator, lhs, op, rhs);
+        lhs = ast_expr_binary(parser->allocator, &parser->previous.str, lhs, op, rhs);
     }
 
     return lhs;
@@ -593,7 +596,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
 
     switch (cur_token.type) {
         case TOKEN_INT_LITERAL: {
-            expr = ast_expr_int(parser->allocator, cur_token.value.integer);
+            expr = ast_expr_int(parser->allocator, &cur_token.str, cur_token.value.integer);
             jack_parser_advance(parser);
             break;
         }
@@ -602,7 +605,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
             jack_token string_literal = jack_parser_expect(parser, TOKEN_STR_LITERAL);
             RETURN_IF_PANIC(parser);
 
-            expr = ast_expr_string(parser->allocator, &string_literal.str);
+            expr = ast_expr_string(parser->allocator, &string_literal.str, &string_literal.str);
             break;
         }
         case TOKEN_TRUE:
@@ -612,7 +615,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
             ast_keyword_const keyword = jack_parser_token_type_to_keyword(parser, cur_token.type);
             RETURN_IF_PANIC(parser);
 
-            expr = ast_expr_keyword(parser->allocator, keyword);
+            expr = ast_expr_keyword(parser->allocator, &cur_token.str, keyword);
             jack_parser_advance(parser);
             break;
         }
@@ -626,11 +629,11 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
                 ast_expr* index = jack_parser_parse_array_index(parser);
                 RETURN_IF_PANIC(parser);
 
-                expr = ast_expr_array_access(parser->allocator, &var_name.str, index);
+                expr = ast_expr_array_access(parser->allocator, &var_name.str, &var_name.str, index);
             } else {
                 // varName
                 jack_token var_name = jack_parser_advance(parser);
-                expr = ast_expr_var(parser->allocator, &var_name.str);
+                expr = ast_expr_var(parser->allocator, &var_name.str, &var_name.str);
             }
             break;
         }
@@ -653,7 +656,7 @@ ast_expr* jack_parser_parse_term(jack_parser* parser) {
             ast_unary_op op_type = jack_parser_token_type_to_unary_op(parser, op.type);
             RETURN_IF_PANIC(parser);
 
-            expr = ast_expr_unary(parser->allocator, op_type, operand);
+            expr = ast_expr_unary(parser->allocator, &op.str, op_type, operand);
             break;
         }
         default:
@@ -693,6 +696,7 @@ ast_expr* jack_parser_parse_subroutine_call(jack_parser* parser) {
         return ast_expr_call(
             parser->allocator,
             &first.str,
+            &first.str,
             &subroutine.str,
             args
         );
@@ -704,6 +708,7 @@ ast_expr* jack_parser_parse_subroutine_call(jack_parser* parser) {
 
     return ast_expr_call(
         parser->allocator,
+        &first.str,
         nullptr,
         &first.str,
         args

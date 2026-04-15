@@ -146,6 +146,17 @@ static bool function_registry_find_or_diagnostic(
     return true;
 }
 
+static void matching_return_type_or_diagnostic(const ast_type* return_type, const jackc_string* span, semantic_validity_traversal_context* ctx) {
+    if (ctx->sub_signature.return_type->kind != return_type->kind) {
+        jackc_diag_builder d = jackc_diag_begin(
+            &ctx->engine, DIAG_ERROR, DIAG_NON_VOID_SUBROUTINE_SHOULD_RETURN_A_VALUE, *span
+        );
+        jackc_diag_emit(&d);
+        INVALID_STATE(ctx);
+        return;
+    }
+}
+
 static void visit_expression(const ast_expr* expr, semantic_validity_traversal_context* ctx);
 
 static void visit_subroutine_call(const ast_call* call, semantic_validity_traversal_context* ctx) {
@@ -275,14 +286,16 @@ static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_co
                         && !(jackc_streq(&token.class_name, "Array") && stmt->let_stmt.index)
                     )
                 ) {
-                    // FIXME: Introduce span / jackc_string to AST
-                    // Invalid string operation
                     jackc_diag_builder d = jackc_diag_begin(
                         &ctx->engine,
                         DIAG_ERROR,
                         DIAG_INVALID_OPERATION,
-                        stmt->let_stmt.var_name
+                        jackc_string_create(
+                            stmt->node.span.data,
+                            (size_t)(stmt->let_stmt.value->node.span.data - stmt->node.span.data) + stmt->let_stmt.value->node.span.length + 1
+                        )
                     );
+                    jackc_diag_add_note(&d, DIAG_NOTE_DECLATED_HERE, token.name, ctx->allocator);
                     jackc_diag_emit(&d);
                     INVALID_STATE(ctx);
                 }
@@ -293,9 +306,7 @@ static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_co
         case STMT_IF:
             visit_expression(stmt->if_stmt.condition, ctx);
             if (!stmt->if_stmt.true_branch && !stmt->if_stmt.false_branch) {
-                // FIXME: Introduce span / jackc_string to AST
-                // Replace subroutine name with 'if'
-                jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_WARNING, DIAG_EMPTY_IF_STATEMENT, ctx->subroutine_name);
+                jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_WARNING, DIAG_EMPTY_IF_STATEMENT, stmt->node.span);
                 jackc_diag_emit(&d);
                 INVALID_STATE(ctx);
             } else {
@@ -311,21 +322,14 @@ static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_co
             visit_subroutine_call(stmt->do_stmt, ctx);
             break;
         case STMT_RETURN: {
+            ctx->has_return_stmt = true;
             if (stmt->return_stmt) {
                 // TODO: Check for matching types?
                 // TODO: Check for constructor returning the expected class
                 visit_expression(stmt->return_stmt, ctx);
             } else {
                 // No return expression -> void returning void
-                if (ctx->sub_signature.return_type->kind != TYPE_VOID) {
-                    // FIXME: Introduce span / jackc_string to AST
-                    // Replace subroutine name with 'return'
-                    jackc_diag_builder d = jackc_diag_begin(
-                        &ctx->engine, DIAG_ERROR, DIAG_NON_VOID_SUBROUTINE_SHOULD_RETURN_A_VALUE, ctx->subroutine_name
-                    );
-                    jackc_diag_emit(&d);
-                    INVALID_STATE(ctx);
-                }
+                matching_return_type_or_diagnostic(&(ast_type) {.kind = TYPE_VOID}, &stmt->node.span, ctx);
             }
             break;
         }
@@ -338,12 +342,14 @@ static void visit_statements(const ast_stmt* stmts, semantic_validity_traversal_
     }
 }
 
-static void visit_subroutine_dec(const ast_subroutine* sub, semantic_validity_traversal_context* ctx) {
+static void visit_subroutine(const ast_subroutine* sub, semantic_validity_traversal_context* ctx) {
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
 
+    // TODO: Make a separate function
     ctx->subroutine_name = sub->name;
     ctx->has_constructor |= sub->kind == SUB_CONSTRUCTOR;
     ctx->has_dispose_method |= jackc_streq(&sub->name, "dispose");
+    ctx->has_return_stmt = false;
     if (!function_registry_find_or_diagnostic(ctx, &ctx->class_name, &ctx->subroutine_name, &ctx->sub_signature))
         return;
 
@@ -358,6 +364,12 @@ static void visit_subroutine_dec(const ast_subroutine* sub, semantic_validity_tr
             INVALID_STATE(ctx);
     }
     visit_statements(sub->body, ctx);
+
+    // Native subroutines are declared somewhere else
+    // Therefore have no return statement and will always trigger a false error
+    if (!ctx->has_return_stmt && !sub->is_native) {
+        matching_return_type_or_diagnostic(&(ast_type){.kind = TYPE_VOID}, &ctx->subroutine_name, ctx);
+    }
 
     ctx->symtab = sym_table_pop(ctx->symtab);
 }
@@ -378,7 +390,7 @@ bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_t
     }
 
     for (ast_subroutine* sub = class->subroutines; sub; sub = sub->next) {
-        visit_subroutine_dec(sub, ctx);
+        visit_subroutine(sub, ctx);
     }
     ctx->symtab = sym_table_pop(ctx->symtab);
 

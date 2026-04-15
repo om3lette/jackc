@@ -30,6 +30,7 @@ typedef struct {
     bool is_invalid;
     bool has_constructor;
     bool has_dispose_method;
+    bool has_return_stmt;
 } semantic_validity_traversal_context;
 
 semantic_validity_traversal_context semantic_validity_traversal_context_init(

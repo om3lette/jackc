@@ -22,7 +22,8 @@ semantic_validity_traversal_context semantic_validity_traversal_context_init(
 
         .is_invalid = false,
         .has_constructor = false,
-        .has_dispose_method = false
+        .has_dispose_method = false,
+        .has_return_stmt = false
     };
     jackc_memset(&ctx.sub_signature, sizeof(function_signature), 0);
     return ctx;

@@ -67,7 +67,6 @@ TEST_F_TEARDOWN(parser_fixture) {
 }
 
 TEST_F(parser_fixture, error_reporting) {
-    (void)tau;
 
     char base_path[PATH_MAX];
     get_test_root(__FILE__, base_path, sizeof(base_path));

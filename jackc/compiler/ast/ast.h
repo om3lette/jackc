@@ -67,6 +67,14 @@ ast_stmt* ast_stmt_list_push_back(
 );
 
 // ==================
+// Common AST node
+// ==================
+
+typedef struct ast_node {
+    jackc_string span;
+} ast_node;
+
+// ==================
 // Expressions
 // ==================
 
@@ -90,6 +98,7 @@ typedef struct {
 } ast_call;
 
 struct ast_expr {
+    ast_node node;
     ast_expr_kind kind;
 
     union {
@@ -106,40 +115,47 @@ struct ast_expr {
         ast_call call;
 
         struct {
-            ast_unary_op op;
-            ast_expr* operand;
-        } unary;
-
-        struct {
             ast_expr* left;
+            jackc_string left_span;
             ast_binary_op op;
             ast_expr* right;
         } binary;
+
+        struct {
+            ast_unary_op op;
+            jackc_string op_span;
+            ast_expr* operand;
+        } unary;
     };
 };
 
 ast_expr* ast_expr_int(
     Allocator* allocator,
+    const jackc_string* span,
     int32_t value
 );
 
 ast_expr* ast_expr_string(
     Allocator* allocator,
+    const jackc_string* span,
     const jackc_string* value
 );
 
 ast_expr* ast_expr_keyword(
     Allocator* allocator,
+    const jackc_string* span,
     ast_keyword_const keyword
 );
 
 ast_expr* ast_expr_var(
     Allocator* allocator,
+    const jackc_string* span,
     const jackc_string* name
 );
 
 ast_expr* ast_expr_binary(
     Allocator* allocator,
+    const jackc_string* left_span,
     ast_expr* left,
     ast_binary_op op,
     ast_expr* right
@@ -147,12 +163,14 @@ ast_expr* ast_expr_binary(
 
 ast_expr* ast_expr_unary(
     Allocator* allocator,
+    const jackc_string* op_span,
     ast_unary_op op,
     ast_expr* operand
 );
 
 ast_expr* ast_expr_call(
     Allocator* allocator,
+    const jackc_string* span,
     const jackc_string* receiver,
     const jackc_string* subroutine_name,
     ast_expr_list* args
@@ -160,6 +178,7 @@ ast_expr* ast_expr_call(
 
 ast_expr* ast_expr_array_access(
     Allocator* allocator,
+    const jackc_string* span,
     const jackc_string* var_name,
     ast_expr* index
 );
@@ -177,6 +196,7 @@ typedef enum {
 } ast_stmt_kind;
 
 struct ast_stmt {
+    ast_node node;
     ast_stmt_kind kind;
     ast_stmt* next; // For lists of statements
 
@@ -211,6 +231,7 @@ struct ast_stmt {
 
 ast_stmt* ast_stmt_let(
     Allocator* a,
+    const jackc_string* span,
     const jackc_string* var_name,
     ast_expr* index,
     ast_expr* value
@@ -218,6 +239,7 @@ ast_stmt* ast_stmt_let(
 
 ast_stmt* ast_stmt_if(
     Allocator* a,
+    const jackc_string* span,
     ast_expr* cond,
     ast_stmt* true_branch,
     ast_stmt* false_branch
@@ -225,17 +247,20 @@ ast_stmt* ast_stmt_if(
 
 ast_stmt* ast_stmt_while(
     Allocator* a,
+    const jackc_string* span,
     ast_expr* cond,
     ast_stmt* body
 );
 
 ast_stmt* ast_stmt_do(
     Allocator* a,
+    const jackc_string* span,
     ast_call* subroutine_call
 );
 
 ast_stmt* ast_stmt_return(
     Allocator* a,
+    const jackc_string* span,
     ast_expr* value
 );
 

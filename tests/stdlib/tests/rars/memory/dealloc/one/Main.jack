@@ -1,5 +1,5 @@
 class Main {
-    function int main() {
+    function void main() {
         var int ptr;
         let ptr = Memory.alloc(10);
         do Memory.deAlloc(ptr);
