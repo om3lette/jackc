@@ -96,6 +96,11 @@ static bool is_semantically_invalid(
 
         jackc_diagnostic_engine_report(&ctx.engine, current_file->lines);
     }
+    if (!function_registry_contains(registry, &jackc_string_from_str("Main"), &jackc_string_from_str("main"), nullptr)) {
+        jackc_printf(locale->msgs.program_entrypoint_not_found);
+        jackc_putchar('\n');
+        is_invalid = true;
+    }
 
     return is_invalid;
 }

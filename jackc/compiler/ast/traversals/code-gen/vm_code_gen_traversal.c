@@ -7,7 +7,6 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
-#include "core/data-structures/hashmap.h"
 #include "core/logging/logger.h"
 #include "std/jackc_string.h"
 #include "vm-translator/code-gen/regs.h"
@@ -323,10 +322,5 @@ void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_tra
         visit_subroutine(ctx, sub);
     }
 
-    // FIXME: Kind of hacky.
-    // Some of the symtable content needs to be preserved, while the rest needs to be reset
-    // Clean the symtable while preserving the index data (pop will not do)
-    fixed_hash_map* tmp = ctx->symtab->tokens;
-    fixed_hashmap_free(&tmp);
-    ctx->symtab->field_idx = 0;
+    sym_table_reset_local_state(ctx->symtab);
 }

@@ -39,6 +39,7 @@ typedef struct {
     const char* frontend_failed;
     const char* backend_failed;
     const char* parser_failed_with_exit_code;
+    const char* program_entrypoint_not_found;
 } jackc_msg_translations;
 
 typedef struct {

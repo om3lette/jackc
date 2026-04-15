@@ -58,3 +58,4 @@ REGISTER_TEST(string_literal_assignment_to_non_string, "string-literal-assignmen
 REGISTER_TEST(subroutine_call_args_number_mismatch, "subroutine-call-args-number-mismatch", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(undefined_var_as_subroutine_arg, "undefined-var-as-subroutine-arg", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(variable_undefined_class_type, "variable-undefined-class-type", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(missing_entrypoint, "missing-entrypoint", FRONTEND_SEMANTICALLY_INVALID)
