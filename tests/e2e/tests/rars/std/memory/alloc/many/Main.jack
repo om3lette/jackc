@@ -1,0 +1,11 @@
+class Main {
+    function int main(int timesToAllocate) {
+        var int x, ptr;
+        let x = 0;
+        while (x < timesToAllocate) {
+            let x = x + 1;
+            let ptr = Memory.alloc(1);
+        }
+        return ptr;
+    }
+}

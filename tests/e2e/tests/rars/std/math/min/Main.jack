@@ -1,0 +1,5 @@
+class Main {
+    function int main(int x) {
+        return Math.min(x[0], x[1]);
+    }
+}

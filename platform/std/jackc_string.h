@@ -39,4 +39,12 @@ void jackc_string_print(const jackc_string* str);
 
 void jackc_strcpy(char* dest, const char* src);
 
+typedef struct {
+    uint32_t start;
+    uint32_t end;
+} jackc_span;
+
+[[ nodiscard ]] jackc_span jackc_span_from_str(const jackc_string* source, const jackc_string* str);
+
+[[ nodiscard ]] jackc_span jackc_span_between(const jackc_span* first, const jackc_span* second);
 #endif

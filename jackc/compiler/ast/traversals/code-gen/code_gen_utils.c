@@ -4,7 +4,7 @@
 #include "compiler/ast/traversals/code-gen/std_utils.h"
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/lexer/compiler_lexer.h"
-#include "common/common.h"
+#include "common/type_mappers.h"
 #include "std/jackc_stdio.h"
 #include "vm-translator/parser/vm_parser.h"
 

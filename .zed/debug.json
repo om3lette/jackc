@@ -10,6 +10,16 @@
         "adapter": "CodeLLDB"
     },
     {
+        "label": "Compiler integration tests",
+        "build": {
+            "command": "just build",
+            "cwd": "$ZED_WORKTREE_ROOT"
+        },
+        "program": "$ZED_WORKTREE_ROOT/build/tests/compiler_integration_tests",
+        "request": "launch",
+        "adapter": "CodeLLDB"
+    },
+    {
         "label": "Data structures tests",
         "build": {
             "command": "just build",

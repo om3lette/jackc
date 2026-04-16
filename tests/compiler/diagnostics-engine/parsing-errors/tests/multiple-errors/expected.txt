@@ -1,0 +1,13 @@
+Error: Invalid class member declaration: found 'var'.
+ --> Main.jack:2:5
+   |
+ 2 |     var x, y;
+   |     ^~~
+Note: Expected a class variable or subroutine declaration.
+
+Error: Missing variable name
+ --> Main.jack:5:15
+   |
+ 5 |         var xy;
+   |               ^
+Note: Perhaps you forgot to specify a type?

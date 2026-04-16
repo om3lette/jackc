@@ -1,0 +1,10 @@
+Error: Invalid operation.
+ --> Override.jack:4:9
+  |
+4 |         let x = "Hello world!";
+  |         ^~~~~~~~~~~~~~~~~~~~~~
+Note: Declared here
+ --> Override.jack:3:17
+  |
+3 |         var int x;
+  |                 ^

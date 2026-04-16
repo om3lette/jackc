@@ -1,0 +1,5 @@
+Warning: Empty if statement body
+ --> Override.jack:3:9
+  |
+3 |         if (true) {}
+  |         ^~

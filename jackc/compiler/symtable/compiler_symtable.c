@@ -94,3 +94,13 @@ bool sym_table_exists_local(const sym_table* table, const jackc_string* name) {
     sym_table_token found;
     return fixed_hashmap_find(table->tokens, name, &found);
 }
+
+void sym_table_reset_local_state(sym_table* table) {
+    // Remove all entries from the hashmap
+    // Fixed hashmap is allocated on the stack and is itself is not freed
+    fixed_hash_map* tmp = table->tokens;
+    fixed_hashmap_free(&tmp);
+
+    table->field_idx = 0;
+    table->local_idx = 0;
+}

@@ -16,7 +16,6 @@ add_compile_options(
     -Werror
     -Wconversion
     -Wshadow
-    # -Wcast-qual TODO: Think about void*
 )
 
 # CFLAGS / LDFLAGS
@@ -65,6 +64,7 @@ if (CMAKE_CROSSCOMPILING)
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc_std,SOURCES>
                 $<TARGET_PROPERTY:core,SOURCES>
+                $<TARGET_PROPERTY:common,SOURCES>
                 $<TARGET_PROPERTY:vm-translator,SOURCES>
                 $<TARGET_PROPERTY:jackc_backend,SOURCES>
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/backend
@@ -89,7 +89,7 @@ if (CMAKE_CROSSCOMPILING)
                 $<TARGET_PROPERTY:platform_impl,SOURCES>
                 $<TARGET_PROPERTY:jackc_std,SOURCES>
                 $<TARGET_PROPERTY:core,SOURCES>
-                $<TARGET_PROPERTY:diagnostics_engine,SOURCES>
+                $<TARGET_PROPERTY:common,SOURCES>
                 $<TARGET_PROPERTY:compiler,SOURCES>
                 $<TARGET_PROPERTY:jackc_frontend,SOURCES>
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sources/frontend

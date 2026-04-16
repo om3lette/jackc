@@ -1,0 +1,5 @@
+class Test2 {
+    constructor Test2 new() { return this; }
+
+    method void dispose() {}
+}

@@ -1,5 +1,6 @@
 #include "compiler/ast/ast.h"
 #include "compiler/ast/traversals.h"
+#include "compiler/ast/traversals/ast_traversal_utils.h"
 #include "compiler/ast/traversals/code-gen/std_utils.h"
 #include "compiler/ast/traversals/code-gen/code_gen_utils.h"
 #include "compiler/function-registry/function_registry.h"
@@ -7,7 +8,6 @@
 #include "compiler/symtable/compiler_symtable.h"
 #include "compiler/symtable/symtable_token.h"
 #include "core/asserts/jackc_assert.h"
-#include "core/data-structures/hashmap.h"
 #include "core/logging/logger.h"
 #include "std/jackc_string.h"
 #include "vm-translator/code-gen/regs.h"
@@ -66,44 +66,31 @@ static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, con
         ++n_args;
     }
 
-    const jackc_string* resolved_receiver_class = &call->receiver;
-    const jackc_string* resolved_receiver = resolved_receiver_class;
-
-    // Resolve receiver
-    sym_table_token receiver_var;
-    if (call->implicit_this_receiver) {
-        resolved_receiver_class = &ctx->class_name;
-        resolved_receiver = resolved_receiver_class;
-    } else if (sym_table_find(ctx->symtab, resolved_receiver, &receiver_var)) {
-        // receiver is a variable of class type -> resolve to the class name
-        jackc_assert(receiver_var.type == JACK_CLASS);
-        resolved_receiver_class = &receiver_var.class_name;
-    }
-
-    function_signature signature;
-    if (!function_registry_contains(ctx->registry, resolved_receiver_class, &call->subroutine_name, &signature)) {
+    jack_call_resolution resolved_call = resolve_subroutine_call_receiver(
+        call, &ctx->class_name, ctx->symtab, ctx->registry
+    );
+    if (!resolved_call.success) {
         ctx->had_error = true;
         return;
     }
-    bool is_method_call = signature.kind == SUB_METHOD;
     // Implicit this
-    if (is_method_call)
+    if (resolved_call.is_method_call)
         ++n_args;
 
     // Push 'this' for methods
-    if (is_method_call) {
+    if (resolved_call.is_method_call) {
         if (call->implicit_this_receiver) {
             emit_push(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
-        } else if (sym_table_find(ctx->symtab, resolved_receiver, &receiver_var)) {
-            emit_push(ctx->fd, jack_var_kind_to_vm_segment(receiver_var.var.kind), receiver_var.var.idx);
+        } else if (resolved_call.is_var_in_symtab) {
+            emit_push(ctx->fd, jack_var_kind_to_vm_segment(resolved_call.var.var.kind), resolved_call.var.var.idx);
         } else {
-            LOG_FATAL("%.*s\n", resolved_receiver_class->length, resolved_receiver_class->data);
+            LOG_FATAL("%.*s\n", resolved_call.receiver_class.length, resolved_call.receiver_class.data);
             ctx->had_error = true;
             return;
         }
     }
 
-    emit_call(ctx->fd, resolved_receiver_class, &call->subroutine_name, n_args);
+    emit_call(ctx->fd, &resolved_call.receiver_class, &call->subroutine_name, n_args);
 }
 
 static void visit_expression(vm_code_generation_traversal_context* ctx, const ast_expr* expr) {
@@ -229,8 +216,6 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             break;
         case STMT_RETURN:
             if (stmt->return_stmt) {
-                // TODO: Verify that expression result is not void
-                // Not returning a value does not break the backend, but it is conventional to return 0
                 visit_expression(ctx, stmt->return_stmt);
             } else {
                 emit_signed_const(ctx->fd, 0);
@@ -314,7 +299,7 @@ void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_tra
 
     for (ast_subroutine* sub = class->subroutines; sub; sub = sub->next) {
         function_signature signature;
-        if (!function_registry_contains(ctx->registry, &ctx->class_name, &sub->name, &signature)) {
+        if (!function_registry_find(ctx->registry, &ctx->class_name, &sub->name, &signature)) {
             // Should not happen as program is semantically correct
             ctx->had_error = true;
             continue;
@@ -323,10 +308,5 @@ void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_tra
         visit_subroutine(ctx, sub);
     }
 
-    // FIXME: Kind of hacky.
-    // Some of the symtable content needs to be preserved, while the rest needs to be reset
-    // Clean the symtable while preserving the index data (pop will not do)
-    fixed_hash_map* tmp = ctx->symtab->tokens;
-    fixed_hashmap_free(&tmp);
-    ctx->symtab->field_idx = 0;
+    sym_table_reset_local_state(ctx->symtab);
 }

@@ -1,4 +1,5 @@
 add_subdirectory(core)
+add_subdirectory(common)
 add_subdirectory(vm-translator)
 add_subdirectory(compiler)
 
@@ -14,6 +15,6 @@ target_link_libraries(jackc
 add_custom_command(TARGET jackc POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
         $<TARGET_FILE:jackc>
-        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/stdlib/libs/jackc
-    COMMENT "Copy jackc executable to stdlib tests directory"
+        ${CMAKE_CURRENT_SOURCE_DIR}/../tests/e2e/libs/jackc
+    COMMENT "Copy jackc executable to e2e tests directory"
 )

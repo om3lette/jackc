@@ -20,6 +20,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup Just
+        uses: extractions/setup-just@v4
+        with:
+          just-version: '1.47.1'
+
       - name: Setup compiler and build system
         uses: aminya/setup-cpp@v1
         with:
@@ -27,11 +32,11 @@ jobs:
           cmake: 3.31.6
           ninja: true
 
-      - name: Configure
-        run: cmake --preset release
-
       - name: Build
-        run: cmake --build --preset release
+        run: just build -p release
+
+      - name: Unit tests
+        run: just unit-test -p release
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -40,5 +45,5 @@ jobs:
           java-version: "17"
           cache: "gradle"
 
-      - name: Test
-        run: ctest --preset release
+      - name: E2E tests
+        run: just e2e-test -p release

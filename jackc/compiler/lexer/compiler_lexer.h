@@ -1,7 +1,6 @@
 #ifndef JACKC_COMPILER_LEXER_H
 #define JACKC_COMPILER_LEXER_H
 
-#include "compiler/diagnostics-engine/diagnostic.h"
 #include "std/jackc_string.h"
 #include <stdint.h>
 
@@ -66,6 +65,14 @@ typedef struct {
     uint32_t pos, line, col;
     char c;
 } jack_lexer;
+
+static inline jackc_string jack_token_span_to_string(const jack_token* token, const jackc_string* buffer) {
+    return (jackc_string){ .data = buffer->data + token->span.start, .length = token->span.end - token->span.start };
+}
+
+static inline jackc_string jack_token_span_from_lexer(const jack_token* token, const jack_lexer* lexer) {
+    return (jackc_string){ .data = lexer->buffer.data + token->span.start, .length = token->span.end - token->span.start };
+}
 
 [[nodiscard]] jack_lexer jack_lexer_init(const char* buffer);
 

@@ -1,7 +1,7 @@
 #ifndef JACKC_COMPILER_DIAGNOSTICS_ENGINE_ENGINE_H
 #define JACKC_COMPILER_DIAGNOSTICS_ENGINE_ENGINE_H
 
-#include "compiler/diagnostics-engine/translations/translation.h"
+#include "core/localization/locale.h"
 #include "core/allocators/allocators.h"
 #include "std/jackc_string.h"
 #include "diagnostic.h"
@@ -15,7 +15,7 @@ typedef struct {
 typedef struct {
     jackc_string source;
     const char* filename;
-    const jackc_diagnostic_translation* translations;
+    const jackc_locale* locale;
     int output_fd;
 
     size_t size;
@@ -26,8 +26,9 @@ typedef struct {
 [[ nodiscard ]] jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
     const char* filename,
-    const jackc_diagnostic_translation* translations,
-    int output_fd
+    const jackc_locale* locale,
+    int output_fd,
+    bool override_filename
 );
 void jackc_diag_engine_reset(
     jackc_diagnostic_engine* engine,
@@ -47,12 +48,25 @@ typedef struct {
     jackc_diagnostic_engine* engine,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_string str
+    jackc_span span
 );
+[[ nodiscard ]] jackc_diag_builder jackc_diag_begin_str(
+    jackc_diagnostic_engine* engine,
+    jackc_diagnostic_severity severity,
+    jackc_diagnostic_code code,
+    const jackc_string* str
+);
+
 void jackc_diag_add_note(
     jackc_diag_builder* builder,
     jackc_diagnostic_code code,
-    jackc_string str,
+    jackc_span span,
+    Allocator* allocator
+);
+void jackc_diag_add_note_str(
+    jackc_diag_builder* builder,
+    jackc_diagnostic_code code,
+    const jackc_string* str,
     Allocator* allocator
 );
 

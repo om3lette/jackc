@@ -8,15 +8,6 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /**
- * Opens a file by given path, reads file content, returns a pointer to a buffer.
- *
- * Buffer is allocated inside of a function.
- *
- * @param path Path to file.
- */
-char* jackc_read_file_content(const char* path);
-
-/**
  * Tries to mirror printf behavior.
  *
  * Currently supports (RARS):

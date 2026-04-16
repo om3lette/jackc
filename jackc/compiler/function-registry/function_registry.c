@@ -24,7 +24,7 @@ function_registry* function_registry_init(Allocator* allocator) {
 }
 
 sym_table_return_code function_registry_insert(function_registry* registry, const ast_class* class) {
-    if (function_registry_contains_class(registry, &class->name, nullptr))
+    if (function_registry_find_class(registry, &class->name, nullptr))
         return SYMTAB_ALREADY_EXISTS;
 
     class_symbol symbol;
@@ -58,7 +58,7 @@ sym_table_return_code function_registry_insert(function_registry* registry, cons
     return SYMTAB_OK;
 }
 
-bool function_registry_contains_class(
+bool function_registry_find_class(
     const function_registry* registry,
     const jackc_string* class_name,
     class_symbol* out
@@ -66,14 +66,14 @@ bool function_registry_contains_class(
     return fixed_hashmap_find(registry->classes, class_name, out);
 }
 
-bool function_registry_contains(
+bool function_registry_find(
     const function_registry* registry,
     const jackc_string* class_name,
     const jackc_string* method_name,
     function_signature* found
 ) {
     class_symbol cls_symbol;
-    if (!function_registry_contains_class(registry, class_name, &cls_symbol))
+    if (!function_registry_find_class(registry, class_name, &cls_symbol))
         return false;
 
     return fixed_hashmap_find(cls_symbol.methods, method_name, found);

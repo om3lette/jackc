@@ -1,0 +1,11 @@
+Error: Non 'void' subroutine should return a value.
+ --> Override.jack:2:27
+  |
+2 |     function int main() { return; }
+  |                           ^~~~~~
+
+Error: Non 'void' subroutine should return a value.
+ --> Override.jack:3:18
+  |
+3 |     function int nonVoid() {}
+  |                  ^~~~~~~

@@ -85,3 +85,12 @@ void jackc_string_print(const jackc_string* str) {
 
     return;
 }
+
+jackc_span jackc_span_from_str(const jackc_string* source, const jackc_string* str) {
+    uint32_t span_start = (uint32_t)(str->data - source->data);
+    return (jackc_span) { .start = span_start, .end = (uint32_t)(span_start + str->length) };
+}
+
+jackc_span jackc_span_between(const jackc_span* first, const jackc_span* second) {
+    return (jackc_span) { .start = MIN(first->start, second->start), .end = MAX(first->end, second->end) };
+}

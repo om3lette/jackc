@@ -1,0 +1,9 @@
+class Main {
+    function void main() {
+        var Test1 x;
+        var int y;
+        let x = Test2.new();
+
+        let y[Test1.new()] = x;
+    }
+}

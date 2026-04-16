@@ -1,5 +1,5 @@
 #include "vm-translator/code-gen/asm_code_gen.h"
-#include "common/common.h"
+#include "common/type_mappers.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"
@@ -230,7 +230,7 @@ void asm_code_gen_bootstrap(const asm_context* ctx, const char* std_native_conte
         int n_words = (int)(cfg->stack_size + (cfg->word_size - 1)) / cfg->word_size;
         int32_t bytes_to_alloc = frame_offset_bytes(&ctx->cfg, (int)n_words);
         asm_emit_li(&ctx->e, REG_SCRATCH, bytes_to_alloc);
-        asm_emit_add(&ctx->e, REG_RES, REG_RES, REG_SCRATCH);
+        asm_emit_add(&ctx->e, REG_SP, REG_SP, REG_SCRATCH);
     }
 
     asm_emit_comment(&ctx->e, "Prepare argc, argv for Main.main");

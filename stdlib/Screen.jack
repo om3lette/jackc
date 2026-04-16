@@ -31,7 +31,7 @@ class Screen {
     }
 
     /** Sets the current color, to be used for all subsequent drawXXX commands.
-     *  Black is represented by true, white by false. */
+     *  Black is represented by false, white by true. */
     function void setColor(boolean b) {
         if (b) { let _current_color = -1; }
         else   { let _current_color = 0;  }

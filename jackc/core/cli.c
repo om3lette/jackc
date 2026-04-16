@@ -1,6 +1,7 @@
 #include "core/cli.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
+#include "core/localization/locale.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "std/jackc_stdlib.h"
@@ -11,6 +12,7 @@ bool parse_args(
     int n_specs,
     int argc,
     char** argv,
+    const jackc_locale* locale,
     Allocator* allocator
 ) {
     bool is_help = false;
@@ -19,10 +21,9 @@ bool parse_args(
     while (i < argc) {
         char* cur_arg = argv[i];
 
-        // Global help handling
         if (jackc_strcmp(cur_arg, "-h") == 0 || jackc_strcmp(cur_arg, "--help") == 0) {
             is_help = true;
-            print_specs(specs, n_specs);
+            print_specs(specs, n_specs, locale);
             break;
         }
 
@@ -72,11 +73,11 @@ bool parse_args(
         }
 
         if (!matched) {
-            jackc_printf("Unknown argument: %s\n", cur_arg);
+            jackc_printf(locale->cli.unknown_arg, cur_arg);
+            jackc_putchar('\n');
         }
         ++i;
     }
-    // Do not print messages about missing required args
     if (is_help)
         return true;
 
@@ -84,17 +85,17 @@ bool parse_args(
     for (i = 0; i < n_specs; ++i) {
         arg_spec cur = specs[i];
         if (cur.required && !cur.is_set) {
-            jackc_printf("Required argument '%s' was not provided\n", cur.short_name ? cur.short_name : cur.long_name);
+            jackc_printf(locale->cli.required_arg, cur.short_name ? cur.short_name : cur.long_name);
+            jackc_putchar('\n');
             are_required_fields_filled = false;
         }
     }
     return !are_required_fields_filled;
 }
 
-void print_specs(arg_spec* specs, int n_specs) {
+void print_specs(arg_spec* specs, int n_specs, const jackc_locale* locale) {
     size_t max_width = 0;
 
-    // First pass: compute max width of flag strings
     for (int i = 0; i < n_specs; ++i) {
         arg_spec cur = specs[i];
         size_t len = 0;
@@ -105,7 +106,7 @@ void print_specs(arg_spec* specs, int n_specs) {
 
         if (cur.long_name) {
             if (cur.short_name)
-                len += 2; // ", "
+                len += 2;
             len += jackc_strlen(cur.long_name);
         }
 
@@ -113,9 +114,8 @@ void print_specs(arg_spec* specs, int n_specs) {
             max_width = len;
     }
 
-    // Second pass: print aligned
-    jackc_printf("Usage: jackc: [options]\n");
-    jackc_printf("Options (* - required):\n");
+    jackc_printf("%s\n", locale->cli.usage);
+    jackc_printf("%s\n", locale->cli.options);
     for (int i = 0; i < n_specs; ++i) {
         arg_spec cur = specs[i];
 
@@ -145,8 +145,32 @@ void print_specs(arg_spec* specs, int n_specs) {
             jackc_putchar(' ');
         }
 
-        if (cur.description)
-            jackc_printf("%s", cur.description);
+        jackc_printf("%s", locale->cli.option_descriptions[cur.description].translation);
         jackc_putchar('\n');
     }
+}
+
+bool jackc_cli_parse_lang(const char* str, jackc_language_code* out_code) {
+    if (!str || !out_code)
+        return false;
+
+    if (jackc_strcmp(str, "en") == 0) {
+        *out_code = JACKC_LANG_EN;
+        return true;
+    }
+    if (jackc_strcmp(str, "ru") == 0) {
+        *out_code = JACKC_LANG_RU;
+        return true;
+    }
+    return false;
+}
+
+const char* jackc_lang_to_readable(jackc_language_code code) {
+    switch (code) {
+        case JACKC_LANG_EN: return "en";
+        case JACKC_LANG_RU: return "ru";
+        case JACKC_LANG_COUNT: jackc_assert(false && "Invalid language code");
+    }
+
+    return "en";
 }

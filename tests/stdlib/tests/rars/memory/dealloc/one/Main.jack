@@ -1,7 +1,0 @@
-class Main {
-    function int main() {
-        var int ptr;
-        let ptr = Memory.alloc(10);
-        do Memory.deAlloc(ptr);
-    }
-}

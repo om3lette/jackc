@@ -1,6 +1,7 @@
 #include "compiler/frontend.h"
 #include "core/allocators/allocators.h"
 #include "core/allocators/adapters.h"
+#include "core/localization/locale.h"
 #include "tau.h"
 #include "test_path_utils.h"
 
@@ -31,8 +32,15 @@ TEST_F_TEARDOWN(integration_fixture) {
         char full_path[PATH_MAX];                                                   \
         path_join(full_path, sizeof(full_path), tau->test_folder_path, _path);      \
         const char* input_paths[] = { full_path };                                  \
+        jackc_frontend_config config = {                                            \
+            .locale = &jackc_locale_en,                                             \
+            .diag_engine_output_fd = -1,                                            \
+            .skip_vm_code_gen = true                                                \
+        };                                                                          \
         CHECK_EQ(                                                                   \
-            jackc_frontend_compile(input_paths, 1, nullptr, &tau->allocator, true), \
+            jackc_frontend_compile(                                                 \
+                input_paths, 1, nullptr, &config, &tau->allocator                   \
+            ),                                                                      \
             _outcome                                                                \
         );                                                                          \
     }
@@ -43,6 +51,7 @@ REGISTER_TEST(var_shadowing_class, "var-shadowing-class", FRONTEND_OK)
 REGISTER_TEST(method_call_inside_constructor, "method-call-inside-constructor", FRONTEND_OK)
 REGISTER_TEST(string_literal_assignment, "string-literal-assignment", FRONTEND_OK)
 REGISTER_TEST(string_literal_assignment_array, "string-literal-assignment-array", FRONTEND_OK)
+REGISTER_TEST(subroutine_class_can_be_casted_to_primitives, "subroutine-class-can-be-casted-to-primitives", FRONTEND_OK)
 
 REGISTER_TEST(mixing_declarations_and_code_1, "mixing-declarations-and-code-1", FRONTEND_SYNTAX_ERROR)
 REGISTER_TEST(mixing_declarations_and_code_2, "mixing-declarations-and-code-2", FRONTEND_SYNTAX_ERROR)
@@ -55,3 +64,6 @@ REGISTER_TEST(string_literal_assignment_to_non_string, "string-literal-assignmen
 REGISTER_TEST(subroutine_call_args_number_mismatch, "subroutine-call-args-number-mismatch", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(undefined_var_as_subroutine_arg, "undefined-var-as-subroutine-arg", FRONTEND_SEMANTICALLY_INVALID)
 REGISTER_TEST(variable_undefined_class_type, "variable-undefined-class-type", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(missing_entrypoint, "missing-entrypoint", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(subroutine_explicitly_returning_void, "subroutine-explicitly-returning-void", FRONTEND_SEMANTICALLY_INVALID)
+REGISTER_TEST(subroutine_return_type_mismatch_primitive, "subroutine-return-type-mismatch-primitive", FRONTEND_SEMANTICALLY_INVALID)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import base64
 import re
 import time
 import shutil
@@ -175,7 +176,7 @@ class WarningsRemoverJob(Job):
     unsupported_directives: Final[list[str]] = [
         "file", "ident", "attribute",
         "type", "size", "option",
-        "weak", "local", "comm"
+        "weak"
     ]
     unsupported_sections: Final[list[str]] = ["note.GNU"]
 
@@ -252,7 +253,26 @@ class ErrorFixerJob(Job):
         SectionReplacement(r"\.srodata", ".rodata", ".srodata with .rodata"),
         SectionReplacement(r"\.section\s+\.sbss[^\n]*", ".data", ".sbss with .data"),
         SectionReplacement(r"\.zero", ".space", ".zero with .space"),
+        SectionReplacement(
+            r"^\s*\.local\s+(\w+)\s*\n\s*\.comm\s+\1,(\d+),(\d+)",
+            r".data\n\t.align \2\n\1:\n\t.space \2",
+            ".local/.comm with .data/.space"
+        ),
     ]
+
+    def _decode_base64_directives(self, content: str) -> str:
+        self.print_step("Decoding base64 directives")
+
+        # Match: .base64 "base64string"
+        pattern = r'\s*\.base64\s+"([^"]+)"'
+
+        def decode_match(m):
+            encoded: str = m.group(1)
+            # Trim '\0'
+            decoded: str = base64.b64decode(encoded).decode('utf-8')[:-1:]
+            return f"\n\t.string \"{decoded}\""
+
+        return re.sub(pattern, decode_match, content, flags=re.MULTILINE)
 
     def _replace_unsupported_syntax(self, s: str) -> str:
         self.print_step("Fixing unsupported sw syntax", "Replacing sw/sh/sb invalid directives")
@@ -277,6 +297,7 @@ class ErrorFixerJob(Job):
         with open(self.ctx.MERGED_NO_WARNINGS_PATH, encoding="utf-8") as f:
             fixed_content = self._replace_unsupported_syntax(f.read())
             fixed_content = self._replace_unsupported_sections(fixed_content)
+            fixed_content = self._decode_base64_directives(fixed_content)
 
         with open(self.ctx.OUT_PATH, "w", encoding="utf-8") as f:
             f.write(fixed_content)

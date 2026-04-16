@@ -28,18 +28,17 @@ function_registry* function_registry_init(Allocator* allocator);
 
 sym_table_return_code function_registry_insert(function_registry* registry, const ast_class* class);
 
-bool function_registry_contains_class(
+bool function_registry_find_class(
     const function_registry* registry,
     const jackc_string* class_name,
     class_symbol* out
 );
 
-bool function_registry_contains(
+bool function_registry_find(
     const function_registry* registry,
     const jackc_string* class_name,
     const jackc_string* method_name,
     function_signature* found
 );
 
-// TODO: Normalize api of symtab and function registry (contains/find etc)
 #endif

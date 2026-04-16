@@ -2,6 +2,7 @@
 #define JACKC_CLI_H
 
 #include "core/allocators/allocators.h"
+#include "core/localization/locale.h"
 #include <stddef.h>
 
 typedef enum {
@@ -14,7 +15,7 @@ typedef enum {
 typedef struct {
     const char* long_name;
     const char* short_name;
-    const char* description;
+    jackc_cli_option description;
     arg_type type;
     size_t offset;
     bool required;
@@ -27,10 +28,11 @@ typedef struct {
     int n_specs,
     int argc,
     char** argv,
+    const jackc_locale* locale,
     Allocator* allocator
 );
 
-void print_specs(arg_spec* specs, int n_specs);
+void print_specs(arg_spec* specs, int n_specs, const jackc_locale* locale);
 
 #define arg_spec_create(         \
     _short_name,                 \
@@ -48,5 +50,17 @@ void print_specs(arg_spec* specs, int n_specs);
     .required = _required,       \
     .is_set = false              \
 }
+
+typedef struct {
+    const char* source_dir;
+    const char* out_dir;
+    const char* stdlib_dir;
+} jackc_cli_args;
+
+#define COMMON_CLI_ARGS { .source_dir = nullptr, .out_dir = nullptr, .stdlib_dir = nullptr }
+
+bool jackc_cli_parse_lang(const char* str, jackc_language_code* out_code);
+
+const char* jackc_lang_to_readable(jackc_language_code code);
 
 #endif

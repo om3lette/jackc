@@ -1,0 +1,12 @@
+Error: Expected '}', got 'function'
+ --> Main.jack:4:9
+  |
+4 |         function void g() {}
+  |         ^~~~~~~~
+
+Error: Invalid class member declaration: found 'function'.
+ --> Main.jack:4:9
+  |
+4 |         function void g() {}
+  |         ^~~~~~~~
+Note: Expected a class variable or subroutine declaration.

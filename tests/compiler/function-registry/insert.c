@@ -59,11 +59,11 @@ TEST_F(function_registry_fixture, insert_class_registers_all_subroutines) {
     ast_class class = create_class("TestClass", &sub_1);
     function_registry_insert(tau->registry, &class);
 
-    REQUIRE(function_registry_contains_class(tau->registry, &class.name, nullptr));
+    REQUIRE(function_registry_find_class(tau->registry, &class.name, nullptr));
 
     // Subroutine 1
     function_signature sub_1_signature;
-    CHECK(function_registry_contains(tau->registry, &class.name, &sub_1.name, &sub_1_signature));
+    CHECK(function_registry_find(tau->registry, &class.name, &sub_1.name, &sub_1_signature));
     CHECK(jackc_streq(&sub_1_signature.arguments->name, "arg1"));
     CHECK_EQ(sub_1_signature.arguments->type.kind, TYPE_CHAR);
 
@@ -74,7 +74,7 @@ TEST_F(function_registry_fixture, insert_class_registers_all_subroutines) {
 
     // Subroutine 2
     function_signature sub_2_signature;
-    CHECK(function_registry_contains(tau->registry, &class.name, &sub_2.name, &sub_2_signature));
+    CHECK(function_registry_find(tau->registry, &class.name, &sub_2.name, &sub_2_signature));
     CHECK(jackc_streq(&sub_2_signature.arguments->name, "arg3"));
     CHECK_EQ(sub_2_signature.arguments->type.kind, TYPE_CLASS);
 

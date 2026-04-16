@@ -17,8 +17,10 @@ void ast_function_registry_build_traversal(const ast_class* class, function_regi
 
 typedef struct {
     jackc_string class_name;
+    jackc_span class_span;
 
     jackc_string subroutine_name;
+    jackc_span subroutine_span;
     function_signature sub_signature;
 
     sym_table* symtab;
@@ -30,16 +32,19 @@ typedef struct {
     bool is_invalid;
     bool has_constructor;
     bool has_dispose_method;
+    bool has_return_stmt;
 } semantic_validity_traversal_context;
 
-semantic_validity_traversal_context semantic_validity_traversal_context_init(
-    const jackc_string* class_name,
+[[ nodiscard ]] semantic_validity_traversal_context semantic_validity_traversal_context_init(
     const function_registry* registry,
     jackc_diagnostic_engine* engine,
     Allocator* allocator
 );
 
-bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_traversal_context* ctx);
+[[ nodiscard ]] bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_traversal_context* ctx);
+
+void semantic_validity_enter_class(semantic_validity_traversal_context* ctx, const ast_class* class);
+void semantic_validity_enter_subroutine(semantic_validity_traversal_context* ctx, const ast_subroutine* sub);
 
 typedef struct {
     int fd;

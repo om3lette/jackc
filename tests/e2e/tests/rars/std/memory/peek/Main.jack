@@ -1,0 +1,5 @@
+class Main {
+    function int main(int wordIdx) {
+        return Memory.peek(wordIdx);
+    }
+}

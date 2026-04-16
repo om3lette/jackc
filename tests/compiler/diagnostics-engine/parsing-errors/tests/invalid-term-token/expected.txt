@@ -1,0 +1,6 @@
+Error: Unexpected token ')' while parsing term.
+ --> Main.jack:4:23
+  |
+4 |         let m = (2 + -) + y;
+  |                       ^
+Note: Expected start of term: literal, identifier, '(', or unary operator.

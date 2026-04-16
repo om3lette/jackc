@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "compiler/diagnostics-engine/diagnostic.h"
-#include "compiler/diagnostics-engine/translations/translation.h"
+#include "common/type_mappers.h"
+#include "core/localization/locale.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
@@ -11,13 +12,14 @@
 jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
     const char* filename,
-    const jackc_diagnostic_translation* translations,
-    int output_fd
+    const jackc_locale* locale,
+    int output_fd,
+    bool override_filename
 ) {
     jackc_diagnostic_engine engine = {
         .source = source,
-        .filename = filename,
-        .translations = translations,
+        .filename = override_filename ? "Override.jack" : filename,
+        .locale = locale,
         .output_fd = output_fd,
         .size = 0,
         .overflow = false
@@ -38,64 +40,6 @@ void jackc_diag_engine_reset(
     engine->output_fd = output_fd;
     engine->size = 0;
     engine->overflow = false;
-}
-
-static char* token_type_to_str(jack_token_type token) {
-    switch (token) {
-        case TOKEN_EOF:
-            return "EOF";
-        case TOKEN_CLASS:
-            return "class";
-        case TOKEN_CONSTRUCTOR:
-            return "constructor";
-        case TOKEN_FUNCTION:
-            return "function";
-        case TOKEN_METHOD:
-            return "method";
-        case TOKEN_FIELD:
-            return "field";
-        case TOKEN_STATIC:
-            return "static";
-        case TOKEN_VAR:
-            return "var";
-        case TOKEN_INT:
-            return "int";
-        case TOKEN_CHAR:
-            return "char";
-        case TOKEN_BOOLEAN:
-            return "boolean";
-        case TOKEN_VOID:
-            return "void";
-        case TOKEN_TRUE:
-            return "true";
-        case TOKEN_FALSE:
-            return "false";
-        case TOKEN_NULL:
-            return "null";
-        case TOKEN_THIS:
-            return "this";
-        case TOKEN_LET:
-            return "let";
-        case TOKEN_DO:
-            return "do";
-        case TOKEN_IF:
-            return "if";
-        case TOKEN_ELSE:
-            return "else";
-        case TOKEN_WHILE:
-            return "while";
-        case TOKEN_RETURN:
-            return "return";
-        case TOKEN_INT_LITERAL:
-            return "<integer literal>";
-        case TOKEN_STR_LITERAL:
-            return "\"string literal\"";
-        case TOKEN_IDENTIFIER:
-            return "<identifier>";
-        case TOKEN_NATIVE:
-            return "native";
-    }
-    return nullptr;
 }
 
 char char_to_str_buf[2];
@@ -183,14 +127,14 @@ static void print_prefix_with_line(int fd, uint32_t line, uint32_t max_line_leng
 
 #define PUTCHAR(c) jackc_fprintf(engine->output_fd, "%c", c)
 
-static char* diagnostic_severity_str(jackc_diagnostic_severity severity) {
+static const char* diagnostic_severity_str(const jackc_locale* locale, jackc_diagnostic_severity severity) {
     switch (severity) {
         case DIAG_ERROR:
-            return "error";
+            return locale->diagnostics.error;
         case DIAG_WARNING:
-            return "warning";
+            return locale->diagnostics.warning;
         case DIAG_NOTE:
-            return "note";
+            return locale->diagnostics.note;
     }
 
     jackc_assert(false);
@@ -207,10 +151,10 @@ static void diagnostic_engine_report_one(
     jackc_span span = diagnostic->span;
     jack_location loc = source_map_resolve(line_starts, lines_total, span.start);
 
-    char* severity_str = diagnostic_severity_str(diagnostic->severity);
+    const char* severity_str = diagnostic_severity_str(engine->locale, diagnostic->severity);
     jackc_fprintf(engine->output_fd, "%s: ", severity_str);
 
-    jackc_diagnostic_translation translation = engine->translations[diagnostic->code];
+    jackc_diagnostic_translation translation = engine->locale->diagnostics.entries[diagnostic->code];
 
     switch (diagnostic->code) {
         case DIAG_UNEXPECTED_TOKEN:
@@ -269,6 +213,19 @@ static void diagnostic_engine_report_one(
                 engine->source.data + diagnostic->span.start
             );
             break;
+        case DIAG_INCOMPATIBLE_TYPE_CONVERSION: {
+            // Note that the message is "failed to convert x to y"
+            // So the first argument is the value, therefore rhs
+            jackc_string lhs_str = ast_type_to_str(&diagnostic->data.incompatible_type_cast.left);
+            jackc_string rhs_str = ast_type_to_str(&diagnostic->data.incompatible_type_cast.right);
+            jackc_fprintf(
+                engine->output_fd,
+                translation.fmt,
+                rhs_str.length, rhs_str.data,
+                lhs_str.length, lhs_str.data
+            );
+            break;
+        }
         default:
             jackc_fprintf(engine->output_fd, translation.fmt);
             break;
@@ -302,7 +259,11 @@ static void diagnostic_engine_report_one(
     }
 
     if (translation.desc) {
-        jackc_fprintf(engine->output_fd, "\n%s: %s", diagnostic_severity_str(DIAG_NOTE), translation.desc);
+        jackc_fprintf(
+            engine->output_fd,
+            "\n%s: %s",
+            diagnostic_severity_str(engine->locale, DIAG_NOTE), translation.desc
+        );
     }
     if (diagnostic->note) {
         // Only one note per diagnostic struct is supported
@@ -334,21 +295,24 @@ void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t li
     }
 
     if (engine->overflow) {
-        jackc_fprintf(engine->output_fd, "\n%s: Diagnostic engine overflowed.\n", diagnostic_severity_str(DIAG_WARNING));
+        jackc_fprintf(
+            engine->output_fd,
+            "\n%s: %s\n",
+            diagnostic_severity_str(engine->locale, DIAG_WARNING),
+            engine->locale->diagnostics.engine_overflow
+        );
     }
 }
 
 static jackc_diagnostic create_diagnostic(
-    const jackc_string* source,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_string str
+    jackc_span span
 ) {
-    uint32_t span_start = (uint32_t)(str.data - source->data);
     return (jackc_diagnostic) {
         .severity = severity,
         .code = code,
-        .span = { .start = span_start, .end = (uint32_t)(span_start + str.length) },
+        .span = span,
         .note = nullptr
     };
 }
@@ -357,24 +321,41 @@ jackc_diag_builder jackc_diag_begin(
     jackc_diagnostic_engine* engine,
     jackc_diagnostic_severity severity,
     jackc_diagnostic_code code,
-    jackc_string str
+    jackc_span span
 ) {
     return (jackc_diag_builder){
         .engine = engine,
-        .diag = create_diagnostic(&engine->source, severity, code, str)
+        .diag = create_diagnostic(severity, code, span)
     };
 }
+jackc_diag_builder jackc_diag_begin_str(
+    jackc_diagnostic_engine* engine,
+    jackc_diagnostic_severity severity,
+    jackc_diagnostic_code code,
+    const jackc_string* str
+) {
+    return jackc_diag_begin(engine, severity, code, jackc_span_from_str(&engine->source, str));
+}
+
 void jackc_diag_add_note(
     jackc_diag_builder* builder,
     jackc_diagnostic_code code,
-    jackc_string str,
+    jackc_span span,
     Allocator* allocator
 ) {
     if (builder->diag.note) return;
-    jackc_diagnostic d = create_diagnostic(&builder->engine->source, DIAG_NOTE, code, str);
+    jackc_diagnostic d = create_diagnostic(DIAG_NOTE, code, span);
 
     builder->diag.note = allocator->alloc(sizeof(jackc_diagnostic), allocator->context);
     jackc_memcpy(builder->diag.note, &d, sizeof(jackc_diagnostic));
+}
+void jackc_diag_add_note_str(
+    jackc_diag_builder* builder,
+    jackc_diagnostic_code code,
+    const jackc_string* str,
+    Allocator* allocator
+) {
+    jackc_diag_add_note(builder, code, jackc_span_from_str(&builder->engine->source, str), allocator);
 }
 
 void jackc_diag_emit(const jackc_diag_builder* builder) {

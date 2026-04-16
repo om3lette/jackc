@@ -1,0 +1,5 @@
+class Main {
+    function int main(int size) {
+        return Memory.alloc(size);
+    }
+}
