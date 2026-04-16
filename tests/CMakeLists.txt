@@ -124,12 +124,28 @@ target_link_libraries(vm_parser_tests
 add_test(NAME vm_parser_tests COMMAND vm_parser_tests)
 
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
+set_tests_properties(compiler_lexer_tests PROPERTIES LABELS "unit")
+
 add_test(NAME compiler_symtab_tests COMMAND compiler_symtab_tests)
+set_tests_properties(compiler_symtab_tests PROPERTIES LABELS "unit")
+
 add_test(NAME data_structure_tests COMMAND data_structure_tests)
+set_tests_properties(data_structure_tests PROPERTIES LABELS "unit")
+
 add_test(NAME allocators_tests COMMAND allocators_tests)
+set_tests_properties(allocators_tests PROPERTIES LABELS "unit")
+
 add_test(NAME compiler_parser_tests COMMAND compiler_parser_tests)
+set_tests_properties(compiler_parser_tests PROPERTIES LABELS "unit")
+
 add_test(NAME diagnostics_engine_tests COMMAND diagnostics_engine_tests)
+set_tests_properties(diagnostics_engine_tests PROPERTIES LABELS "unit")
+
 add_test(NAME function_registry_tests COMMAND function_registry_tests)
+set_tests_properties(function_registry_tests PROPERTIES LABELS "unit")
+
 add_test(NAME compiler_integration_tests COMMAND compiler_integration_tests)
+set_tests_properties(compiler_integration_tests PROPERTIES LABELS "unit")
 
 add_test(NAME stdlib_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/gradlew -p ${CMAKE_CURRENT_SOURCE_DIR}/stdlib run)
+set_tests_properties(stdlib_tests PROPERTIES LABELS "integration")
