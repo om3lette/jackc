@@ -23,9 +23,9 @@ tests/compiler/jack-code
 output.txt
 .tmp
 
-tests/stdlib/libs/jackc*
-tests/stdlib/build
-tests/stdlib/.gradle
-tests/stdlib/.kotlin
-tests/stdlib/tests/**/*.vm
-tests/stdlib/tests/**/*.asm
+tests/e2e/libs/jackc*
+tests/e2e/build
+tests/e2e/.gradle
+tests/e2e/.kotlin
+tests/e2e/tests/**/*.vm
+tests/e2e/tests/**/*.asm

@@ -8,7 +8,7 @@ import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
 @RarsTestSuite(name = "Array")
 class ArrayTests {
-    @RarsTest("Array is correctly allocated and disposed", resource = "array/creation/out.asm")
+    @RarsTest("Array is correctly allocated and disposed", resource = "std/array/creation/out.asm")
     fun oneDeallocation(ctx: RarsTestContext) {
         val arraySize = 11
         // Every word is its own allocation. See the test file
@@ -25,7 +25,7 @@ class ArrayTests {
             }
     }
 
-    @RarsTest("Nested array accesses", resource = "array/assignment/out.asm")
+    @RarsTest("Nested array accesses", resource = "std/array/assignment/out.asm")
     fun nestedAccess(ctx: RarsTestContext) =
         // Every word is its own allocation. See the test file
         ctx

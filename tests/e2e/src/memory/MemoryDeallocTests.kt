@@ -11,7 +11,7 @@ import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
 @RarsTestSuite(name = "Memory.dealloc")
 class MemoryDeallocTests {
-    @RarsTest("Many allocations/deallocations", resource = "memory/dealloc/one/out.asm")
+    @RarsTest("Many allocations/deallocations", resource = "std/memory/dealloc/one/out.asm")
     fun oneDeallocation(ctx: RarsTestContext) {
         // Every word is its own allocation. See the test file
         ctx
@@ -25,7 +25,7 @@ class MemoryDeallocTests {
             }
     }
 
-    @RarsTest("Deallocated memory is reused", resource = "memory/dealloc/many/out.asm")
+    @RarsTest("Deallocated memory is reused", resource = "std/memory/dealloc/many/out.asm")
     fun manyDeallocations(ctx: RarsTestContext) {
         // Every word is its own allocation. See the test file
         val wordsToAllocate = 42

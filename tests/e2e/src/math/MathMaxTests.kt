@@ -10,7 +10,7 @@ import xyz.om3lette.rars.testSuite.testCase.extensions.withMemory
 import xyz.om3lette.rars.testSuite.testCase.extensions.withRegister
 import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
-@RarsTestSuite(name = "Math.max", defaultResource = "math/max/out.asm")
+@RarsTestSuite(name = "Math.max", defaultResource = "std/math/max/out.asm")
 class MathMaxTests {
     private val baseAddress: Int = TestsConstants.HEAP_BASE + 32
     private val baseAddressWord: Int = baseAddress / 4

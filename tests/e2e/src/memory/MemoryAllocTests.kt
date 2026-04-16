@@ -11,7 +11,7 @@ import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
 @RarsTestSuite(name = "Memory.alloc")
 class MemoryAllocTests {
-    @RarsTest("One allocation", resource = "memory/alloc/one/out.asm")
+    @RarsTest("One allocation", resource = "std/memory/alloc/one/out.asm")
     fun positiveValue(ctx: RarsTestContext) {
         val wordsToAlloc = 4
         ctx
@@ -30,7 +30,7 @@ class MemoryAllocTests {
             }
     }
 
-    @RarsTest("Many allocations", resource = "memory/alloc/many/out.asm")
+    @RarsTest("Many allocations", resource = "std/memory/alloc/many/out.asm")
     fun manyAllocations(ctx: RarsTestContext) {
         // Every word is its own allocation. See the test file
         val wordsToAlloc = 10

@@ -10,7 +10,7 @@ import xyz.om3lette.rars.testSuite.testCase.extensions.withMemory
 import xyz.om3lette.rars.testSuite.testCase.extensions.withRegister
 import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
-@RarsTestSuite(name = "Math.min", defaultResource = "math/min/out.asm")
+@RarsTestSuite(name = "Math.min", defaultResource = "std/math/min/out.asm")
 class MathMinTests {
     private val baseAddress: Int = TestsConstants.HEAP_BASE + 32
     private val baseAddressWord: Int = baseAddress / 4

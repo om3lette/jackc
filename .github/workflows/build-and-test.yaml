@@ -45,5 +45,5 @@ jobs:
           java-version: "17"
           cache: "gradle"
 
-      - name: Integration tests
-        run: just integration-test -p release
+      - name: E2E tests
+        run: just e2e-test -p release

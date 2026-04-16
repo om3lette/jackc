@@ -39,13 +39,13 @@ unit-test preset="debug":
     cmake --build --preset {{preset}}
     ctest --preset {{preset}} -L unit
 
-# Run integration tests
+# Run e2e tests
 [group('test')]
 [arg("preset", long="preset", short="p")]
-integration-test preset="debug":
+e2e-test preset="debug":
     cmake --preset {{preset}}
     cmake --build --preset {{preset}}
-    ctest --preset {{preset}} -L integration
+    ctest --preset {{preset}} -L e2e
 
 # Generate documentation
 [group('docs')]

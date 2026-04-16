@@ -7,7 +7,7 @@ import xyz.om3lette.rars.testSuite.annotations.RarsTestSuite
 import xyz.om3lette.rars.testSuite.testCase.extensions.withRegister
 import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
-@RarsTestSuite(name = "Math.abs", defaultResource = "math/abs/out.asm")
+@RarsTestSuite(name = "Math.abs", defaultResource = "std/math/abs/out.asm")
 class MathAbsTests {
     @RarsTest("Positive value returns itself")
     fun positiveValue(ctx: RarsTestContext) =

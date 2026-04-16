@@ -147,5 +147,5 @@ set_tests_properties(function_registry_tests PROPERTIES LABELS "unit")
 add_test(NAME compiler_integration_tests COMMAND compiler_integration_tests)
 set_tests_properties(compiler_integration_tests PROPERTIES LABELS "unit")
 
-add_test(NAME stdlib_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/stdlib/gradlew -p ${CMAKE_CURRENT_SOURCE_DIR}/stdlib run)
-set_tests_properties(stdlib_tests PROPERTIES LABELS "integration")
+add_test(NAME e2e_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/e2e/gradlew -p ${CMAKE_CURRENT_SOURCE_DIR}/e2e run)
+set_tests_properties(e2e_tests PROPERTIES LABELS "e2e")

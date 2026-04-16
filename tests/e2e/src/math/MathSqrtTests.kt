@@ -7,7 +7,7 @@ import xyz.om3lette.rars.testSuite.annotations.RarsTestSuite
 import xyz.om3lette.rars.testSuite.testCase.extensions.withRegister
 import xyz.om3lette.rars.testSuite.testContext.RarsTestContext
 
-@RarsTestSuite(name = "Math.sqrt", defaultResource = "math/sqrt/out.asm")
+@RarsTestSuite(name = "Math.sqrt", defaultResource = "std/math/sqrt/out.asm")
 class MathSqrtTests {
     @RarsTest("Full square")
     fun fullSquare(ctx: RarsTestContext) =
