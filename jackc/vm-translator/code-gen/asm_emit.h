@@ -81,7 +81,6 @@ void asm_emit_branch(
     const jackc_string* label
 );
 void asm_emit_ret(const emitter* e);
-void asm_emit_ecall(const emitter* e);
 
 //============================
 // Arithmetic

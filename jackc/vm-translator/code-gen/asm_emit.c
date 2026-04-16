@@ -90,11 +90,6 @@ void asm_emit_j(const emitter* e, const jackc_string* target) {
     jackc_fprintf(e->fd, "\tj %.*s\n", target->length, target->data);
 }
 
-// TODO: Proper API
-void asm_emit_ecall(const emitter* e) {
-    jackc_fprintf(e->fd, "\tecall\n");
-}
-
 static const char* branch_cond_strs[] = {
     [BRANCH_EQ]  = "bne",
     [BRANCH_NE]  = "beq",

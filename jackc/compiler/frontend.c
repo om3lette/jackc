@@ -84,7 +84,7 @@ static bool is_semantically_invalid(
             cfg->locale, cfg->diag_engine_output_fd, cfg->diag_engine_filename_override
         );
         semantic_validity_traversal_context ctx = semantic_validity_traversal_context_init(
-            &current_file->ast->name, registry, &engine, allocator
+            registry, &engine, allocator
         );
         is_invalid |= ast_semantic_validity_traversal(current_file->ast, &ctx);
 
@@ -105,7 +105,7 @@ static bool is_semantically_invalid(
 
         jackc_diagnostic_engine_report(&ctx.engine, current_file->lines);
     }
-    if (!function_registry_contains(registry, &jackc_string_from_str("Main"), &jackc_string_from_str("main"), nullptr)) {
+    if (!function_registry_find(registry, &jackc_string_from_str("Main"), &jackc_string_from_str("main"), nullptr)) {
         jackc_printf(cfg->locale->msgs.program_entrypoint_not_found);
         jackc_putchar('\n');
         is_invalid = true;

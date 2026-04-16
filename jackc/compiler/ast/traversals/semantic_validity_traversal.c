@@ -78,7 +78,7 @@ static bool register_var(semantic_validity_traversal_context* ctx, const ast_var
     // Class used as a variable type is not defined
     if (
         var_dec->type.kind == TYPE_CLASS
-        && !function_registry_contains_class(ctx->registry, &var_dec->type.class_name, nullptr)
+        && !function_registry_find_class(ctx->registry, &var_dec->type.class_name, nullptr)
     ) {
         jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_ERROR, DIAG_USE_OF_UNDECLARED_IDENTIFIER, var_dec->node.span);
         jackc_diag_emit(&d);
@@ -120,7 +120,7 @@ static bool is_valid_var_or_diagnostic(semantic_validity_traversal_context* ctx,
     //     do m();    < ?
     // }
     function_signature signature;
-    if (function_registry_contains(ctx->registry, &ctx->class_name, var_name, &signature)) {
+    if (function_registry_find(ctx->registry, &ctx->class_name, var_name, &signature)) {
         jackc_diag_builder d = jackc_diag_begin_str(&ctx->engine, DIAG_ERROR, DIAG_REDEFINITION, var_name);
         jackc_diag_add_note_str(&d, DIAG_NOTE_PREVIOUS_DEFINITION_IS_HERE, &signature.name, ctx->allocator);
         jackc_diag_emit(&d);
@@ -136,7 +136,7 @@ static bool function_registry_find_or_diagnostic(
     const jackc_string* sub_name,
     function_signature* out
 ) {
-    if (!function_registry_contains(ctx->registry, class_name, sub_name, out)) {
+    if (!function_registry_find(ctx->registry, class_name, sub_name, out)) {
         jackc_diag_builder d = jackc_diag_begin_str(&ctx->engine, DIAG_ERROR, DIAG_CALL_TO_UNDECLARED_SUBROUTINE, sub_name);
         jackc_diag_emit(&d);
         INVALID_STATE(ctx);
@@ -199,7 +199,7 @@ static void visit_subroutine_call(const ast_call* call, semantic_validity_traver
             is_receiver_an_instance = true;
             receiver_class = token.class_name;
         } else {
-            if (!function_registry_contains_class(ctx->registry, &receiver_class, nullptr)) {
+            if (!function_registry_find_class(ctx->registry, &receiver_class, nullptr)) {
                 jackc_diag_builder d = jackc_diag_begin_str(&ctx->engine, DIAG_ERROR, DIAG_USE_OF_UNDECLARED_IDENTIFIER, &receiver_class);
                 jackc_diag_emit(&d);
                 INVALID_STATE(ctx);
@@ -231,7 +231,6 @@ static void visit_subroutine_call(const ast_call* call, semantic_validity_traver
         INVALID_STATE(ctx);
     }
 
-    // TODO: Precalc for ast_call?
     uint16_t n_args = 0;
     for (ast_expr_list* arg = call->args; arg; arg = arg->next) {
         visit_expression(arg->expr, ctx);
@@ -322,7 +321,6 @@ static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_co
                 ast_type index_type = resolve_expression_type(ctx, stmt->let_stmt.index);
                 ast_type int_type = (ast_type){.kind = TYPE_INT};
                 if (!are_types_compatible(&int_type, &index_type)) {
-                    // TODO: Fix span
                     jackc_diag_builder d = jackc_diag_begin(
                         &ctx->engine,
                         DIAG_ERROR,
@@ -341,7 +339,6 @@ static void visit_statement(const ast_stmt* stmt, semantic_validity_traversal_co
             ast_type var_ast_type = sym_table_token_to_ast_type(&var_token);
             ast_type value_type = resolve_expression_type(ctx, stmt->let_stmt.value);
             if (!are_types_compatible(&var_ast_type, &value_type)) {
-                // TODO: Fix span, update error message
                 jackc_diag_builder d = jackc_diag_begin(
                     &ctx->engine,
                     DIAG_ERROR,
@@ -398,13 +395,8 @@ static void visit_statements(const ast_stmt* stmts, semantic_validity_traversal_
 
 static void visit_subroutine(const ast_subroutine* sub, semantic_validity_traversal_context* ctx) {
     ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
+    semantic_validity_enter_subroutine(ctx, sub);
 
-    // TODO: Make a separate function
-    ctx->subroutine_name = sub->name;
-    ctx->subroutine_span = sub->node.span;
-    ctx->has_constructor |= sub->kind == SUB_CONSTRUCTOR;
-    ctx->has_dispose_method |= jackc_streq(&sub->name, "dispose");
-    ctx->has_return_stmt = false;
     if (!function_registry_find_or_diagnostic(ctx, &ctx->class_name, &ctx->subroutine_name, &ctx->sub_signature))
         return;
 
@@ -430,17 +422,13 @@ static void visit_subroutine(const ast_subroutine* sub, semantic_validity_traver
 }
 
 bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_traversal_context* ctx) {
-    if (!function_registry_contains_class(ctx->registry, &class->name, nullptr)) {
+    if (!function_registry_find_class(ctx->registry, &class->name, nullptr)) {
         jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_ERROR, DIAG_USE_OF_UNDECLARED_IDENTIFIER, class->node.span);
         jackc_diag_emit(&d);
         INVALID_STATE(ctx);
         return true;
     }
-
-    // TODO: Make a separate function
-    ctx->symtab = sym_table_push(ctx->symtab, ctx->allocator);
-    ctx->class_name = class->name;
-    ctx->class_span = class->node.span;
+    semantic_validity_enter_class(ctx, class);
 
     for (const ast_var_dec* class_var = class->class_vars; class_var; class_var = class_var->next) {
         jackc_assert(class_var->kind == VAR_STATIC || class_var->kind == VAR_FIELD);

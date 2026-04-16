@@ -216,8 +216,6 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             break;
         case STMT_RETURN:
             if (stmt->return_stmt) {
-                // TODO: Verify that expression result is not void
-                // Not returning a value does not break the backend, but it is conventional to return 0
                 visit_expression(ctx, stmt->return_stmt);
             } else {
                 emit_signed_const(ctx->fd, 0);
@@ -301,7 +299,7 @@ void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_tra
 
     for (ast_subroutine* sub = class->subroutines; sub; sub = sub->next) {
         function_signature signature;
-        if (!function_registry_contains(ctx->registry, &ctx->class_name, &sub->name, &signature)) {
+        if (!function_registry_find(ctx->registry, &ctx->class_name, &sub->name, &signature)) {
             // Should not happen as program is semantically correct
             ctx->had_error = true;
             continue;

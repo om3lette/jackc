@@ -27,7 +27,7 @@ jack_call_resolution resolve_subroutine_call_receiver(
     }
 
     function_signature signature;
-    if (!function_registry_contains(registry, &resolved_receiver_class, &call->subroutine_name, &signature))
+    if (!function_registry_find(registry, &resolved_receiver_class, &call->subroutine_name, &signature))
         had_error = true;
 
     return (jack_call_resolution) {
