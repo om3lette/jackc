@@ -23,7 +23,6 @@ FD jackc_open(const char* path, FLAGS flags) {
 }
 
 long jackc_read(FD fd, void* buf, size_t n) {
-    // TODO: Reduce size_t to unsigned
     DWORD bytes_read;
     return ReadFile((HANDLE)fd, buf, (DWORD)n, &bytes_read, nullptr) ? (long)bytes_read : -1;
 }

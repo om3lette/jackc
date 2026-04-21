@@ -1,4 +1,9 @@
-set shell := ["powershell.exe", "-c"]
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
+# Install project dependencies (using chocolatey)
+[windows]
+deps:
+    choco install llvm cmake ninja patch doxygen.install
 
 # Configure and build the project using preset
 [arg("preset", long="preset", short="p")]
@@ -15,15 +20,22 @@ clean-build preset="debug":
     cmake --build --clean-first --preset {{preset}}
 
 # Configure and build for RARS
+[unix]
 [group('build')]
 rars:
     cmake --preset rars
     cmake --build --preset rars
 
 # Remove all build directories
+[unix]
 [group('build')]
 clean:
     rm -rf build build-riscv cmake-build-release
+
+[windows]
+[group('build')]
+clean:
+    Remove-Item -r build build-riscv cmake-build-release
 
 # Run tests
 [group('test')]
