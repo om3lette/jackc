@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { version: "22.1.0", std: 23, build_type: Release }
+          - { version: "22.1.0", std: 23, build_type: release }
 
     name: "clang ${{ matrix.config.version }} (C${{ matrix.config.std }}, ${{ matrix.config.build_type }})"
     steps:
@@ -26,4 +26,4 @@ jobs:
         run: just install-deps
 
       - name: Build
-        run: just build -p win-${{ toLowerCase(matrix.config.build_type) }}
+        run: just build -p win-${{ matrix.config.build_type }}
