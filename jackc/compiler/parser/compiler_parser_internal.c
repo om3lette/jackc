@@ -157,10 +157,10 @@ ast_class* jack_parser_parse_class(jack_parser* parser) {
 }
 
 ast_var_dec* jack_parser_parse_class_var_dec(jack_parser* parser) {
-    jack_variable_kind kind = VAR_STATIC;
+    jack_variable_kind kind = VAR_STATIC_;
     switch (parser->current.type) {
         case TOKEN_STATIC:
-            kind = VAR_STATIC;
+            kind = VAR_STATIC_;
             break;
         case TOKEN_FIELD:
             kind = VAR_FIELD;

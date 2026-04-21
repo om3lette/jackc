@@ -4,6 +4,7 @@
 #include "core/config.h"
 #include "core/localization/locale.h"
 #include "std/jackc_stdlib.h"
+#include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "vm-translator/backend.h"
 #include <stddef.h>

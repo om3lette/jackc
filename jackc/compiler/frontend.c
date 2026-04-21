@@ -152,7 +152,7 @@ static bool generate_vm_code(
             out_base_dir,
             filename.length, filename.data
         );
-        int fd = jackc_open(out_file_path, O_CREAT | O_WRONLY | O_TRUNC);
+        FD fd = jackc_open(out_file_path, O_WRONLY);
         if (fd < 0) {
             had_error = true;
             continue;

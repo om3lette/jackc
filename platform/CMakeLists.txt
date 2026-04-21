@@ -1,10 +1,9 @@
-if (NOT DEFINED PLATFORM)
-    set(PLATFORM "linux")
-endif()
-
 message(STATUS "Platform = ${PLATFORM}")
 if (PLATFORM STREQUAL "linux")
     set(PLATFORM_DIR "linux")
+    set(libc true)
+elseif (PLATFORM STREQUAL "windows")
+    set(PLATFORM_DIR "windows")
     set(libc true)
 elseif (PLATFORM STREQUAL "rars")
     set(PLATFORM_DIR "rars")

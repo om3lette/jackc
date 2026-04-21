@@ -25,7 +25,7 @@ TEST_F(parser_fixture, class_var_dec_static_one) {
     ast_var_dec* var = parse_class_var("static int x;", tau);
 
     REQUIRE_NO_ERRORS(tau->parser);
-    REQUIRE_VAR(var, VAR_STATIC, TYPE_INT, "x");
+    REQUIRE_VAR(var, VAR_STATIC_, TYPE_INT, "x");
 }
 
 TEST_F(parser_fixture, class_var_dec_field_one) {
@@ -39,7 +39,7 @@ TEST_F(parser_fixture, class_var_dec_one_class) {
     ast_var_dec* var = parse_class_var("static TestClass x;", tau);
 
     REQUIRE_NO_ERRORS(tau->parser);
-    REQUIRE_CLASS_VAR(var, VAR_STATIC, "TestClass", "x");
+    REQUIRE_CLASS_VAR(var, VAR_STATIC_, "TestClass", "x");
 }
 
 TEST_F(parser_fixture, class_var_dec_many) {

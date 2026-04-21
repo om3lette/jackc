@@ -1,6 +1,7 @@
 #ifndef JACKC_STD_UTILS_H
 #define JACKC_STD_UTILS_H
 
+#include "std/jackc_syscalls.h"
 #include <stddef.h>
 #include <stdint.h>
 #define STD_STRING_CLASS "String"
@@ -34,7 +35,7 @@ typedef struct {
     };
 } std_subroutine_call;
 
-void emit_std_call(int fd, std_subroutine_call subroutine);
+void emit_std_call(FD fd, std_subroutine_call subroutine);
 
 typedef struct {
     const char* name;

@@ -20,14 +20,14 @@ static DirState dir_stack[MAX_DIR_STACK];
 static int stack_top = -1;
 
 static int has_extension(const char* filename, const char* ext) {
-    const char* dot = strrchr(filename, '.');
+    const char* dot = jackc_strrchr(filename, '.');
     if (!dot || dot == filename) return 0;
-    return strcmp(dot, ext) == 0;
+    return jackc_strcmp(dot, ext) == 0;
 }
 
 static char* join_path(const char* dir, const char* file) {
     // +2 for '/' and null terminator
-    size_t len = strlen(dir) + strlen(file) + 2;
+    size_t len = jackc_strlen(dir) + jackc_strlen(file) + 2;
     char* full_path = jackc_alloc(len);
     snprintf(full_path, len, "%s/%s", dir, file);
     return full_path;
@@ -56,7 +56,7 @@ jackc_file_return_code jackc_next_source_file(const char* base_path, const char*
             continue;
         }
 
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        if (jackc_strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
         char* full_path = join_path(dir_stack[stack_top].path_string, entry->d_name);

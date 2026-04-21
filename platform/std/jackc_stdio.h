@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdarg.h>
+#include "jackc_syscalls.h"
 
 #ifdef __rars__
     #define FRONTEND_EXPECTED_ARGUMENTS 2
@@ -16,22 +17,34 @@
     #define FIRST_ARG_IDX 1
 #endif
 
-void jackc_vfprintf(int fd, const char* format, va_list args);
+void jackc_putchar(char c);
 
-void jackc_fprintf(int fd, const char* format, ...);
+/**
+ * Tries to mirror printf behavior.
+ *
+ * Currently supports (RARS):
+ * - %d: integer
+ * - %u: unsigned integer
+ * - %c: char
+ * - %s: string
+ * - %f: float
+ * - %p: pointer
+ *
+ * @param format Format string.
+ */
+void jackc_printf(const char* format, ...);
+
+
+void jackc_vprintf(const char* format, va_list args);
+
+void jackc_vfprintf(FD fd, const char* format, va_list args);
+
+void jackc_fprintf(FD fd, const char* format, ...);
 
 void jackc_vsprintf(char* buffer, const char* format, va_list args);
 
 void jackc_sprintf(char* buffer, const char* format, ...);
 
-int jackc_open(const char* path, int flags);
-
-long jackc_read(int fd, void* buf, size_t n);
-
-long jackc_lseek(int fd, long offset, int whence);
-
-long jackc_write(int fd, const void* buf, size_t n);
-
-int jackc_close(int fd);
+[[ nodiscard ]] FD jackc_stdout_fd();
 
 #endif

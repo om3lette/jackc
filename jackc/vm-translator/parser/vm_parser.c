@@ -1,6 +1,7 @@
 #include "vm_parser.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"
+#include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
 #include "vm-translator/backend.h"

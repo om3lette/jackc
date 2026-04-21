@@ -1,6 +1,10 @@
+#include "std/jackc_syscalls.h"
+
+#include <consoleapi.h>
+#include <processenv.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include "std/jackc_syscalls.h"
+#include <winbase.h>
 
 void jackc_putchar(char c) {
     putchar(c);
@@ -18,7 +22,9 @@ void jackc_vprintf(const char* format, va_list args) {
 }
 
 void jackc_vfprintf(FD fd, const char* format, va_list args) {
-    vdprintf(fd, format, args);
+    char buf[4096];
+    vsnprintf(buf, sizeof(buf), format, args);
+    jackc_write(fd, buf, strlen(buf));
 }
 
 void jackc_fprintf(FD fd, const char* format, ...) {
@@ -39,4 +45,6 @@ void jackc_sprintf(char* buffer, const char* format, ...) {
     va_end(args);
 }
 
-FD jackc_stdout_fd() { return 1; }
+FD jackc_stdout_fd() {
+    return (FD)GetStdHandle(STD_OUTPUT_HANDLE);
+}

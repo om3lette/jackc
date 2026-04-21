@@ -29,7 +29,7 @@ jackc_backend_return_code jackc_backend_compile(
         return BACKEND_SAVE_PATH_TOO_LONG;
 
     jackc_sprintf(file_path, "%s/%s", output_dir, OUT_FILENAME);
-    int fd = jackc_open(file_path, O_CREAT | O_WRONLY | O_TRUNC);
+    FD fd = jackc_open(file_path, O_WRONLY);
     if (fd < 0)
         return BACKEND_FAILED_TO_OPEN_SAVE_FILE;
 

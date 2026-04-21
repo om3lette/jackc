@@ -8,25 +8,6 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /**
- * Tries to mirror printf behavior.
- *
- * Currently supports (RARS):
- * - %d: integer
- * - %u: unsigned integer
- * - %c: char
- * - %s: string
- * - %f: float
- * - %p: pointer
- *
- * @param format Format string.
- */
-void jackc_printf(const char* format, ...);
-
-void jackc_putchar(char c);
-
-void jackc_vprintf(const char* format, va_list args);
-
-/**
  * Allocates `size` bytes. Exits on allocation failure.
  *
  * @param size Bytes to allocate.

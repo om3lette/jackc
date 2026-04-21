@@ -7,20 +7,30 @@
 #define JACKC_SEEK_CUR	1	/* Seek from current position.  */
 #define JACKC_SEEK_END	2	/* Seek from end of file.  */
 
-#define O_CREAT 0100
-#define O_RDONLY 00
-#define O_WRONLY 01
-#define O_APPEND 0200
-#define O_TRUNC 01000
+#ifdef _WIN32
+#   define _CRT_SECURE_NO_WARNINGS
+#   define WIN32_LEAN_AND_MEAN
+#   include <windows.h>
+#   include <stdint.h>
+#   define O_RDONLY GENERIC_READ
+#   define O_WRONLY GENERIC_WRITE
+#   define FD intptr_t
+#   define FLAGS DWORD
+#else
+#   define O_RDONLY 00
+#   define O_WRONLY 01
+#   define FD int
+#   define FLAGS int
+#endif
 
-int jackc_open(const char* path, int flags);
+FD jackc_open(const char* path, FLAGS flags);
 
-long jackc_read(int fd, void* buf, size_t n);
+long jackc_read(FD fd, void* buf, size_t n);
 
-long jackc_write(int fd, const void* buf, size_t n);
+long jackc_write(FD fd, const void* buf, size_t n);
 
-long jackc_lseek(int fd, long offset, int whence);
+long jackc_lseek(FD fd, long offset, FLAGS whence);
 
-int jackc_close(int fd);
+int jackc_close(FD fd);
 
 #endif

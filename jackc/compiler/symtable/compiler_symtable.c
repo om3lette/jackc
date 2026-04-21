@@ -63,7 +63,7 @@ sym_table_return_code sym_table_insert(sym_table* table, sym_table_token* token)
         return SYMTAB_ALREADY_EXISTS;
     }
     switch (token->var.kind) {
-        case VAR_STATIC:
+        case VAR_STATIC_:
             token->var.idx = table->static_idx++;
             break;
         case VAR_FIELD:

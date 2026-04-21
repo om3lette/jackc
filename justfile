@@ -1,3 +1,5 @@
+set shell := ["powershell.exe", "-c"]
+
 # Configure and build the project using preset
 [arg("preset", long="preset", short="p")]
 [group('build')]

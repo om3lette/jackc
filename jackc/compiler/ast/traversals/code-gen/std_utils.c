@@ -11,7 +11,7 @@ static std_subroutine std_subroutines[] = {
 };
 static_assert(sizeof(std_subroutines) / sizeof(std_subroutine) == NUMBER_OF_STD_FUNCTIONS);
 
-void emit_std_call(int fd, std_subroutine_call sub) {
+void emit_std_call(FD fd, std_subroutine_call sub) {
     char* class_name = nullptr;
 
     // Prepare the call by pushing the arguments

@@ -1,11 +1,10 @@
-#include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
 #include "core/jackc_file_utils.h"
 
 jackc_file_return_code jackc_read_file_content(const char* file_path, char** out_file_content) {
-    int fd = jackc_open(file_path, O_RDONLY);
+    FD fd = jackc_open(file_path, O_RDONLY);
     if (fd < 0)
         return FILE_FAILED_TO_OPEN;
 

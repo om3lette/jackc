@@ -4,6 +4,7 @@
 #include "core/localization/locale.h"
 #include "core/allocators/allocators.h"
 #include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
 #include "diagnostic.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -16,7 +17,7 @@ typedef struct {
     jackc_string source;
     const char* filename;
     const jackc_locale* locale;
-    int output_fd;
+    FD output_fd;
 
     size_t size;
     bool overflow;
@@ -27,7 +28,7 @@ typedef struct {
     jackc_string source,
     const char* filename,
     const jackc_locale* locale,
-    int output_fd,
+    FD output_fd,
     bool override_filename
 );
 void jackc_diag_engine_reset(

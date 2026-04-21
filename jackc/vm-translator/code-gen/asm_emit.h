@@ -2,10 +2,11 @@
 #define JACKC_ASM_EMMITTER_H
 
 #include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
 #include <stdint.h>
 
 typedef struct {
-    int fd;
+    FD fd;
     bool emit_comments;
     uint32_t branch_label_idx;
     jackc_string branch_label;
