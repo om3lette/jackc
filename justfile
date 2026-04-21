@@ -2,8 +2,10 @@ set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 # Install project dependencies (using chocolatey)
 [windows]
-deps:
-    choco install llvm cmake ninja patch doxygen.install
+[arg("llvm", long="llvm")]
+install-deps llvm="22.1.0":
+    choco install llvm --version {{llvm}} -y
+    choco install cmake ninja patch doxygen.install -y
 
 # Configure and build the project using preset
 [arg("preset", long="preset", short="p")]
