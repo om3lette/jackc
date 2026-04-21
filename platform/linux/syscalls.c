@@ -3,7 +3,8 @@
 #include "std/jackc_syscalls.h"
 
 int jackc_open(const char* path, FLAGS flags) {
-    return open(path, flags | O_CREAT | O_TRUNC, 0644);
+    FLAGS extra_flags = flags & O_WRONLY ? O_TRUNC : 0;
+    return open(path, flags | O_CREAT | extra_flags, 0644);
 }
 
 long jackc_read(FD fd, void* buf, size_t n) {
