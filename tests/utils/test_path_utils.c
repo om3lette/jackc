@@ -27,7 +27,7 @@ void get_test_root(const char* runner_path, char* out, size_t size) {
     snprintf(out, size, "%s/tests", dir);
 }
 
-void path_join(char* out, size_t size, const char* a, const char* b) {
+static void path_join(char* out, size_t size, const char* a, const char* b) {
     if (!a) a = "";
     if (!b) b = "";
 

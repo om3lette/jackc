@@ -13,8 +13,6 @@ void path_dirname(char* out, size_t size, const char* path);
 
 void get_test_root(const char* runner_path, char* out, size_t size);
 
-void path_join(char* out, size_t size, const char* a, const char* b);
-
 [[ nodiscard ]] bool next_test_case(const char* base_path, char* out_dir);
 
 #endif

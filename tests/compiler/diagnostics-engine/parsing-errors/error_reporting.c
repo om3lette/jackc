@@ -1,5 +1,6 @@
 #include "compiler/diagnostics-engine/engine.h"
 #include "core/jackc_file_utils.h"
+#include "core/localization/locale.h"
 #include "core/logging/logger.h"
 #include "std/jackc_syscalls.h"
 #include "test_parser_utils.h"
@@ -7,7 +8,6 @@
 #include "tau.h"
 #include <dirent.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
 #include "test_path_utils.h"
 
@@ -36,26 +36,21 @@ TEST_F(parser_fixture, error_reporting) {
     uint32_t tests_passed = 0;
 
     do {
-        char source_path[PATH_MAX];
-        char expected_path[PATH_MAX];
-        char output_path[PATH_MAX];
-
-        path_join(source_path, sizeof(source_path), test_dir, TEST_FILENAME);
-        path_join(expected_path, sizeof(expected_path), test_dir, EXPECTED_FILENAME);
-        path_join(output_path, sizeof(output_path), test_dir, OUTPUT_FILENAME);
+        const char* source_path = jackc_join_path(test_dir, TEST_FILENAME, &tau->arena);
+        const char* expected_path = jackc_join_path(test_dir, EXPECTED_FILENAME, &tau->arena);
+        const char* output_path = jackc_join_path(test_dir, OUTPUT_FILENAME, &tau->arena);
 
         char* source = nullptr;
-        if (jackc_read_file_content(source_path, &source) != FILE_OK) {
+        if (jackc_read_file_content(source_path, &source, &tau->arena) != FILE_OK) {
             is_success = false;
             LOG_ERROR("Missing %s for test %s\n", TEST_FILENAME, test_dir);
             continue;
         }
         char* expected = nullptr;
 
-        if (jackc_read_file_content(expected_path, &expected) != FILE_OK) {
+        if (jackc_read_file_content(expected_path, &expected, &tau->arena) != FILE_OK) {
             is_success = false;
             LOG_ERROR("Missing %s for test %s\n", EXPECTED_FILENAME, test_dir);
-            free(source);
             continue;
         }
 
@@ -73,19 +68,19 @@ TEST_F(parser_fixture, error_reporting) {
         jackc_close(out);
 
         char* actual = nullptr;
-        jackc_read_file_content(output_path, &actual);
+        jackc_file_return_code file_ret_code;
+        if ((file_ret_code = jackc_read_file_content(output_path, &actual, &tau->arena) != FILE_OK)) {
+            jackc_report_file_error(&jackc_locale_en, file_ret_code, output_path);
+            return;
+        }
 
-        bool result = actual ? strcmp(actual, expected) == 0 : false;
+        bool result = actual ? jackc_strcmp(actual, expected) == 0 : false;
         ++tests_total;
         tests_passed += result;
         if (!result) {
             LOG_ERROR("Test '%s' result: FAIL\n", source_path);
             is_success = false;
         }
-
-        free(actual);
-        free(source);
-        free(expected);
     } while (next_test_case(base_path, test_dir));
 
     LOG_INFO("%d/%d tests passed\n", tests_passed, tests_total);

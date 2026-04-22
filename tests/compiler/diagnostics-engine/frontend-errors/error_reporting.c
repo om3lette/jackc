@@ -8,7 +8,6 @@
 #include "tau.h"
 #include <dirent.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
 #include "test_path_utils.h"
 
@@ -40,14 +39,11 @@ TEST_F(frontend_fixture, error_reporting) {
     uint32_t tests_passed = 0;
 
     do {
-        char expected_path[PATH_MAX];
-        char output_path[PATH_MAX];
-
-        path_join(expected_path, sizeof(expected_path), test_dir, EXPECTED_FILENAME);
-        path_join(output_path, sizeof(output_path), test_dir, OUTPUT_FILENAME);
+        const char* expected_path = jackc_join_path(test_dir, EXPECTED_FILENAME, &tau->allocator);
+        const char* output_path = jackc_join_path(test_dir, OUTPUT_FILENAME, &tau->allocator);
 
         char* expected = nullptr;
-        if (jackc_read_file_content(expected_path, &expected) != FILE_OK) {
+        if (jackc_read_file_content(expected_path, &expected, &tau->allocator) != FILE_OK) {
             is_success = false;
             LOG_ERROR("Missing %s for test %s\n", EXPECTED_FILENAME, test_dir);
             continue;
@@ -71,18 +67,19 @@ TEST_F(frontend_fixture, error_reporting) {
         jackc_close(out);
 
         char* actual = nullptr;
-        jackc_read_file_content(output_path, &actual);
+        jackc_file_return_code file_ret_code;
+        if ((file_ret_code = jackc_read_file_content(output_path, &actual, &tau->allocator) != FILE_OK)) {
+            jackc_report_file_error(&jackc_locale_en, file_ret_code, output_path);
+            return;
+        }
 
-        bool result = actual ? strcmp(actual, expected) == 0 : false;
+        bool result = actual ? jackc_strcmp(actual, expected) == 0 : false;
         ++tests_total;
         tests_passed += result;
         if (!result) {
             LOG_ERROR("Test '%s' result: FAIL\n", test_dir);
             is_success = false;
         }
-
-        free(actual);
-        free(expected);
     } while (next_test_case(base_path, test_dir));
 
     LOG_INFO("%d/%d tests passed\n", tests_passed, tests_total);

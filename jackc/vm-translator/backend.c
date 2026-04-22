@@ -6,7 +6,6 @@
 #include "std/jackc_syscalls.h"
 #include "vm-translator/code-gen/asm_code_gen.h"
 #include "vm-translator/parser/vm_parser.h"
-#include "std/jackc_stdlib.h"
 #include "core/jackc_file_utils.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 
@@ -42,23 +41,28 @@ jackc_backend_return_code jackc_backend_compile(
 
     jackc_file_return_code source_file_ret_code, file_read_ret_code;
     char* std_native_content = nullptr;
-    file_read_ret_code = jackc_read_file_content(file_path, &std_native_content);
+    file_read_ret_code = jackc_read_file_content(file_path, &std_native_content, allocator);
     if (file_read_ret_code != FILE_OK) {
         jackc_report_file_error(locale, file_read_ret_code, file_path);
-        return BACKEND_FAULED_TO_OPEN_STD_NATIVE;
+        return BACKEND_FAILED_TO_OPEN_STD_NATIVE;
     }
     asm_code_gen_bootstrap(ctx, std_native_content);
-    jackc_free((void*)std_native_content);
 
     size_t vm_files_cnt = 0;
     const char* source_file_path = nullptr;
+    jackc_file_return_code iter_ret_code = FILE_OK;
+    jackc_dir_iterator iter;
+    if ((iter_ret_code = jackc_dir_iterator_create(base_path, allocator, &iter)) != FILE_OK) {
+        jackc_report_file_error(locale, iter_ret_code, base_path);
+        return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
+    }
     while (
-        (source_file_ret_code = jackc_next_source_file(base_path, ".vm", &source_file_path)) == FILE_OK
+        (source_file_ret_code = jackc_dir_iterator_next_file_with_ext(&iter, ".vm", &source_file_path)) == FILE_OK
     ) {
         ++vm_files_cnt;
 
         char* file_content = nullptr;
-        file_read_ret_code = jackc_read_file_content(source_file_path, &file_content);
+        file_read_ret_code = jackc_read_file_content(source_file_path, &file_content, allocator);
         if (file_read_ret_code != FILE_OK) {
             jackc_report_file_error(locale, file_read_ret_code, source_file_path);
             return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
@@ -75,9 +79,6 @@ jackc_backend_return_code jackc_backend_compile(
             }
         }
         asm_code_gen_process_line(ctx, &parser);
-
-        jackc_free((void*)file_content);
-        jackc_free((void*)source_file_path);
     }
     asm_code_gen_finalize(ctx);
 

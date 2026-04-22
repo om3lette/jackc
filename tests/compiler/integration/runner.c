@@ -29,8 +29,9 @@ TEST_F_TEARDOWN(integration_fixture) {
  */
 #define REGISTER_TEST(name, _path, _outcome)                                        \
     TEST_F(integration_fixture, name) {                                             \
-        char full_path[PATH_MAX];                                                   \
-        path_join(full_path, sizeof(full_path), tau->test_folder_path, _path);      \
+        const char* full_path = jackc_join_path(                                    \
+            tau->test_folder_path, _path, &tau->allocator                           \
+        );                                                                          \
         const char* input_paths[] = { full_path };                                  \
         jackc_frontend_config config = {                                            \
             .locale = &jackc_locale_en,                                             \

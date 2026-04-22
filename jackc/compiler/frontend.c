@@ -11,7 +11,6 @@
 #include "core/asserts/jackc_assert.h"
 #include "core/localization/locale.h"
 #include "std/jackc_stdio.h"
-#include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
 #include "core/jackc_file_utils.h"
@@ -170,19 +169,6 @@ static bool generate_vm_code(
     return had_error;
 }
 
-static void source_file_free(const jack_source* source_files) {
-    while (source_files) {
-        jackc_free((void*)source_files->content.data);
-        jackc_free((void*)source_files->filepath);
-        source_files = source_files->next;
-    }
-}
-
-#define RETURN_WITH_CLEANUP(_code) do { \
-    source_file_free(source_files); \
-    return _code; \
-} while (0);
-
 jackc_frontend_return_code jackc_frontend_compile(
     const char* input_paths[],
     uint32_t n_paths,
@@ -201,12 +187,19 @@ jackc_frontend_return_code jackc_frontend_compile(
         if (!current_path)
             continue;
 
+        jackc_file_return_code iter_ret_code = FILE_OK;
+        jackc_dir_iterator iter;
+        if ((iter_ret_code = jackc_dir_iterator_create(current_path, allocator, &iter)) != FILE_OK) {
+            jackc_report_file_error(config->locale, iter_ret_code, current_path);
+            continue;
+        }
+
         jackc_file_return_code source_file_ret_code, file_read_ret_code;
         while (
-            (source_file_ret_code = jackc_next_source_file(current_path, ".jack", &source_file_path)) == FILE_OK
+            (source_file_ret_code = jackc_dir_iterator_next_file_with_ext(&iter, ".jack", &source_file_path)) == FILE_OK
         ) {
             char* file_content_raw = nullptr;
-            if ((file_read_ret_code = jackc_read_file_content(source_file_path, &file_content_raw)) != FILE_OK) {
+            if ((file_read_ret_code = jackc_read_file_content(source_file_path, &file_content_raw, allocator)) != FILE_OK) {
                 jackc_report_file_error(config->locale, file_read_ret_code, source_file_path);
                 failed_to_open_source_file = true;
                 continue;
@@ -216,11 +209,8 @@ jackc_frontend_return_code jackc_frontend_compile(
             jackc_parse_result result = jackc_parse_file(source_file_path, file_content, config, allocator);
 
             had_syntax_error |= result.had_error;
-            if (!result.ast) {
-                jackc_free((void*)source_file_path);
-                jackc_free((void*)file_content_raw);
+            if (!result.ast)
                 continue;
-            }
 
             source_files = jack_source_add(
                 source_files,
@@ -237,27 +227,27 @@ jackc_frontend_return_code jackc_frontend_compile(
     // Because if all files had an error there will be no source files, which will cause
     // FRONTEND_NO_SOURCE_FILES to be mistakenly returned
     if (had_syntax_error)
-        RETURN_WITH_CLEANUP(FRONTEND_SYNTAX_ERROR);
+        return FRONTEND_SYNTAX_ERROR;
     if (!source_files)
-        RETURN_WITH_CLEANUP(FRONTEND_NO_SOURCE_FILES);
+        return FRONTEND_NO_SOURCE_FILES;
     if (failed_to_open_source_file)
-        RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_OPEN_SOURCE_FILE);
+        return FRONTEND_FAILED_TO_OPEN_SOURCE_FILE;
 
     // The first AST pass - build symbol table of class names and function signatures
     // Will report Class redeclarations
     function_registry* registry = function_registry_init(allocator);
     if (build_global_symtable(source_files, config, registry))
-        RETURN_WITH_CLEANUP(FRONTEND_SYMBOL_TABLE_BUILD_ERROR);
+        return FRONTEND_SYMBOL_TABLE_BUILD_ERROR;
 
     // The second AST pass - check that program is semantically valid
     if (is_semantically_invalid(source_files, config, registry, allocator))
-        RETURN_WITH_CLEANUP(FRONTEND_SEMANTICALLY_INVALID);
+        return FRONTEND_SEMANTICALLY_INVALID;
 
     if (!config->skip_vm_code_gen) {
         // The third AST pass - knowing that the code is valid, generate the vm code
         if (generate_vm_code(output_dir, source_files, registry, config, allocator))
-            RETURN_WITH_CLEANUP(FRONTEND_FAILED_TO_GENERATE_VM_CODE);
+            return FRONTEND_FAILED_TO_GENERATE_VM_CODE;
     }
 
-    RETURN_WITH_CLEANUP(FRONTEND_OK);
+    return FRONTEND_OK;
 }
