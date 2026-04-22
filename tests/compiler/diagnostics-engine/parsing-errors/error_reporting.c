@@ -6,8 +6,6 @@
 #include "test_parser_utils.h"
 #include "test_lexer_common.h"
 #include "tau.h"
-#include <dirent.h>
-#include <stdio.h>
 #include <sys/stat.h>
 #include "test_path_utils.h"
 
@@ -22,20 +20,18 @@ TEST_F_TEARDOWN(parser_fixture) {
 TEST_F(parser_fixture, error_reporting) {
 
     char base_path[PATH_MAX];
-    get_test_root(__FILE__, base_path, sizeof(base_path));
+    get_test_root(__FILE__, base_path);
 
-    char test_dir[PATH_MAX];
-
-    if (!next_test_case(base_path, test_dir)) {
-        REQUIRE(false, "No test cases found");
-        return;
-    }
+    const char* test_dir = nullptr;
 
     bool is_success = true;
     uint32_t tests_total = 0;
     uint32_t tests_passed = 0;
 
-    do {
+    jackc_dir_iterator iter;
+
+    REQUIRE_EQ(jackc_dir_iterator_create(base_path, &tau->arena, &iter), FILE_OK);
+    while (next_test_case(&iter, &test_dir)) {
         const char* source_path = jackc_join_path(test_dir, TEST_FILENAME, &tau->arena);
         const char* expected_path = jackc_join_path(test_dir, EXPECTED_FILENAME, &tau->arena);
         const char* output_path = jackc_join_path(test_dir, OUTPUT_FILENAME, &tau->arena);
@@ -56,7 +52,7 @@ TEST_F(parser_fixture, error_reporting) {
 
         int out = jackc_open(output_path, O_WRONLY | O_CREAT | O_TRUNC);
         if (out < 0) {
-            perror("open");
+            is_success = false;
             continue;
         }
 
@@ -81,8 +77,9 @@ TEST_F(parser_fixture, error_reporting) {
             LOG_ERROR("Test '%s' result: FAIL\n", source_path);
             is_success = false;
         }
-    } while (next_test_case(base_path, test_dir));
+    }
 
     LOG_INFO("%d/%d tests passed\n", tests_passed, tests_total);
+    REQUIRE(tests_passed > 0, "No tests were found");
     REQUIRE(is_success);
 }

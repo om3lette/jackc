@@ -13,7 +13,7 @@ struct integration_fixture {
 TEST_F_SETUP(integration_fixture) {
     tau->allocator = arena_allocator_adapter();
     tau->test_folder_path = tau->allocator.alloc(PATH_MAX, tau->allocator.context);
-    get_test_root(__FILE__, tau->test_folder_path, PATH_MAX);
+    get_test_root(__FILE__, tau->test_folder_path);
 }
 
 TEST_F_TEARDOWN(integration_fixture) {
