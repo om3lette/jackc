@@ -4,6 +4,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(libc TRUE)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Rars")
     set(PLATFORM_DIR "rars")
+    set(libc FALSE)
 else()
     set(PLATFORM_DIR "linux")
     set(libc TRUE)
@@ -16,7 +17,6 @@ add_library(platform_impl STATIC
 )
 # RARS specific files
 if (CMAKE_SYSTEM_NAME STREQUAL "Rars")
-    message(${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/std/memory.c)
     target_sources(platform_impl PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/rars_syscalls.c
         ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_DIR}/std/memory.c
