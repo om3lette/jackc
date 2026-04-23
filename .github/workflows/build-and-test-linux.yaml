@@ -23,7 +23,7 @@ jobs:
       - name: Setup Just
         uses: extractions/setup-just@v4
         with:
-          just-version: "1.47.1"
+          just-version: "1.50.0"
 
       - name: Setup compiler and build system
         uses: aminya/setup-cpp@v1
@@ -36,7 +36,7 @@ jobs:
         run: just build -p release
 
       - name: Unit tests
-        run: just unit-test -p release
+        run: just unit-test -p release -c {{ matrix.config.compiler }}
 
       - name: Setup Java
         uses: actions/setup-java@v5

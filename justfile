@@ -2,9 +2,7 @@ set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 # Install project dependencies (using chocolatey)
 [windows]
-[arg("llvm", long="llvm")]
-install-deps llvm="22.1.0":
-    choco install llvm --version {{llvm}} -y
+install-deps:
     choco install cmake ninja patch -y
 
 # Install optional project dependencies (using chocolatey)
@@ -14,16 +12,18 @@ install-opt-deps:
 
 # Configure and build the project using preset
 [arg("preset", long="preset", short="p")]
+[arg("compiler", long="compiler", short="c")]
 [group('build')]
-build preset="debug":
-    cmake --preset {{preset}}
+build preset="debug" compiler="":
+    cmake --preset {{preset}} {{ if compiler != "" { "-DCMAKE_C_COMPILER=" + compiler + " -DCMAKE_CXX_COMPILER=" + compiler + "++" } else { "" } }}
     cmake --build --preset {{preset}}
 
 # Configure and perform a clean build of the project using preset
 [arg("preset", long="preset", short="p")]
+[arg("compiler", long="compiler", short="c")]
 [group('build')]
-clean-build preset="debug":
-    cmake --preset {{preset}}
+clean-build preset="debug" compiler="":
+    cmake --preset {{preset}} {{ if compiler != "" { "-DCMAKE_C_COMPILER=" + compiler + " -DCMAKE_CXX_COMPILER=" + compiler + "++" } else { "" } }}
     cmake --build --clean-first --preset {{preset}}
 
 # Configure and build for RARS
