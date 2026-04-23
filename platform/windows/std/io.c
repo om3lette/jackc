@@ -1,9 +1,9 @@
 #include "std/jackc_limits.h"
-#include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -26,7 +26,7 @@ void jackc_vprintf(const char* format, va_list args) {
 void jackc_vfprintf(FD fd, const char* format, va_list args) {
     char buf[PATH_MAX];
     vsnprintf(buf, sizeof(buf), format, args);
-    jackc_write(fd, buf, jackc_strlen(buf));
+    jackc_write(fd, buf, strlen(buf));
 }
 
 void jackc_fprintf(FD fd, const char* format, ...) {
