@@ -32,51 +32,41 @@ typedef struct {
     const char* name;
     uint32_t expected_class_var_decs;
     uint32_t expected_subroutines;
-} class_test;
+} class_test_config;
 
-#define REGISTER_TEST(_name)                                     \
-    TEST_F(parser_fixture, _name) {                              \
-        const uint32_t index = __COUNTER__;                      \
-        const class_test* test = &tests[index];                  \
-        const ast_class* class = parse_class(test->source, tau); \
-        require_class(                                           \
-            tau, class,                                          \
-            test->name,                                          \
-            test->expected_class_var_decs,                       \
-            test->expected_subroutines                           \
-        );                                                       \
+#define REGISTER_TEST(_name, ...)                                         \
+    TEST_F(parser_fixture, _name) {                                       \
+        const class_test_config cfg = (class_test_config){ __VA_ARGS__ }; \
+        const ast_class* class = parse_class(cfg.source, tau);            \
+        require_class(                                                    \
+            tau, class,                                                   \
+            cfg.name,                                                     \
+            cfg.expected_class_var_decs,                                  \
+            cfg.expected_subroutines                                      \
+        );                                                                \
     }
 
-static const class_test tests[] = {
-    {
-        .source = "class Main {}",
-        .name = "Main",
-        .expected_class_var_decs = 0,
-        .expected_subroutines = 0,
-    },
-    {
-        .source = "class Main { static int x, y; static char z; }",
-        .name = "Main",
-        .expected_class_var_decs = 3,
-        .expected_subroutines = 0,
-    },
-    {
-        .source = "class Main { static int x, y; field boolean m; static char z; }",
-        .name = "Main",
-        .expected_class_var_decs = 4,
-        .expected_subroutines = 0,
-    },
-    {
-        .source = "class Main { static int x, y; function void v() {} method int length() {} }",
-        .name = "Main",
-        .expected_class_var_decs = 2,
-        .expected_subroutines = 2,
-    }
-};
-
-REGISTER_TEST(class_empty)
-REGISTER_TEST(class_with_static_vars)
-REGISTER_TEST(class_with_static_and_field_vars)
-REGISTER_TEST(class_with_subroutines)
-
-static_assert(__COUNTER__ == sizeof(tests) / sizeof(tests[0]), "Some tests are not registered");
+REGISTER_TEST(class_empty,
+    .source = "class Main {}",
+    .name = "Main",
+    .expected_class_var_decs = 0,
+    .expected_subroutines = 0
+)
+REGISTER_TEST(class_with_static_vars,
+    .source = "class Main { static int x, y; static char z; }",
+    .name = "Main",
+    .expected_class_var_decs = 3,
+    .expected_subroutines = 0
+)
+REGISTER_TEST(class_with_static_and_field_vars,
+    .source = "class Main { static int x, y; field boolean m; static char z; }",
+    .name = "Main",
+    .expected_class_var_decs = 4,
+    .expected_subroutines = 0
+)
+REGISTER_TEST(class_with_subroutines,
+    .source = "class Main { static int x, y; function void v() {} method int length() {} }",
+    .name = "Main",
+    .expected_class_var_decs = 2,
+    .expected_subroutines = 2
+)

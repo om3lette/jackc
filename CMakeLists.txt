@@ -7,11 +7,9 @@ endif()
 
 message(STATUS "Cross compiling: ${CMAKE_CROSSCOMPILING}")
 
-# TODO: Remove __COUNTER__
-# set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 add_compile_options(
-    -std=c2y
     -Wall
     -Wextra
     -Wpedantic
