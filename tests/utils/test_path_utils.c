@@ -5,11 +5,24 @@
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 
+bool test_streq_ignore_carriage_return(const char* a, const char* b) {
+    while (*a && * b && *a++ && *b++) {
+        if (*a == '\r') ++a;
+        if (*b == '\r') ++b;
+        if (*a != *b)
+            return false;
+    }
+    return *a == *b;
+}
+
 
 void path_dirname(char* out, size_t size, const char* path) {
     const char* last_slash = jackc_strrchr(path, '/');
-
-    // Does not support Windows paths with backslashes
+#ifdef _WIN32
+    const char* last_backslash = jackc_strrchr(path, '\\');
+    if (last_backslash && (!last_slash || last_backslash > last_slash))
+        last_slash = last_backslash;
+#endif
     if (!last_slash) {
         out[0] = '\0';
         return;
@@ -26,7 +39,7 @@ void get_test_root(const char* runner_path, char* out) {
     char dir[PATH_MAX * 2];
 
     path_dirname(dir, sizeof(dir), runner_path);
-    jackc_sprintf(out, "%s/tests", dir);
+    jackc_sprintf(out, "%s%ctests", dir, DELIMITER);
 }
 
 bool next_test_case(jackc_dir_iterator* iter, const char** out_dir) {

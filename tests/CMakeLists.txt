@@ -122,6 +122,7 @@ target_link_libraries(vm_parser_tests
 )
 
 add_test(NAME vm_parser_tests COMMAND vm_parser_tests)
+set_tests_properties(vm_parser_tests PROPERTIES LABELS "unit")
 
 add_test(NAME compiler_lexer_tests COMMAND compiler_lexer_tests)
 set_tests_properties(compiler_lexer_tests PROPERTIES LABELS "unit")
@@ -147,5 +148,10 @@ set_tests_properties(function_registry_tests PROPERTIES LABELS "unit")
 add_test(NAME compiler_integration_tests COMMAND compiler_integration_tests)
 set_tests_properties(compiler_integration_tests PROPERTIES LABELS "unit")
 
-add_test(NAME e2e_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/e2e/gradlew -p ${CMAKE_CURRENT_SOURCE_DIR}/e2e run)
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(GRADLE_EXECUTABLE "gradlew.bat")
+else()
+    set(GRADLE_EXECUTABLE "gradlew")
+endif()
+add_test(NAME e2e_tests COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/e2e/${GRADLE_EXECUTABLE} -p ${CMAKE_CURRENT_SOURCE_DIR}/e2e run)
 set_tests_properties(e2e_tests PROPERTIES LABELS "e2e")

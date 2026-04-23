@@ -13,7 +13,7 @@ target_link_libraries(jackc
 )
 
 add_custom_command(TARGET jackc POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
         $<TARGET_FILE:jackc>
         ${CMAKE_CURRENT_SOURCE_DIR}/../tests/e2e/libs/jackc
     COMMENT "Copy jackc executable to e2e tests directory"

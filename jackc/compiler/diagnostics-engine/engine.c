@@ -8,6 +8,7 @@
 #include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
 
 jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
@@ -31,7 +32,7 @@ void jackc_diag_engine_reset(
     jackc_diagnostic_engine* engine,
     jackc_string source,
     const char* filename,
-    int output_fd
+    FD output_fd
 ) {
     jackc_assert(engine && "Engine is null");
 

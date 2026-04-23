@@ -37,7 +37,7 @@ jackc_backend_return_code jackc_backend_compile(
 
     if (std_dir_length + jackc_strlen(STD_ASM_FILENAME) >= 4096)
         return BACKEND_BASE_PATH_TOO_LONG;
-    jackc_sprintf(file_path, "%s/%s", std_path, STD_ASM_FILENAME);
+    jackc_sprintf(file_path, "%s%c%s", std_path, DELIMITER, STD_ASM_FILENAME);
 
     jackc_file_return_code source_file_ret_code, file_read_ret_code;
     char* std_native_content = nullptr;

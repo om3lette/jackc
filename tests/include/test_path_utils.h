@@ -16,4 +16,6 @@ void get_test_root(const char* runner_path, char* out);
 
 [[ nodiscard ]] bool next_test_case(jackc_dir_iterator* iter, const char** out_dir);
 
+[[ nodiscard ]] bool test_streq_ignore_carriage_return(const char* a, const char* b);
+
 #endif

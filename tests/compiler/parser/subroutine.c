@@ -3,6 +3,9 @@
 #include "test_parser_utils.h"
 #include "tau.h"
 
+// winnt.h:493:9 -> #define VOID void
+#undef VOID
+
 TEST_F_SETUP(parser_fixture) {
     test_parser_fixture_init(tau, "");
 }

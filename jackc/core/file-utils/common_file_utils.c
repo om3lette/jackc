@@ -60,15 +60,9 @@ bool jackc_has_extension(const char* filename, const char* extension) {
 }
 
 const char* jackc_join_path(const char* dir, const char* file, Allocator* allocator) {
-    #ifndef _WIN32
-    const char delimiter[] = "/";
-    #else
-    const char delimiter[] = "\\";
-    #endif
-
     // +1 for '\0'
-    size_t len = jackc_strlen(dir) + jackc_strlen(file) + jackc_strlen(delimiter) + 1;
+    size_t len = jackc_strlen(dir) + jackc_strlen(file) + 2;
     char* full_path = allocator->alloc(len, allocator->context);
-    jackc_sprintf(full_path, "%s%s%s", dir, delimiter, file);
+    jackc_sprintf(full_path, "%s%c%s", dir, DELIMITER, file);
     return full_path;
 }

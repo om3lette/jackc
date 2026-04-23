@@ -7,8 +7,13 @@
 #### Native
 
 - `cmake` >= 3.31
+- `ninja`
+- `patch`
 - `C` compiler with support for `C23` (`MSVC` is not currently supported)
 - [OPTIONAL] doxygen for generating documentation
+
+> [!NOTE]
+> Use just install-deps on windows to installed all required dependencies using [chocolatey](https://community.chocolatey.org/)  
 
 #### Cross compilation
 

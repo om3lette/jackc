@@ -147,8 +147,8 @@ static bool generate_vm_code(
         }
         jackc_sprintf(
             out_file_path,
-            "%s/%.*s.vm",
-            out_base_dir,
+            "%s%c%.*s.vm",
+            out_base_dir, DELIMITER,
             filename.length, filename.data
         );
         FD fd = jackc_open(out_file_path, O_WRONLY);

@@ -17,6 +17,12 @@
     #define FIRST_ARG_IDX 1
 #endif
 
+#ifdef _WIN32
+    #define DELIMITER '\\'
+#else
+    #define DELIMITER '/'
+#endif
+
 void jackc_putchar(char c);
 
 /**
@@ -33,7 +39,6 @@ void jackc_putchar(char c);
  * @param format Format string.
  */
 void jackc_printf(const char* format, ...);
-
 
 void jackc_vprintf(const char* format, va_list args);
 

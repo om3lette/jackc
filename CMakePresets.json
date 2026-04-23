@@ -8,7 +8,6 @@
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
-        "PLATFORM": "linux",
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
@@ -20,31 +19,6 @@
       "binaryDir": "${sourceDir}/cmake-build-release",
       "generator": "Ninja",
       "cacheVariables": {
-        "PLATFORM": "linux",
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
-    },
-    {
-      "name": "win-debug",
-      "displayName": "Debug build",
-      "description": "Debug build with sanitizers and debug symbols",
-      "binaryDir": "${sourceDir}/build",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "PLATFORM": "windows",
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
-    },
-    {
-      "name": "win-release",
-      "displayName": "Windows release build",
-      "description": "Release build without debug symbols and extra optimizations",
-      "binaryDir": "${sourceDir}/cmake-build-release",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "PLATFORM": "windows",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
@@ -57,7 +31,6 @@
       "toolchainFile": "${sourceDir}/cmake/toolchains/riscv.toolchain.cmake",
       "generator": "Ninja",
       "cacheVariables": {
-        "PLATFORM": "rars",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
@@ -75,14 +48,6 @@
     {
       "name": "rars",
       "configurePreset": "rars"
-    },
-    {
-      "name": "win-debug",
-      "configurePreset": "win-debug"
-    },
-    {
-      "name": "win-release",
-      "configurePreset": "win-release"
     }
   ],
   "testPresets": [
@@ -99,26 +64,6 @@
     {
       "name": "release",
       "configurePreset": "release",
-      "execution": {
-        "jobs": 0
-      },
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "win-debug",
-      "configurePreset": "win-debug",
-      "execution": {
-        "jobs": 0
-      },
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "win-release",
-      "configurePreset": "win-release",
       "execution": {
         "jobs": 0
       },

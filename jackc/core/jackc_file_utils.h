@@ -39,6 +39,10 @@ typedef enum {
 #ifdef __rars__
     // Placeholder. RARS is unable to open directories
     #define DIRECTORY char
+#elif _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    #define DIRECTORY HANDLE
 #else
     #include <dirent.h>
     #define DIRECTORY DIR*

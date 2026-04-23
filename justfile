@@ -5,7 +5,12 @@ set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 [arg("llvm", long="llvm")]
 install-deps llvm="22.1.0":
     choco install llvm --version {{llvm}} -y
-    choco install cmake ninja patch doxygen.install -y
+    choco install cmake ninja patch -y
+
+# Install optional project dependencies (using chocolatey)
+[windows]
+install-opt-deps:
+    choco install doxygen-install -y
 
 # Configure and build the project using preset
 [arg("preset", long="preset", short="p")]
@@ -37,7 +42,9 @@ clean:
 [windows]
 [group('build')]
 clean:
-    Remove-Item -r build build-riscv cmake-build-release
+    if (test-path build) { remove-item -r build }
+    if (test-path build-riscv) { remove-item -r build-riscv }
+    if (test-path cmake-build-release) { remove-item -r cmake-build-release }
 
 # Run tests
 [group('test')]

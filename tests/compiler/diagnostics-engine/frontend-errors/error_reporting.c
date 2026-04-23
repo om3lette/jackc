@@ -44,7 +44,7 @@ TEST_F(frontend_fixture, error_reporting) {
             continue;
         }
 
-        int out = jackc_open(output_path, O_WRONLY | O_CREAT | O_TRUNC);
+        FD out = jackc_open(output_path, O_WRONLY);
         if (out < 0) {
             is_success = false;
             continue;
@@ -67,7 +67,7 @@ TEST_F(frontend_fixture, error_reporting) {
             return;
         }
 
-        bool result = actual ? jackc_strcmp(actual, expected) == 0 : false;
+        bool result = actual ? test_streq_ignore_carriage_return(actual, expected) : false;
         ++tests_total;
         tests_passed += result;
         if (!result) {

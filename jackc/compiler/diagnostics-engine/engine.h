@@ -35,7 +35,7 @@ void jackc_diag_engine_reset(
     jackc_diagnostic_engine* engine,
     jackc_string source,
     const char* filename,
-    int output_fd
+    FD output_fd
 );
 
 void jackc_diagnostic_engine_report(jackc_diagnostic_engine* engine, uint32_t lines_total);

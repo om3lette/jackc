@@ -1,4 +1,4 @@
-set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_NAME Rars)
 set(CMAKE_SYSTEM_PROCESSOR riscv32)
 
 set(RISCV_TOOLCHAIN_PREFIX "riscv32-unknown-elf")

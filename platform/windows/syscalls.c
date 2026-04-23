@@ -19,7 +19,7 @@ FD jackc_open(const char* path, FLAGS flags) {
         return (FD)-1;
 
     DWORD cretion_disposition = flags & O_RDONLY ? OPEN_EXISTING : CREATE_ALWAYS;
-    return (intptr_t)CreateFileW(wide_path, flags, 0, nullptr, cretion_disposition, 0, nullptr);
+    return (intptr_t)CreateFileW(wide_path, flags, FILE_SHARE_READ, nullptr, cretion_disposition, 0, nullptr);
 }
 
 long jackc_read(FD fd, void* buf, size_t n) {

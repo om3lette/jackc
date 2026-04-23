@@ -36,11 +36,10 @@ jackc_file_return_code jackc_dir_iterator_next_file_with_ext(jackc_dir_iterator*
 
         entry = readdir(top_dir.dir);
 
-        if (entry == NULL) {
+        if (!entry) {
             // Close directory, free path string, and pop stack
             closedir(top_dir.dir);
             allocator->free((void*)top_dir.path.data, top_dir.path.length, allocator->context);
-            // jackc_free((void*)top_dir.path);
             if (iter->stack_top == 0)
                 break;
             --iter->stack_top;
@@ -56,7 +55,6 @@ jackc_file_return_code jackc_dir_iterator_next_file_with_ext(jackc_dir_iterator*
         struct stat s;
         if (stat(full_path.data, &s) == -1) {
             allocator->free((void*)full_path.data, full_path.length + 1, allocator->context);
-            // jackc_free(full_path);
             return FILE_FAILED_STAT;
         }
 

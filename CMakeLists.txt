@@ -7,9 +7,11 @@ endif()
 
 message(STATUS "Cross compiling: ${CMAKE_CROSSCOMPILING}")
 
-set(CMAKE_C_STANDARD 23)
+# TODO: Remove __COUNTER__
+# set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 add_compile_options(
+    -std=c2y
     -Wall
     -Wextra
     -Wpedantic
@@ -23,7 +25,7 @@ if (CMAKE_CROSSCOMPILING)
     add_compile_options(-D__rars__)
 else()
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        if (NOT PLATFORM STREQUAL "windows")
+        if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
             add_compile_options(-fsanitize=address,undefined)
             add_link_options(-fsanitize=address,undefined)
         endif()
@@ -102,7 +104,7 @@ if (CMAKE_CROSSCOMPILING)
     )
 endif()
 
-if(NOT CMAKE_CROSSCOMPILING AND NOT PLATFORM STREQUAL "windows")
+if(NOT CMAKE_CROSSCOMPILING)
     enable_testing()
     add_subdirectory(tests)
 endif()
