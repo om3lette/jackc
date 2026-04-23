@@ -1,6 +1,6 @@
 #include "core/localization/locale.h"
 #include "core/jackc_file_utils.h"
-#include "std/jackc_stdlib.h"
+#include "std/jackc_stdio.h"
 
 static const jackc_locale* locales[JACKC_LANG_COUNT] = {
     [JACKC_LANG_EN] = &jackc_locale_en,

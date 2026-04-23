@@ -1,6 +1,7 @@
 #ifndef JACKC_STRING_H
 #define JACKC_STRING_H
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <stddef.h>
 #include <stdint.h>
 

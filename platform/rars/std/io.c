@@ -125,7 +125,7 @@ void jackc_sprintf(char* buffer, const char* format, ...) {
     va_end(args);
 }
 
-void jackc_vfprintf(int fd, const char* format, va_list args) {
+void jackc_vfprintf(FD fd, const char* format, va_list args) {
     while (*format) {
         if (*format == '%') {
             ++format;
@@ -175,7 +175,7 @@ void jackc_vfprintf(int fd, const char* format, va_list args) {
     }
 }
 
-void jackc_fprintf(int fd, const char* format, ...) {
+void jackc_fprintf(FD fd, const char* format, ...) {
     va_list args;
     va_start(args, format);
     jackc_vfprintf(fd, format, args);
@@ -248,3 +248,5 @@ void jackc_printf(const char* format, ...) {
     jackc_vprintf(format, args);
     va_end(args);
 }
+
+FD jackc_stdout_fd() { return 1; }

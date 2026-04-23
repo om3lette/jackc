@@ -431,7 +431,7 @@ bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_t
     semantic_validity_enter_class(ctx, class);
 
     for (const ast_var_dec* class_var = class->class_vars; class_var; class_var = class_var->next) {
-        jackc_assert(class_var->kind == VAR_STATIC || class_var->kind == VAR_FIELD);
+        jackc_assert(class_var->kind == VAR_STATIC_ || class_var->kind == VAR_FIELD);
         if (register_var(ctx, class_var))
             INVALID_STATE(ctx);
     }
@@ -445,6 +445,5 @@ bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_t
         jackc_diag_builder d = jackc_diag_begin(&ctx->engine, DIAG_WARNING, DIAG_WARNING_CONSTRUCTOR_WITH_NO_DISPOSE, ctx->class_span);
         jackc_diag_emit(&d);
     }
-
     return ctx->is_invalid;
 }

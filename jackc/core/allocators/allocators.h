@@ -7,7 +7,7 @@
 #define ALIGN_UP(round, to_multiple_of) (((round) + ((to_multiple_of) - 1)) & ~((to_multiple_of) - 1))
 
 #ifdef __rars__
-#   define ALIGNMENT 4
+#   define ALIGNMENT (unsigned int)4
 #else
 #   define ALIGNMENT alignof(max_align_t)
 #endif

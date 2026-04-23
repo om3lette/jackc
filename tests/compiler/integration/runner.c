@@ -2,6 +2,7 @@
 #include "core/allocators/allocators.h"
 #include "core/allocators/adapters.h"
 #include "core/localization/locale.h"
+#include "std/jackc_limits.h"
 #include "tau.h"
 #include "test_path_utils.h"
 
@@ -13,7 +14,7 @@ struct integration_fixture {
 TEST_F_SETUP(integration_fixture) {
     tau->allocator = arena_allocator_adapter();
     tau->test_folder_path = tau->allocator.alloc(PATH_MAX, tau->allocator.context);
-    get_test_root(__FILE__, tau->test_folder_path, PATH_MAX);
+    get_test_root(__FILE__, tau->test_folder_path);
 }
 
 TEST_F_TEARDOWN(integration_fixture) {
@@ -29,8 +30,9 @@ TEST_F_TEARDOWN(integration_fixture) {
  */
 #define REGISTER_TEST(name, _path, _outcome)                                        \
     TEST_F(integration_fixture, name) {                                             \
-        char full_path[PATH_MAX];                                                   \
-        path_join(full_path, sizeof(full_path), tau->test_folder_path, _path);      \
+        const char* full_path = jackc_join_path(                                    \
+            tau->test_folder_path, _path, &tau->allocator                           \
+        );                                                                          \
         const char* input_paths[] = { full_path };                                  \
         jackc_frontend_config config = {                                            \
             .locale = &jackc_locale_en,                                             \

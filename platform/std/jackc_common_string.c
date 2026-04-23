@@ -1,4 +1,5 @@
 #include "std/jackc_stdlib.h"
+#include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include <stdint.h>
 

@@ -3,10 +3,6 @@ plugins {
     application
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
 repositories {
     mavenLocal()
     mavenCentral()

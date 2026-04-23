@@ -1,4 +1,4 @@
-name: Build and test
+name: Linux build
 
 on: [push]
 
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Just
         uses: extractions/setup-just@v4
         with:
-          just-version: '1.47.1'
+          just-version: "1.50.0"
 
       - name: Setup compiler and build system
         uses: aminya/setup-cpp@v1
@@ -33,7 +33,7 @@ jobs:
           ninja: true
 
       - name: Build
-        run: just build -p release
+        run: just build -p release -c ${{ matrix.config.compiler }}
 
       - name: Unit tests
         run: just unit-test -p release

@@ -4,6 +4,7 @@
 #include "compiler/ast/ast.h"
 #include "compiler/function-registry/function_registry.h"
 #include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
 #include "vm-translator/parser/vm_parser.h"
 #include <assert.h>
 #include <stddef.h>
@@ -16,30 +17,30 @@
 
 typedef size_t vm_index;
 
-void emit_string_from_string_literal(int fd, const jackc_string* string_literal);
+void emit_string_from_string_literal(FD fd, const jackc_string* string_literal);
 
 [[ nodiscard ]] vm_segment vm_segment_from_variable_kind(jack_variable_kind kind);
 
-void emit_push(int fd, vm_segment seg, vm_index index);
+void emit_push(FD fd, vm_segment seg, vm_index index);
 
-void emit_signed_const(int fd, int32_t index);
+void emit_signed_const(FD fd, int32_t index);
 
-void emit_pop(int fd, vm_segment seg, vm_index index);
+void emit_pop(FD fd, vm_segment seg, vm_index index);
 
-void emit_unary_arithmetic(int fd, ast_unary_op op);
+void emit_unary_arithmetic(FD fd, ast_unary_op op);
 
-void emit_binary_arithmetic_op(int fd, ast_binary_op op);
+void emit_binary_arithmetic_op(FD fd, ast_binary_op op);
 
-void emit_label(int fd, const char* label, vm_index index);
+void emit_label(FD fd, const char* label, vm_index index);
 
-void emit_goto(int fd, const char* label, vm_index index);
+void emit_goto(FD fd, const char* label, vm_index index);
 
-void emit_if_goto(int fd, const char* label, vm_index index);
+void emit_if_goto(FD fd, const char* label, vm_index index);
 
-void emit_call(int fd, const jackc_string* class_name, const jackc_string* subroutine_name, uint16_t n_args);
+void emit_call(FD fd, const jackc_string* class_name, const jackc_string* subroutine_name, uint16_t n_args);
 
-void emit_function(int fd, const jackc_string* class_name, const function_signature* sub_signature);
+void emit_function(FD fd, const jackc_string* class_name, const function_signature* sub_signature);
 
-void emit_return(int fd);
+void emit_return(FD fd);
 
 #endif

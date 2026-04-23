@@ -8,12 +8,13 @@
 #include "std/jackc_stdio.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
 
 jackc_diagnostic_engine jackc_diag_engine_init(
     jackc_string source,
     const char* filename,
     const jackc_locale* locale,
-    int output_fd,
+    FD output_fd,
     bool override_filename
 ) {
     jackc_diagnostic_engine engine = {
@@ -31,7 +32,7 @@ void jackc_diag_engine_reset(
     jackc_diagnostic_engine* engine,
     jackc_string source,
     const char* filename,
-    int output_fd
+    FD output_fd
 ) {
     jackc_assert(engine && "Engine is null");
 
@@ -104,7 +105,7 @@ static uint8_t int_length(uint32_t n) {
     return length;
 }
 
-static void print_prefix(int fd, uint32_t max_line_length, bool endl) {
+static void print_prefix(FD fd, uint32_t max_line_length, bool endl) {
     for (uint32_t i = 0; i < max_line_length + 1; i++) {
         jackc_fprintf(fd, " ");
     }
@@ -113,7 +114,7 @@ static void print_prefix(int fd, uint32_t max_line_length, bool endl) {
     else jackc_fprintf(fd, "\n");
 }
 
-static void print_prefix_with_line(int fd, uint32_t line, uint32_t max_line_length) {
+static void print_prefix_with_line(FD fd, uint32_t line, uint32_t max_line_length) {
     uint32_t spaces_to_print = max_line_length - int_length(line) + 1;
     for (uint32_t i = 0; i < spaces_to_print / 2; i++) {
         jackc_fprintf(fd, " ");

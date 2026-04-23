@@ -19,14 +19,14 @@ add_compile_options(
 )
 
 # CFLAGS / LDFLAGS
-if (NOT CMAKE_CROSSCOMPILING)
+if (CMAKE_CROSSCOMPILING)
+    add_compile_options(-D__rars__)
+else()
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options(-g -fsanitize=address,undefined)
-        add_link_options(-fsanitize=address,undefined)
-    elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-        add_compile_options(-O3 -DNDEBUG)
-    else()
-        message(FATAL_ERROR "Unsupported build type: ${CMAKE_BUILD_TYPE}")
+        if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+            add_compile_options(-fsanitize=address,undefined)
+            add_link_options(-fsanitize=address,undefined)
+        endif()
     endif()
 endif()
 

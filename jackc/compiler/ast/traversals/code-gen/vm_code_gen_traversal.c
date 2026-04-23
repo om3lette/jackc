@@ -34,7 +34,7 @@ static jack_type ast_type_to_jack_type(const ast_type* type) {
 
 static vm_segment jack_var_kind_to_vm_segment(jack_variable_kind var_kind) {
     switch (var_kind) {
-        case VAR_STATIC: return SEGMENT_STATIC;
+        case VAR_STATIC_: return SEGMENT_STATIC;
         case VAR_ARG:    return SEGMENT_ARG;
         case VAR_LOCAL:  return SEGMENT_LOCAL;
         case VAR_FIELD:  return SEGMENT_THIS;

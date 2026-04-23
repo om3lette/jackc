@@ -5,7 +5,7 @@ import java.io.File
 fun main() {
     val root = File(".")
     val libsPath = root.resolve("libs")
-    val stdPath = libsPath.resolve("stdlib")
+    val stdPath = libsPath.resolve("../../../stdlib")
     val compilerPath = libsPath.resolve("jackc")
     compileAllJackPrograms(root, compilerPath.absolutePath, stdPath.absolutePath)
     RarsTestEngine().apply {

@@ -5,6 +5,7 @@
 #include "core/logging/logger.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
+#include "std/jackc_syscalls.h"
 #include "vm-translator/code-gen/asm_emit.h"
 #include "vm-translator/code-gen/asm_utils.h"
 #include "vm-translator/code-gen/regs.h"
@@ -13,7 +14,7 @@
 #include "vm-translator/parser/vm_parser.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 
-asm_context* asm_context_init(int fd, const jackc_config* config, Allocator* allocator) {
+asm_context* asm_context_init(FD fd, const jackc_config* config, Allocator* allocator) {
     asm_context* ctx = allocator->alloc(sizeof(asm_context), allocator->context);
     ctx->static_idx = 0;
     ctx->n_locals = 0;

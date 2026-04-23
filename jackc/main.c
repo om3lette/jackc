@@ -5,6 +5,7 @@
 #include "core/exit_code.h"
 #include "core/localization/locale.h"
 #include "std/jackc_stdlib.h"
+#include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "vm-translator/backend.h"
 #include <stddef.h>
@@ -53,7 +54,7 @@ int main(int argc, char** argv) {
 
     jackc_frontend_config frontend_config = {
         .locale = locale,
-        .diag_engine_output_fd = 1,
+        .diag_engine_output_fd = jackc_stdout_fd(),
         .diag_engine_filename_override = false,
         .skip_vm_code_gen = false
     };

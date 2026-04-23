@@ -1,4 +1,4 @@
-set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_NAME Rars)
 set(CMAKE_SYSTEM_PROCESSOR riscv32)
 
 set(RISCV_TOOLCHAIN_PREFIX "riscv32-unknown-elf")
@@ -9,8 +9,5 @@ set(CMAKE_AR           ${RISCV_TOOLCHAIN_PREFIX}-ar)
 set(CMAKE_RANLIB       ${RISCV_TOOLCHAIN_PREFIX}-ranlib)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-
-# set(CMAKE_C_FLAGS_INIT "-march=rv32i -mabi=ilp32")
-# set(CMAKE_EXE_LINKER_FLAGS_INIT "-march=rv32imac -mabi=ilp32")
 
 set(CMAKE_CROSSCOMPILING TRUE)

@@ -4,11 +4,9 @@
 #include "core/jackc_file_utils.h"
 #include "core/logging/logger.h"
 #include "core/localization/locale.h"
+#include "std/jackc_limits.h"
 #include "std/jackc_syscalls.h"
 #include "tau.h"
-#include <dirent.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
 #include "test_path_utils.h"
 
@@ -26,37 +24,30 @@ TEST_F_TEARDOWN(frontend_fixture) {
 
 TEST_F(frontend_fixture, error_reporting) {
     char base_path[PATH_MAX];
-    get_test_root(__FILE__, base_path, sizeof(base_path));
+    get_test_root(__FILE__, base_path);
 
-    char test_dir[PATH_MAX];
-
-    if (!next_test_case(base_path, test_dir)) {
-        REQUIRE(false, "No test cases found");
-        return;
-    }
+    const char* test_dir = nullptr;
 
     bool is_success = true;
     uint32_t tests_total = 0;
     uint32_t tests_passed = 0;
 
-    do {
-        char expected_path[PATH_MAX];
-        char output_path[PATH_MAX];
-
-        path_join(expected_path, sizeof(expected_path), test_dir, EXPECTED_FILENAME);
-        path_join(output_path, sizeof(output_path), test_dir, OUTPUT_FILENAME);
+    jackc_dir_iterator iter;
+    REQUIRE_EQ(jackc_dir_iterator_create(base_path, &tau->allocator, &iter), FILE_OK);
+    while (next_test_case(&iter, &test_dir)) {
+        const char* expected_path = jackc_join_path(test_dir, EXPECTED_FILENAME, &tau->allocator);
+        const char* output_path = jackc_join_path(test_dir, OUTPUT_FILENAME, &tau->allocator);
 
         char* expected = nullptr;
-        if (jackc_read_file_content(expected_path, &expected) != FILE_OK) {
+        if (jackc_read_file_content(expected_path, &expected, &tau->allocator) != FILE_OK) {
             is_success = false;
             LOG_ERROR("Missing %s for test %s\n", EXPECTED_FILENAME, test_dir);
             continue;
         }
 
-        int out = jackc_open(output_path, O_WRONLY | O_CREAT | O_TRUNC);
+        FD out = jackc_open(output_path, O_WRONLY);
         if (out < 0) {
-            perror("open");
-            free(expected);
+            is_success = false;
             continue;
         }
 
@@ -71,20 +62,22 @@ TEST_F(frontend_fixture, error_reporting) {
         jackc_close(out);
 
         char* actual = nullptr;
-        jackc_read_file_content(output_path, &actual);
+        jackc_file_return_code file_ret_code;
+        if ((file_ret_code = jackc_read_file_content(output_path, &actual, &tau->allocator) != FILE_OK)) {
+            jackc_report_file_error(&jackc_locale_en, file_ret_code, output_path);
+            return;
+        }
 
-        bool result = actual ? strcmp(actual, expected) == 0 : false;
+        bool result = actual ? test_streq_ignore_carriage_return(actual, expected) : false;
         ++tests_total;
         tests_passed += result;
         if (!result) {
             LOG_ERROR("Test '%s' result: FAIL\n", test_dir);
             is_success = false;
         }
-
-        free(actual);
-        free(expected);
-    } while (next_test_case(base_path, test_dir));
+    }
 
     LOG_INFO("%d/%d tests passed\n", tests_passed, tests_total);
+    REQUIRE(tests_passed > 0, "No tests were found");
     REQUIRE(is_success);
 }

@@ -2,6 +2,7 @@
 #define JACKC_RARS_SYSCALLS_H
 
 #include <stddef.h>
+#include "std/jackc_syscalls.h"
 
 typedef enum {
     READ_ONLY_MODE = 0,
@@ -17,14 +18,14 @@ typedef enum {
  *
  * @returns File descriptor.
  */
-int rars_open_file(const char* path, file_mode mode);
+FD rars_open_file(const char* path, file_mode mode);
 
 /**
  * RARS Close syscall wrapper.
  *
  * @param fd File descriptor.
  */
-void rars_close_file(int fd);
+void rars_close_file(FD fd);
 
 /**
  * RARS Lseek syscall wrapper.
@@ -35,7 +36,7 @@ void rars_close_file(int fd);
  *
  * @returns New offset.
  */
-long rars_lseek(int fd, long offset, int whence);
+long rars_lseek(FD fd, long offset, int whence);
 
 /**
  * RARS Read syscall wrapper.
@@ -46,7 +47,7 @@ long rars_lseek(int fd, long offset, int whence);
  *
  * @returns Number of bytes read.
  */
-long rars_read(int fd, void* buf, size_t nbytes);
+long rars_read(FD fd, void* buf, size_t nbytes);
 
 /**
  * RARS sbrk syscall wrapper.
@@ -66,7 +67,7 @@ void* rars_sbrk(size_t nbytes);
  *
  * @returns Number of bytes written.
  */
-long rars_write(int fd, const void* buf, size_t nbytes);
+long rars_write(FD fd, const void* buf, size_t nbytes);
 
 /**
  * RARS Exit syscall wrapper.

@@ -16,7 +16,7 @@ int rars_open_file(const char* path, file_mode mode) {
     return a0_ret;
 }
 
-void rars_close_file(int fd) {
+void rars_close_file(FD fd) {
     register int a0_fd asm("a0") = fd;
     register int a7_syscall_num asm("a7") = 57;
 
@@ -29,7 +29,7 @@ void rars_close_file(int fd) {
     return;
 }
 
-long rars_lseek(int fd, long offset, int whence) {
+long rars_lseek(FD fd, long offset, int whence) {
     register int a0_fd asm("a0") = fd;
     register long a1_offset asm("a1") = offset;
     register int a2_whence asm("a2") = whence;
@@ -59,7 +59,7 @@ long rars_lseek(int fd, long offset, int whence) {
  *
  * - `a0` = the length read or -1 if error
  */
-long rars_read(int fd, void* buf, size_t nbytes) {
+long rars_read(FD fd, void* buf, size_t nbytes) {
     register int a0_fd asm("a0") = fd;
     register void* a1_buf asm("a1") = buf;
     register size_t a2_nbytes asm("a2") = nbytes;
@@ -76,7 +76,7 @@ long rars_read(int fd, void* buf, size_t nbytes) {
     return a0_ret;
 }
 
-long rars_write(int fd, const void* buf, size_t nbytes) {
+long rars_write(FD fd, const void* buf, size_t nbytes) {
     register int a0_fd asm("a0") = fd;
     register const void* a1_buf asm("a1") = buf;
     register size_t a2_buf asm("a2") = nbytes;

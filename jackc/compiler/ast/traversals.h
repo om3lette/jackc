@@ -6,6 +6,7 @@
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/symtable/compiler_symtable.h"
 #include "core/allocators/allocators.h"
+#include "std/jackc_syscalls.h"
 
 typedef struct {
     function_registry* registry;
@@ -47,7 +48,7 @@ void semantic_validity_enter_class(semantic_validity_traversal_context* ctx, con
 void semantic_validity_enter_subroutine(semantic_validity_traversal_context* ctx, const ast_subroutine* sub);
 
 typedef struct {
-    int fd;
+    FD fd;
     bool had_error;
 
     sym_table* symtab;

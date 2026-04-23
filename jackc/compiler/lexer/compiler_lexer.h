@@ -43,7 +43,7 @@ typedef enum {
 } jack_token_type;
 
 typedef enum {
-    VAR_STATIC = 0,
+    VAR_STATIC_ = 0, // VAR_STATIC is already defined in windows in oaidl.h:863:9
     VAR_FIELD,
     VAR_LOCAL,
     VAR_ARG,

@@ -1,0 +1,49 @@
+name: Windows build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: powershell
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { compiler: "clang", package: "llvm", version: "22.1.0" }
+          - { compiler: "gcc", package: "mingw", version: "15.2.0" }
+
+    name: "${{ matrix.config.compiler }} ${{ matrix.config.version }} (C23, Release)"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Just
+        run: choco install just --version 1.50.0
+      
+      - name: Install compiler
+        run: choco install ${{ matrix.config.package }} --version ${{ matrix.config.version }} -y
+          
+      - name: Install dependencies
+        run: just install-deps
+        
+      - name: Fix patch line endings
+        run: (Get-Content patches/tau.patch -Raw).Replace("`n", "`r`n") | Set-Content patches/tau.patch -Encoding UTF8
+
+      - name: Build
+        run: just build -p release -c ${{ matrix.config.compiler }}
+
+      - name: Unit tests
+        run: just unit-test -p release
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: "gradle"
+
+      - name: E2E tests
+        run: just e2e-test -p release

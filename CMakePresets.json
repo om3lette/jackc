@@ -8,7 +8,6 @@
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
-        "PLATFORM": "linux",
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
@@ -20,7 +19,6 @@
       "binaryDir": "${sourceDir}/cmake-build-release",
       "generator": "Ninja",
       "cacheVariables": {
-        "PLATFORM": "linux",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
@@ -33,7 +31,6 @@
       "toolchainFile": "${sourceDir}/cmake/toolchains/riscv.toolchain.cmake",
       "generator": "Ninja",
       "cacheVariables": {
-        "PLATFORM": "rars",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }

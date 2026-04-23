@@ -7,14 +7,23 @@
 #### Native
 
 - `cmake` >= 3.31
+- `ninja`
+- `patch`
 - `C` compiler with support for `C23` (`MSVC` is not currently supported)
 - [OPTIONAL] doxygen for generating documentation
+
+> [!NOTE]
+> Use just install-deps on windows to installed all required dependencies using [chocolatey](https://community.chocolatey.org/)  
 
 #### Cross compilation
 
 - `riscv-gnu-toolchain` for cross compilation
 - `python3` for generating a single `jackc.s` source file for usage in [RARS](https://github.com/TheThirdOne/rars)
 
+
+> [!IMPORTANT]
+> When working on Windows make sure that tau.patch uses CRLF. By default it uses LF, which will cause `patch` to fail:
+> Assertion failed: hunk, file ../patch-2.5.9-src/patch.c, line 354
 
 ### Just 
 
@@ -34,6 +43,7 @@ cmake --preset <PRESET> && cmake --build --preset <PRESET>
 To configure and build the project.
 
 ### Available presets
+
 | capability\preset | debug | release | rars* |
 |-------------------|-------|---------|------|
 | Debug symbols     |   +   |    -    |  -   |
@@ -77,7 +87,7 @@ Run an executable
 #### "One" step compilation
 
 ```bash
-./scripts/jackc_compile <PATH_TO_RARS_JAR> <SOURCES_DIR> <OUTPUT_DIR> <STDLIB_DIR>
+./scripts/jackc_compile.sh <PATH_TO_RARS_JAR> <SOURCES_DIR> <OUTPUT_DIR> <STDLIB_DIR>
 ```
 This is a shortcut for what is described below
 
