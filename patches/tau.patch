@@ -1,7 +1,6 @@
 diff --git a/tau/tau.h b/tau/tau.h
 --- a/tau/tau.h
-+++ b/tau/tau.h
-Assertion failed: hunk, file ../patch-2.5.9-src/patch.c, line 354  
++++ b/tau/tau.h  
 @@ -250,7 +250,7 @@ static inline double tauClock() {
      LARGE_INTEGER frequency;
      QueryPerformanceCounter(&counter);
