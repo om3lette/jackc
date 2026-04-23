@@ -2,6 +2,7 @@
 #include "core/jackc_file_utils.h"
 #include "core/localization/locale.h"
 #include "core/logging/logger.h"
+#include "std/jackc_limits.h"
 #include "std/jackc_syscalls.h"
 #include "test_parser_utils.h"
 #include "test_lexer_common.h"

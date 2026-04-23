@@ -10,6 +10,7 @@
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 #include "core/localization/locale.h"
+#include "std/jackc_limits.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
@@ -122,7 +123,7 @@ static bool generate_vm_code(
 ) {
     // There is no reliable way to create directories while running in RARS
     // The solution is to flatten the directory structure for .vm files
-    char out_file_path[4096];
+    char out_file_path[PATH_MAX];
     bool had_error = false;
 
     // Label indexes need to persist through the whole compilation

@@ -4,6 +4,7 @@
 #include "core/jackc_file_utils.h"
 #include "core/logging/logger.h"
 #include "core/localization/locale.h"
+#include "std/jackc_limits.h"
 #include "std/jackc_syscalls.h"
 #include "tau.h"
 #include <sys/stat.h>

@@ -1,6 +1,7 @@
 #include "test_path_utils.h"
 #include "core/jackc_file_utils.h"
 #include "core/localization/locale.h"
+#include "std/jackc_limits.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"

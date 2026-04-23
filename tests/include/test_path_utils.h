@@ -4,8 +4,6 @@
 #include "core/jackc_file_utils.h"
 #include <stddef.h>
 
-#define PATH_MAX 4096
-
 #define TEST_FILENAME "Main.jack"
 #define EXPECTED_FILENAME "expected.txt"
 #define OUTPUT_FILENAME "output.txt"

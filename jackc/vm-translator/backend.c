@@ -1,6 +1,7 @@
 #include "vm-translator/backend.h"
 #include "core/allocators/allocators.h"
 #include "core/localization/locale.h"
+#include "std/jackc_limits.h"
 #include "std/jackc_stdio.h"
 #include "std/jackc_string.h"
 #include "std/jackc_syscalls.h"
@@ -23,8 +24,8 @@ jackc_backend_return_code jackc_backend_compile(
     size_t std_dir_length = jackc_strlen(std_path);
     size_t output_dir_length = jackc_strlen(output_dir);
 
-    char file_path[4096];
-    if (output_dir_length + jackc_strlen(OUT_FILENAME) >= 4096)
+    char file_path[PATH_MAX];
+    if (output_dir_length + jackc_strlen(OUT_FILENAME) >= PATH_MAX)
         return BACKEND_SAVE_PATH_TOO_LONG;
 
     jackc_sprintf(file_path, "%s/%s", output_dir, OUT_FILENAME);
@@ -35,7 +36,7 @@ jackc_backend_return_code jackc_backend_compile(
     asm_context* ctx = asm_context_init(fd, config, allocator);
 
 
-    if (std_dir_length + jackc_strlen(STD_ASM_FILENAME) >= 4096)
+    if (std_dir_length + jackc_strlen(STD_ASM_FILENAME) >= PATH_MAX)
         return BACKEND_BASE_PATH_TOO_LONG;
     jackc_sprintf(file_path, "%s%c%s", std_path, DELIMITER, STD_ASM_FILENAME);
 
