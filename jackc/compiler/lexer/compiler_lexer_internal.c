@@ -10,7 +10,7 @@ const char* jack_lexer_pos(const jack_lexer* lexer, int32_t offset) {
     return lexer->buffer.data + lexer->pos + offset;
 }
 
-inline const char* jack_lexer_cur_pos(const jack_lexer* lexer) {
+const char* jack_lexer_cur_pos(const jack_lexer* lexer) {
     return jack_lexer_pos(lexer, -1);
 }
 

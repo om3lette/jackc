@@ -15,7 +15,7 @@ install-opt-deps:
 [arg("compiler", long="compiler", short="c")]
 [group('build')]
 build preset="debug" compiler="":
-    cmake --preset {{preset}} {{ if compiler != "" { "-DCMAKE_C_COMPILER=" + compiler + " -DCMAKE_CXX_COMPILER=" + compiler + "++" } else { "" } }}
+    cmake --preset {{preset}} {{ if compiler != "" { "-DCMAKE_C_COMPILER=" + compiler } else { "" } }}
     cmake --build --preset {{preset}}
 
 # Configure and perform a clean build of the project using preset
@@ -23,7 +23,7 @@ build preset="debug" compiler="":
 [arg("compiler", long="compiler", short="c")]
 [group('build')]
 clean-build preset="debug" compiler="":
-    cmake --preset {{preset}} {{ if compiler != "" { "-DCMAKE_C_COMPILER=" + compiler + " -DCMAKE_CXX_COMPILER=" + compiler + "++" } else { "" } }}
+    cmake --preset {{preset}} {{ if compiler != "" { "-DCMAKE_C_COMPILER=" + compiler } else { "" } }}
     cmake --build --clean-first --preset {{preset}}
 
 # Configure and build for RARS
