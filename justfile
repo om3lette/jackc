@@ -50,6 +50,7 @@ clean:
 [group('build')]
 patch-examples:
     patch -d examples -p0 < examples/pong.patch
+    patch -d examples/nand2tetris-games -p0 < examples/gasteroids.patch 
 
 # Run tests
 [group('test')]
