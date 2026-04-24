@@ -46,6 +46,11 @@ clean:
     if (test-path build-riscv) { remove-item -r build-riscv }
     if (test-path cmake-build-release) { remove-item -r cmake-build-release }
 
+[unix]
+[group('build')]
+patch-examples:
+    patch -d examples -p0 < examples/pong.patch
+
 # Run tests
 [group('test')]
 [arg("preset", long="preset", short="p")]

@@ -29,3 +29,9 @@ tests/e2e/.gradle
 tests/e2e/.kotlin
 tests/e2e/tests/**/*.vm
 tests/e2e/tests/**/*.asm
+
+examples/out
+examples/output
+examples/**/*.vm
+examples/**/*.asm
+examples/**/*.s
