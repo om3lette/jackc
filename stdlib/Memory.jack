@@ -16,12 +16,12 @@ class Memory {
     }
 
     /** Returns the RAM value at the given word index. */
-    function int peek(int wordIndex) {
+    native function int peek(int wordIndex) {
         return RAM[wordIndex];
     }
 
     /** Sets the RAM value at the given word index to the given value. */
-    function void poke(int wordIndex, int value) {
+    native function void poke(int wordIndex, int value) {
         let RAM[wordIndex] = value;
     }
 

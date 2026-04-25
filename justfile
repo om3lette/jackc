@@ -46,6 +46,11 @@ clean:
     if (test-path build-riscv) { remove-item -r build-riscv }
     if (test-path cmake-build-release) { remove-item -r cmake-build-release }
 
+[group('build')]
+patch-examples:
+    git -C examples/pong apply --ignore-whitespace ../pong.patch
+    git -C examples/nand2tetris-games/GASteroids apply --ignore-whitespace ../../gasteroids.patch
+
 # Run tests
 [group('test')]
 [arg("preset", long="preset", short="p")]

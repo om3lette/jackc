@@ -1,0 +1,3 @@
+[submodule "examples/nand2tetris-games"]
+	path = examples/nand2tetris-games
+	url = https://github.com/gav-/Nand2Tetris-Games_and_Demos.git

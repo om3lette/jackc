@@ -36,7 +36,7 @@ if(NOT CMAKE_CROSSCOMPILING)
     FetchContent_Declare(
         Tau
         URL https://github.com/jasmcaus/tau/archive/dev.zip
-        PATCH_COMMAND patch -p1 --input=${CMAKE_CURRENT_SOURCE_DIR}/patches/tau.patch
+        PATCH_COMMAND patch -p1 --binary --input=${CMAKE_CURRENT_SOURCE_DIR}/patches/tau.patch
     )
     FetchContent_MakeAvailable(Tau)
 endif()
