@@ -1,6 +1,6 @@
 diff -ru GASteroids/DrawPoly.jack GASteroids-patched/DrawPoly.jack
---- GASteroids/DrawPoly.jack	2026-04-24 16:30:13.112620866 +0300
-+++ GASteroids-patched/DrawPoly.jack	2026-04-24 16:58:40.374774276 +0300
+--- GASteroids/DrawPoly.jack	2026-04-25 20:08:24.425896441 +0300
++++ GASteroids-patched/DrawPoly.jack	2026-04-25 19:59:05.176430822 +0300
 @@ -240,7 +240,7 @@
       */
      method void erase() {
@@ -34,8 +34,8 @@ diff -ru GASteroids/DrawPoly.jack GASteroids-patched/DrawPoly.jack
          var int j;
  
 diff -ru GASteroids/GASteroids.jack GASteroids-patched/GASteroids.jack
---- GASteroids/GASteroids.jack	2026-04-24 16:30:13.113374673 +0300
-+++ GASteroids-patched/GASteroids.jack	2026-04-24 17:37:49.886346782 +0300
+--- GASteroids/GASteroids.jack	2026-04-25 20:08:24.425896441 +0300
++++ GASteroids-patched/GASteroids.jack	2026-04-25 20:09:19.665159648 +0300
 @@ -14,9 +14,9 @@
   *
   * Keyboard controls:
@@ -49,16 +49,15 @@ diff -ru GASteroids/GASteroids.jack GASteroids-patched/GASteroids.jack
   *   <-> - decrease frame delay (speed up game).
   *   <+> - increase frame delay (slow down game).
   *
-@@ -64,6 +64,8 @@
+@@ -64,6 +64,7 @@
          var int i;
          var int j;
          var Array fieldXY;
-+        
 +        var int mask, bit;
  
          let gameSpeed = 15;     // Default 15ms delay.
          let gameSpeedPrev = -1;
-@@ -75,19 +77,14 @@
+@@ -75,19 +76,14 @@
  
          let fieldXY = Constant.getFieldXY();
  
@@ -80,7 +79,7 @@ diff -ru GASteroids/GASteroids.jack GASteroids-patched/GASteroids.jack
          do Screen.drawLine(16, 250, 31, 250);
          do Memory.poke( 16384 + ((512/16) * 252) + 1,  21845);
          do Memory.poke( 16384 + ((512/16) * 254) + 1, -21846);
-@@ -162,20 +159,26 @@
+@@ -162,20 +158,26 @@
          let logo[62] = -1;
          let logo[63] = -1;
  
@@ -108,17 +107,16 @@ diff -ru GASteroids/GASteroids.jack GASteroids-patched/GASteroids.jack
 +            }
              let j = j + 1;
          }
--
+ 
 -        // Setup stand in lives, score, speed area.
 -        do Screen.setColor(false);
 -        do Screen.drawRectangle(0, 40, 64, 144);
 -
-+        
 +        do Screen.setColor(true);
          do Output.moveCursor(4, 0);
          do Output.printString("Lives");
  
-@@ -184,6 +187,7 @@
+@@ -184,6 +186,7 @@
  
          do Output.moveCursor(10, 0);
          do Output.printString("Speed");
@@ -126,7 +124,7 @@ diff -ru GASteroids/GASteroids.jack GASteroids-patched/GASteroids.jack
  
          let blankSpace = "       ";
  
-@@ -280,13 +284,13 @@
+@@ -280,13 +283,13 @@
          if (key = 32) {             // Space
              do ship.fireShot();
          }
@@ -144,8 +142,8 @@ diff -ru GASteroids/GASteroids.jack GASteroids-patched/GASteroids.jack
          }
  
 diff -ru GASteroids/PRNG.jack GASteroids-patched/PRNG.jack
---- GASteroids/PRNG.jack	2026-04-24 16:30:13.115308661 +0300
-+++ GASteroids-patched/PRNG.jack	2026-04-24 16:29:48.850972353 +0300
+--- GASteroids/PRNG.jack	2026-04-25 20:08:24.426896443 +0300
++++ GASteroids-patched/PRNG.jack	2026-04-25 19:59:05.179307327 +0300
 @@ -31,7 +31,7 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
@@ -181,8 +179,8 @@ diff -ru GASteroids/PRNG.jack GASteroids-patched/PRNG.jack
          let A = 219;
          let Q = M / A;
 diff -ru GASteroids/Shots.jack GASteroids-patched/Shots.jack
---- GASteroids/Shots.jack	2026-04-24 16:30:13.117147717 +0300
-+++ GASteroids-patched/Shots.jack	2026-04-24 16:58:40.374774276 +0300
+--- GASteroids/Shots.jack	2026-04-25 20:08:24.426896443 +0300
++++ GASteroids-patched/Shots.jack	2026-04-25 19:59:05.179804139 +0300
 @@ -133,7 +133,7 @@
          var int i;
  
@@ -211,8 +209,8 @@ diff -ru GASteroids/Shots.jack GASteroids-patched/Shots.jack
  
          // Iterate shots array, decrement shot expiry, update position.
 diff -ru GASteroids/StarBurst.jack GASteroids-patched/StarBurst.jack
---- GASteroids/StarBurst.jack	2026-04-24 16:30:13.118898932 +0300
-+++ GASteroids-patched/StarBurst.jack	2026-04-24 16:58:40.374774276 +0300
+--- GASteroids/StarBurst.jack	2026-04-25 20:08:24.426896443 +0300
++++ GASteroids-patched/StarBurst.jack	2026-04-25 19:59:05.180554920 +0300
 @@ -88,7 +88,7 @@
          if (r1) {
              // Erase diagonal particles.
