@@ -5,6 +5,8 @@ class Screen {
     static int _screen_words;
     static int _screen_width;
     static int _screen_height;
+    
+    function int currentColor() { return _current_color; }
 
     /** Initializes the Screen. */
     function void init() {
@@ -39,7 +41,7 @@ class Screen {
     }
 
     /** Draws the (x,y) pixel, using the current color. */
-    function void drawPixel(int x, int y) {
+    native function void drawPixel(int x, int y) {
         do Memory.poke(_screen_base_address + (y * _screen_width) + x, _current_color);
         return;
     }

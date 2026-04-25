@@ -137,29 +137,88 @@ static void codegen_if_goto(asm_context* ctx, const jackc_string* label) {
     vstack_pop_reg(&ctx->s, REG_RES);
     asm_emit_branch(&ctx->e, BRANCH_NE, REG_RES, REG_ZERO, label);
 }
-static void codegen_call(asm_context* ctx, const jackc_string* name, int n_args) {
-    asm_emit_comment(&ctx->e, "Save registers");
-    vstack_alloc(&ctx->s, FRAME_SLOT_COUNT);
-    vstack_poke_reg(&ctx->s, REG_LOCAL, FRAME_SLOT_LOCAL);
-    vstack_poke_reg(&ctx->s, REG_ARG, FRAME_SLOT_ARG);
-    vstack_poke_reg(&ctx->s, REG_THAT, FRAME_SLOT_THAT);
-    vstack_poke_reg(&ctx->s, REG_THIS, FRAME_SLOT_THIS);
-    vstack_poke_reg(&ctx->s, REG_RET_ADDR, FRAME_SLOT_RET_ADDR);
-    if (n_args > 0) {
-        asm_emit_comment(&ctx->e, "Set ARG pointer");
-        asm_emit_addi(&ctx->e, REG_ARG, REG_SP, frame_offset_bytes(&ctx->cfg, FRAME_SLOT_COUNT));
+
+ // Due to jackc not being an optimizing compiler, graphics performance ended
+ // up being horrible. This is a somewhat successful attempt to improve the situation.
+ // It reduces number of executed instruction by 20-60% when working with the Screen
+
+/**
+ * Inlines some of the frequently used helper functions
+ */
+static bool codegen_call_aggressive_inline(asm_context* ctx, const jackc_string* name) {
+    if (jackc_streq(name, "Memory.peek")) {
+        asm_emit_comment(&ctx->e, "Inlined call to %.*s", name->length, name->data);
+        asm_emit_lw(&ctx->e, REG_OP1, 0, REG_SP);
+        asm_emit_slli(&ctx->e, REG_RES, REG_OP1, ctx->cfg.word_bits);
+        asm_emit_lw(&ctx->e, "a0", 0, REG_RES);
+        return true;
     }
+    if (jackc_streq(name, "Memory.poke")) {
+        asm_emit_comment(&ctx->e, "Inlined call to %.*s", name->length, name->data);
+        asm_emit_lw(&ctx->e, REG_OP1, 0, REG_SP);
+        asm_emit_slli(&ctx->e, REG_RES, REG_OP1, ctx->cfg.word_bits);
+        asm_emit_lw(&ctx->e, REG_SCRATCH, frame_offset_bytes(&ctx->cfg, 1), REG_SP);
+        asm_emit_sw(&ctx->e, REG_SCRATCH, 0, REG_RES);
+        return true;
+    }
+    if (jackc_streq(name, "Screen.drawPixel")) {
+        asm_emit_comment(&ctx->e, "Inlined call to %.*s", name->length, name->data);
+        
+        asm_emit_lw(&ctx->e, REG_OP1, 0, REG_SP);
+        asm_emit_lw(&ctx->e, REG_OP2, frame_offset_bytes(&ctx->cfg, 1), REG_SP);
+        asm_emit_li(&ctx->e, REG_SCRATCH, 0x10040000 / 4);
 
-    asm_emit_call(&ctx->e, name);
+        asm_emit_slli(&ctx->e, REG_OP2, REG_OP2, 9);
+        asm_emit_add(&ctx->e, REG_OP1, REG_OP1, REG_OP2);
+        asm_emit_add(&ctx->e, REG_RES, REG_OP1, REG_SCRATCH);
+        asm_emit_slli(&ctx->e, REG_RES, REG_RES, ctx->cfg.word_bits);
+        
+        vstack_alloc(&ctx->s, 2);
+        asm_emit_sw(&ctx->e, REG_RET_ADDR, frame_offset_bytes(&ctx->cfg, 1), REG_SP);
+        asm_emit_sw(&ctx->e, REG_LOCAL, 0, REG_SP);
+        asm_emit_call(&ctx->e, &jackc_string_from_str("Screen.currentColor"));
+        asm_emit_lw(&ctx->e, REG_RET_ADDR, frame_offset_bytes(&ctx->cfg, 1), REG_SP);
+        asm_emit_lw(&ctx->e, REG_LOCAL, 0, REG_SP);
+        vstack_alloc(&ctx->s, 2);
 
-    asm_emit_comment(&ctx->e, "Restore registers");
-    vstack_peek_reg(&ctx->s, REG_LOCAL, FRAME_SLOT_LOCAL);
-    vstack_peek_reg(&ctx->s, REG_ARG, FRAME_SLOT_ARG);
-    vstack_peek_reg(&ctx->s, REG_THAT, FRAME_SLOT_THAT);
-    vstack_peek_reg(&ctx->s, REG_THIS, FRAME_SLOT_THIS);
-    vstack_peek_reg(&ctx->s, REG_RET_ADDR, FRAME_SLOT_RET_ADDR);
-    // Reserve space for the return value by not deallocating one of the frame slots
-    vstack_dealloc(&ctx->s, FRAME_SLOT_COUNT + (uint32_t)n_args - 1);
+        asm_emit_sw(&ctx->e, "a0", 0, REG_RES);
+        return true;
+    }
+    return false;
+}
+
+static void codegen_call(asm_context* ctx, const jackc_string* name, int n_args) {
+    if (!codegen_call_aggressive_inline(ctx, name)) {
+        asm_emit_comment(&ctx->e, "Save registers");
+        vstack_alloc(&ctx->s, FRAME_SLOT_COUNT);
+        vstack_poke_reg(&ctx->s, REG_LOCAL, FRAME_SLOT_LOCAL);
+        vstack_poke_reg(&ctx->s, REG_ARG, FRAME_SLOT_ARG);
+        vstack_poke_reg(&ctx->s, REG_THAT, FRAME_SLOT_THAT);
+        vstack_poke_reg(&ctx->s, REG_THIS, FRAME_SLOT_THIS);
+        vstack_poke_reg(&ctx->s, REG_RET_ADDR, FRAME_SLOT_RET_ADDR);
+        if (n_args > 0) {
+            asm_emit_comment(&ctx->e, "Set ARG pointer");
+            asm_emit_addi(&ctx->e, REG_ARG, REG_SP, frame_offset_bytes(&ctx->cfg, FRAME_SLOT_COUNT));
+        }
+    
+        asm_emit_call(&ctx->e, name);
+    
+        asm_emit_comment(&ctx->e, "Restore registers");
+        vstack_peek_reg(&ctx->s, REG_LOCAL, FRAME_SLOT_LOCAL);
+        vstack_peek_reg(&ctx->s, REG_ARG, FRAME_SLOT_ARG);
+        vstack_peek_reg(&ctx->s, REG_THAT, FRAME_SLOT_THAT);
+        vstack_peek_reg(&ctx->s, REG_THIS, FRAME_SLOT_THIS);
+        vstack_peek_reg(&ctx->s, REG_RET_ADDR, FRAME_SLOT_RET_ADDR);
+        // Reserve space for the return value by not deallocating one of the frame slots
+        vstack_dealloc(&ctx->s, FRAME_SLOT_COUNT + (uint32_t)n_args - 1);
+    } else {
+        asm_emit_comment(&ctx->e, "End of inlined call");
+        if (n_args > 1) {
+            vstack_dealloc(&ctx->s, (uint32_t)n_args - 1);
+        } else if (n_args == 0) {
+            vstack_alloc(&ctx->s, 1);
+        }
+    }
 
     asm_emit_comment(&ctx->e, "Put return value on the stack");
     vstack_poke_reg(&ctx->s, REG_RET, 0);
