@@ -20,11 +20,6 @@
 - `riscv-gnu-toolchain` for cross compilation
 - `python3` for generating a single `jackc.s` source file for usage in [RARS](https://github.com/TheThirdOne/rars)
 
-
-> [!IMPORTANT]
-> When working on Windows make sure that tau.patch uses CRLF. By default it uses LF, which will cause `patch` to fail:
-> Assertion failed: hunk, file ../patch-2.5.9-src/patch.c, line 354
-
 ### Just 
 
 If you have `just` installed the following command will produce a release build:

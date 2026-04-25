@@ -16,6 +16,17 @@ just patch-examples
 ```
 2. Compile any of the patched examples using `jackc` . See [README](../README.md) for more details or `jackc --help` for help.
 
+### Bitmap Display
+
+1. Go to the Tools menu and select Bitmap Display
+2. In the popup that opens, set the base address to `0x10040000 (heap)`.
+3. Click `Connect Program`.
+
+### Keyboard
+1. Go to the `Tools` menu and select `Keyboard and Display MMIO Simulator`
+2. In the dialog window, click `Connect Program`.
+3. To provide input, type in the lower text field.
+
 ## Why are patches necessary?
 
 `Nand2Tetris` memory model differs from RARS in two significant ways:
