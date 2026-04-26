@@ -85,8 +85,21 @@ typedef enum {
 extern const jackc_locale jackc_locale_en;
 extern const jackc_locale jackc_locale_ru;
 
+/**
+ * Gets the locale for the given language code.
+ *
+ * @param code Language code to get the locale for.
+ * @return Pointer to the locale for the given language code.
+ */
 const jackc_locale* jackc_locale_get(jackc_language_code code);
 
+/**
+ * Reports a file error using the given locale.
+ *
+ * @param locale Locale to use for reporting.
+ * @param code File return code to report.
+ * @param path Path of the file that caused the error.
+ */
 void jackc_report_file_error(const jackc_locale* locale, jackc_file_return_code code, const char* path);
 
 #endif

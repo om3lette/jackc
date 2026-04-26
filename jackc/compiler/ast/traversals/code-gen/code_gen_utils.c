@@ -19,19 +19,19 @@ vm_segment vm_segment_from_variable_kind(jack_variable_kind kind) {
     return SEGMENT_ARG; // Make compiler happy;
 }
 
-void emit_push(FD fd, vm_segment seg, vm_index index) {
+void vm_emit_push(FD fd, vm_segment seg, vm_index index) {
     jackc_fprintf(fd, "push %s %d\n", vm_segment_to_string(seg), index);
 }
 
-void emit_signed_const(FD fd, int32_t index) {
+void vm_emit_signed_const(FD fd, int32_t index) {
     jackc_fprintf(fd, "push %s %d\n", vm_segment_to_string(SEGMENT_CONSTANT), index);
 }
 
-void emit_pop(FD fd, vm_segment seg, vm_index index) {
+void vm_emit_pop(FD fd, vm_segment seg, vm_index index) {
     jackc_fprintf(fd, "pop %s %d\n", vm_segment_to_string(seg), index);
 }
 
-void emit_unary_arithmetic(FD fd, ast_unary_op op) {
+void vm_emit_unary_arithmetic(FD fd, ast_unary_op op) {
     switch (op) {
         case UNARY_OP_NEG:
             jackc_fprintf(fd, "neg\n");
@@ -42,7 +42,7 @@ void emit_unary_arithmetic(FD fd, ast_unary_op op) {
     }
 }
 
-void emit_binary_arithmetic_op(FD fd, ast_binary_op op) {
+void vm_emit_binary_arithmetic_op(FD fd, ast_binary_op op) {
     switch (op) {
         case BINARY_OP_ADD:
             jackc_fprintf(fd, "add\n");
@@ -74,19 +74,19 @@ void emit_binary_arithmetic_op(FD fd, ast_binary_op op) {
     }
 }
 
-void emit_label(FD fd, const char* label, vm_index index) {
+void vm_emit_label(FD fd, const char* label, vm_index index) {
     jackc_fprintf(fd, "label %s_%d\n", label, index);
 }
 
-void emit_goto(FD fd, const char* label, vm_index index) {
+void vm_emit_goto(FD fd, const char* label, vm_index index) {
     jackc_fprintf(fd, "goto %s_%d\n", label, index);
 }
 
-void emit_if_goto(FD fd, const char* label, vm_index index) {
+void vm_emit_if_goto(FD fd, const char* label, vm_index index) {
     jackc_fprintf(fd, "if-goto %s_%d\n", label, index);
 }
 
-void emit_call(FD fd, const jackc_string* class_name, const jackc_string* subroutine_name, uint16_t n_args) {
+void vm_emit_call(FD fd, const jackc_string* class_name, const jackc_string* subroutine_name, uint16_t n_args) {
     jackc_fprintf(
         fd,
         "call %.*s.%.*s %d\n",
@@ -96,7 +96,7 @@ void emit_call(FD fd, const jackc_string* class_name, const jackc_string* subrou
     );
 }
 
-void emit_function(FD fd, const jackc_string* class_name, const function_signature* sub_signature) {
+void vm_emit_function(FD fd, const jackc_string* class_name, const function_signature* sub_signature) {
     jackc_fprintf(
         fd,
         "function %.*s.%.*s %d\n",
@@ -106,18 +106,18 @@ void emit_function(FD fd, const jackc_string* class_name, const function_signatu
     );
 }
 
-void emit_return(FD fd) {
+void vm_emit_return(FD fd) {
     jackc_fprintf(fd, "return\n");
 }
 
-void emit_string_from_string_literal(FD fd, const jackc_string* string_literal) {
+void vm_emit_string_from_string_literal(FD fd, const jackc_string* string_literal) {
     emit_std_call(fd, (std_subroutine_call){
         .kind = STD_STRING_NEW,
         .string_new = {
             .length = string_literal->length
         }
     });
-    emit_pop(fd, SEGMENT_TEMP, 0);
+    vm_emit_pop(fd, SEGMENT_TEMP, 0);
     for (uint32_t i = 0; i < string_literal->length; ++i) {
         emit_std_call(fd, (std_subroutine_call){
             .kind = STD_STRING_APPEND_CHAR,

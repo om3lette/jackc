@@ -14,6 +14,14 @@ typedef struct {
     bool had_redeclaration;
 } function_registry_traversal_context;
 
+/**
+ * Inserts all subroutines of the given class into the function registry.
+ * Updates `had_redeclaration` in the context if a redeclaration is detected.
+ * Will emit a diagnostic for each redeclaration.
+ * 
+ * @param class The class to build the function registry for.
+ * @param ctx The function registry traversal context.
+ */
 void ast_function_registry_build_traversal(const ast_class* class, function_registry_traversal_context* ctx);
 
 typedef struct {
@@ -42,9 +50,31 @@ typedef struct {
     Allocator* allocator
 );
 
+/**
+ * Traverses the AST and performs semantic validation.
+ * Updates `is_invalid` in the context if a semantic error is detected.
+ * Will emit a diagnostic for each semantic error.
+ * 
+ * @param class The class to validate.
+ * @param ctx The semantic validity traversal context.
+ * @return `true` if the class is valid, `false` otherwise.
+ */
 [[ nodiscard ]] bool ast_semantic_validity_traversal(const ast_class* class, semantic_validity_traversal_context* ctx);
 
+/**
+ * Enters a class scope, updating the context with the class's fields and subroutines.
+ * 
+ * @param ctx The semantic validity traversal context.
+ * @param class The class to enter.
+ */
 void semantic_validity_enter_class(semantic_validity_traversal_context* ctx, const ast_class* class);
+
+/**
+ * Enters a subroutine scope, updating the context with the subroutine's parameters and locals.
+ * 
+ * @param ctx The semantic validity traversal context.
+ * @param sub The subroutine to enter.
+ */
 void semantic_validity_enter_subroutine(semantic_validity_traversal_context* ctx, const ast_subroutine* sub);
 
 typedef struct {
@@ -65,6 +95,14 @@ typedef struct {
     uint32_t while_label_index;
 } vm_code_generation_traversal_context;
 
+/**
+ * Traverses the AST and generates VM code.
+ * Expects the input to be semantically valid.
+ * Semantic errors will not produce diagnostics, but `had_error` flag will be set.
+ * 
+ * @param class The class to generate VM code for.
+ * @param ctx The VM code generation traversal context.
+ */
 void vm_code_genetation_traversal(const ast_class* class, vm_code_generation_traversal_context* ctx);
 
 #endif

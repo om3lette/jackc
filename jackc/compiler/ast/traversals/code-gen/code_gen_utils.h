@@ -17,30 +17,30 @@
 
 typedef size_t vm_index;
 
-void emit_string_from_string_literal(FD fd, const jackc_string* string_literal);
-
 [[ nodiscard ]] vm_segment vm_segment_from_variable_kind(jack_variable_kind kind);
 
-void emit_push(FD fd, vm_segment seg, vm_index index);
+void vm_emit_string_from_string_literal(FD fd, const jackc_string* string_literal);
 
-void emit_signed_const(FD fd, int32_t index);
+void vm_emit_push(FD fd, vm_segment seg, vm_index index);
 
-void emit_pop(FD fd, vm_segment seg, vm_index index);
+void vm_emit_signed_const(FD fd, int32_t index);
 
-void emit_unary_arithmetic(FD fd, ast_unary_op op);
+void vm_emit_pop(FD fd, vm_segment seg, vm_index index);
 
-void emit_binary_arithmetic_op(FD fd, ast_binary_op op);
+void vm_emit_unary_arithmetic(FD fd, ast_unary_op op);
 
-void emit_label(FD fd, const char* label, vm_index index);
+void vm_emit_binary_arithmetic_op(FD fd, ast_binary_op op);
 
-void emit_goto(FD fd, const char* label, vm_index index);
+void vm_emit_label(FD fd, const char* label, vm_index index);
 
-void emit_if_goto(FD fd, const char* label, vm_index index);
+void vm_emit_goto(FD fd, const char* label, vm_index index);
 
-void emit_call(FD fd, const jackc_string* class_name, const jackc_string* subroutine_name, uint16_t n_args);
+void vm_emit_if_goto(FD fd, const char* label, vm_index index);
 
-void emit_function(FD fd, const jackc_string* class_name, const function_signature* sub_signature);
+void vm_emit_call(FD fd, const jackc_string* class_name, const jackc_string* subroutine_name, uint16_t n_args);
 
-void emit_return(FD fd);
+void vm_emit_function(FD fd, const jackc_string* class_name, const function_signature* sub_signature);
+
+void vm_emit_return(FD fd);
 
 #endif

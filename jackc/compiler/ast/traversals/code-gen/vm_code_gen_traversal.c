@@ -80,9 +80,9 @@ static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, con
     // Push 'this' for methods
     if (resolved_call.is_method_call) {
         if (call->implicit_this_receiver) {
-            emit_push(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
+            vm_emit_push(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
         } else if (resolved_call.is_var_in_symtab) {
-            emit_push(ctx->fd, jack_var_kind_to_vm_segment(resolved_call.var.var.kind), resolved_call.var.var.idx);
+            vm_emit_push(ctx->fd, jack_var_kind_to_vm_segment(resolved_call.var.var.kind), resolved_call.var.var.idx);
         } else {
             LOG_FATAL("%.*s\n", resolved_call.receiver_class.length, resolved_call.receiver_class.data);
             ctx->had_error = true;
@@ -90,28 +90,28 @@ static void visit_subroutine_call(vm_code_generation_traversal_context* ctx, con
         }
     }
 
-    emit_call(ctx->fd, &resolved_call.receiver_class, &call->subroutine_name, n_args);
+    vm_emit_call(ctx->fd, &resolved_call.receiver_class, &call->subroutine_name, n_args);
 }
 
 static void visit_expression(vm_code_generation_traversal_context* ctx, const ast_expr* expr) {
     switch (expr->kind) {
         case EXPR_INT:
-            emit_signed_const(ctx->fd, expr->int_val);
+            vm_emit_signed_const(ctx->fd, expr->int_val);
             break;
         case EXPR_STRING:
-            emit_string_from_string_literal(ctx->fd, &expr->string_val);
+            vm_emit_string_from_string_literal(ctx->fd, &expr->string_val);
             break;
         case EXPR_KEYWORD:
             switch (expr->keyword_val) {
                 case KEYWORD_TRUE:
-                    emit_signed_const(ctx->fd, 1);
+                    vm_emit_signed_const(ctx->fd, 1);
                     break;
                 case KEYWORD_FALSE:
                 case KEYWORD_NULL:
-                    emit_signed_const(ctx->fd, 0);
+                    vm_emit_signed_const(ctx->fd, 0);
                     break;
                 case KEYWORD_THIS:
-                    emit_push(ctx->fd, SEGMENT_POINTER, 0);
+                    vm_emit_push(ctx->fd, SEGMENT_POINTER, 0);
                     break;
             }
             break;
@@ -121,7 +121,7 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
                 ctx->had_error = true;
                 return;
             }
-            emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
+            vm_emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
             break;
         }
         case EXPR_ARRAY_ACCESS: {
@@ -130,12 +130,12 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
                 ctx->had_error = true;
                 return;
             }
-            emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
+            vm_emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
             visit_expression(ctx, expr->array_access.index);
-            emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
+            vm_emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
 
-            emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
-            emit_push(ctx->fd, SEGMENT_THAT, 0);
+            vm_emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
+            vm_emit_push(ctx->fd, SEGMENT_THAT, 0);
             break;
         }
         case EXPR_CALL: {
@@ -144,12 +144,12 @@ static void visit_expression(vm_code_generation_traversal_context* ctx, const as
         }
         case EXPR_UNARY:
         visit_expression(ctx, expr->unary.operand);
-            emit_unary_arithmetic(ctx->fd, expr->unary.op);
+            vm_emit_unary_arithmetic(ctx->fd, expr->unary.op);
             break;
         case EXPR_BINARY:
             visit_expression(ctx, expr->binary.left);
             visit_expression(ctx, expr->binary.right);
-            emit_binary_arithmetic_op(ctx->fd, expr->binary.op);
+            vm_emit_binary_arithmetic_op(ctx->fd, expr->binary.op);
             break;
     }
 }
@@ -168,15 +168,15 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             visit_expression(ctx, stmt->let_stmt.value);
 
             if (stmt->let_stmt.index) {
-                emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
+                vm_emit_push(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
                 visit_expression(ctx, stmt->let_stmt.index);
-                emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
+                vm_emit_binary_arithmetic_op(ctx->fd, BINARY_OP_ADD);
 
                 // Calculate offset = array_base + index_offset
-                emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
-                emit_pop(ctx->fd, SEGMENT_THAT, 0);
+                vm_emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THAT);
+                vm_emit_pop(ctx->fd, SEGMENT_THAT, 0);
             } else {
-                emit_pop(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
+                vm_emit_pop(ctx->fd, vm_segment_from_variable_kind(token.var.kind), token.var.idx);
             }
             break;
         case STMT_IF: {
@@ -184,31 +184,31 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             uint32_t label_idx = ctx->if_label_index++;
             visit_expression(ctx, stmt->if_stmt.condition);
 
-            emit_if_goto(ctx->fd, IF_TRUE_LABEL, label_idx);
+            vm_emit_if_goto(ctx->fd, IF_TRUE_LABEL, label_idx);
             // False branch
             visit_statements(ctx, stmt->if_stmt.false_branch);
-            emit_goto(ctx->fd, IF_END_LABEL, label_idx);
+            vm_emit_goto(ctx->fd, IF_END_LABEL, label_idx);
 
             // True branch
-            emit_label(ctx->fd, IF_TRUE_LABEL, label_idx);
+            vm_emit_label(ctx->fd, IF_TRUE_LABEL, label_idx);
             visit_statements(ctx, stmt->if_stmt.true_branch);
 
-            emit_label(ctx->fd, IF_END_LABEL, label_idx);
+            vm_emit_label(ctx->fd, IF_END_LABEL, label_idx);
             break;
         }
         case STMT_WHILE: {
             // Advance the counter immediately as the branches may have nested while statements
             uint32_t label_idx = ctx->while_label_index++;
-            emit_label(ctx->fd, WHILE_CONDITION_LABEL, label_idx);
+            vm_emit_label(ctx->fd, WHILE_CONDITION_LABEL, label_idx);
 
             visit_expression(ctx, stmt->while_stmt.cond);
-            emit_unary_arithmetic(ctx->fd, UNARY_OP_NOT);
-            emit_if_goto(ctx->fd, "WHILE_END", label_idx);
+            vm_emit_unary_arithmetic(ctx->fd, UNARY_OP_NOT);
+            vm_emit_if_goto(ctx->fd, "WHILE_END", label_idx);
 
             visit_statements(ctx, stmt->while_stmt.body);
-            emit_goto(ctx->fd, WHILE_CONDITION_LABEL, label_idx);
+            vm_emit_goto(ctx->fd, WHILE_CONDITION_LABEL, label_idx);
 
-            emit_label(ctx->fd, WHILE_END_LABEL, label_idx);
+            vm_emit_label(ctx->fd, WHILE_END_LABEL, label_idx);
             break;
         }
         case STMT_DO:
@@ -218,9 +218,9 @@ static void visit_stmt(vm_code_generation_traversal_context* ctx, const ast_stmt
             if (stmt->return_stmt) {
                 visit_expression(ctx, stmt->return_stmt);
             } else {
-                emit_signed_const(ctx->fd, 0);
+                vm_emit_signed_const(ctx->fd, 0);
             }
-            emit_return(ctx->fd);
+            vm_emit_return(ctx->fd);
             break;
     }
 }
@@ -255,7 +255,7 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
         register_var(ctx->symtab, local);
     }
 
-    emit_function(ctx->fd, &ctx->class_name, &ctx->subroutine_signature);
+    vm_emit_function(ctx->fd, &ctx->class_name, &ctx->subroutine_signature);
     switch (ctx->subroutine_signature.kind) {
         case SUB_CONSTRUCTOR:
             emit_std_call(ctx->fd, (std_subroutine_call){
@@ -264,11 +264,11 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
                     .words_to_allocate = ctx->n_fields
                 }
             });
-            emit_pop(ctx->fd, SEGMENT_POINTER, 0);
+            vm_emit_pop(ctx->fd, SEGMENT_POINTER, 0);
             break;
         case SUB_METHOD:
-            emit_push(ctx->fd, SEGMENT_ARG, 0);
-            emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
+            vm_emit_push(ctx->fd, SEGMENT_ARG, 0);
+            vm_emit_pop(ctx->fd, SEGMENT_POINTER, POINTER_THIS);
             break;
         case SUB_FUNCTION:
             break;
@@ -277,8 +277,8 @@ static void visit_subroutine(vm_code_generation_traversal_context* ctx, const as
     const ast_stmt* last_stmt = visit_statements(ctx, sub->body);
     // Add `return 0` to avoid fallthrough
     if (!last_stmt || last_stmt->kind != STMT_RETURN) {
-        emit_signed_const(ctx->fd, 0);
-        emit_return(ctx->fd);
+        vm_emit_signed_const(ctx->fd, 0);
+        vm_emit_return(ctx->fd);
     }
 
     ctx->symtab = sym_table_pop(ctx->symtab);

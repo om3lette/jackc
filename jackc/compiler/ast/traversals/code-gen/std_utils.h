@@ -35,6 +35,12 @@ typedef struct {
     };
 } std_subroutine_call;
 
+/**
+ * Emits a call to a STD subroutine.
+ * 
+ * @param fd The file descriptor to write to.
+ * @param subroutine The STD subroutine to call.
+ */
 void emit_std_call(FD fd, std_subroutine_call subroutine);
 
 typedef struct {

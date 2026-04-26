@@ -37,6 +37,11 @@ typedef struct {
 
 [[ nodiscard ]] void* arena_allocator_alloc(arena_allocator* allocator, size_t bytes);
 
+/**
+ * Destroys the given arena allocator, freeing all allocated blocks.
+ *
+ * @param allocator Arena allocator to destroy.
+ */
 void arena_allocator_destroy(arena_allocator* allocator);
 
 #endif

@@ -13,7 +13,7 @@
 - [OPTIONAL] doxygen for generating documentation
 
 > [!NOTE]
-> Use just install-deps on windows to installed all required dependencies using [chocolatey](https://community.chocolatey.org/)  
+> Use just install-deps on windows to install all required dependencies using [chocolatey](https://community.chocolatey.org/)  
 
 #### Cross compilation
 

@@ -81,6 +81,11 @@ sym_table* sym_table_pop(sym_table* current);
  */
 [[ nodiscard ]] bool sym_table_exists_local(const sym_table* table, const jackc_string* name);
 
+/**
+ * Removes all local tokens and resets the field and local indices in the symbol table.
+ *
+ * @param table The symbol table.
+ */
 void sym_table_reset_local_state(sym_table* table);
 
 #endif

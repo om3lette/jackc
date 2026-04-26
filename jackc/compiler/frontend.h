@@ -45,8 +45,19 @@ typedef struct {
     bool skip_vm_code_gen;
 } jackc_frontend_config;
 
+/**
+ * Compiles all .jack source files located in `input_paths` into VM code.
+ * Each .jack file is compiled into a separate .vm file.
+ * 
+ * @param input_paths The paths to directories containing source files.
+ * @param n_paths The number of source files.
+ * @param output_dir The directory to output the VM executable to.
+ * @param config The frontend configuration.
+ * @param allocator The allocator to use for memory allocation.
+ * @return The return code of the frontend compilation.
+ */
 jackc_frontend_return_code jackc_frontend_compile(
-    const char* input_paths[],
+    const char* input_dir_paths[],
     uint32_t n_paths,
     const char* output_dir,
     const jackc_frontend_config* config,
