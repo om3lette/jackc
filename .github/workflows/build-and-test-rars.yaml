@@ -27,7 +27,7 @@ jobs:
       - name: Setup Just
         uses: extractions/setup-just@v4
         with:
-          just-version: '1.47.1'
+          just-version: "1.50.0"
 
       - name: Cache RISC-V toolchain
         id: cache-riscv-toolchain
@@ -55,3 +55,16 @@ jobs:
 
       - name: Build
         run: just build -p rars
+
+      - name: Compile Pong
+        run: mkdir output && cp -r stdlib examples/pong && \
+          ./scripts/jackc_compile.sh tests/e2e/libs/rars.jar examples/pong output examples/pong/stdlib
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Run Pong
+        run: java -jar tests/e2e/libs/rars.jar output/out.asm

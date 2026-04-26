@@ -22,10 +22,10 @@ jobs:
 
       - name: Setup Just
         run: choco install just --version 1.50.0
-      
+
       - name: Install compiler
         run: choco install ${{ matrix.config.package }} --version ${{ matrix.config.version }} -y
-          
+
       - name: Install dependencies
         run: just install-deps
 
