@@ -14,5 +14,5 @@ void jackc_strcpy(char* dest, const char* src) {
 }
 
 char* jackc_strrchr(const char* s, char c) {
-    return strrchr(s, c);
+    return (char*)strrchr(s, c);
 }
