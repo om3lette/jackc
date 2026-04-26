@@ -68,7 +68,7 @@ jackc_backend_return_code jackc_backend_compile(
             jackc_report_file_error(locale, file_read_ret_code, source_file_path);
             return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
         }
-        vm_parser parser = jackc_parser_init(&jackc_string_from_str(file_content));
+        vm_parser parser = vm_parser_init(&jackc_string_from_str(file_content));
 
         while (vm_parser_has_more_lines(&parser)) {
             asm_code_gen_process_line(ctx, &parser);

@@ -84,7 +84,7 @@ typedef struct {
  *
  * @param buffer The input file buffer to parse.
  */
-[[ nodiscard ]] vm_parser jackc_parser_init(const jackc_string* buffer);
+[[ nodiscard ]] vm_parser vm_parser_init(const jackc_string* buffer);
 
 /**
  * Checks if there are more lines to parse.
