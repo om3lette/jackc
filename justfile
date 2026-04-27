@@ -50,7 +50,7 @@ clean:
 [working-directory: 'examples']
 patch-examples:
     @git submodule update --init
-    @rm -r patched && mkdir patched
+    @rm -rf patched && mkdir patched
     
     @cp -r nand2tetris-games/GASteroids patched && rm patched/GASteroids/*.vm patched/GASteroids/*.py
     @cp -r pong patched
