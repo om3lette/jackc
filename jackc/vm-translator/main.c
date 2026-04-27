@@ -28,8 +28,8 @@ static arg_spec argument_specs[] = {
     arg_spec_create("-s", "--source-dir", CLI_SOURCE_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, source_dir), true),
     arg_spec_create("-o", "--out-dir", CLI_OUT_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, out_dir), true),
     arg_spec_create("-std", "--stdlib-dir", CLI_STD_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, stdlib_dir), true),
-    // arg_spec_create(nullptr, "--reversed-stack", CLI_REVERSED_STACK, ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
-    // arg_spec_create(nullptr, "--stack-size", CLI_STACK_SIZE, ARG_UINT, offsetof(cmd_arguments, stack_size), false),
+    arg_spec_create(nullptr, "--reversed-stack", CLI_REVERSED_STACK, ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
+    arg_spec_create(nullptr, "--stack-size", CLI_STACK_SIZE, ARG_UINT, offsetof(cmd_arguments, stack_size), false),
     arg_spec_create(nullptr, "--code-comments", CLI_CODE_COMMENTS, ARG_BOOL, offsetof(cmd_arguments, code_comments), false),
     arg_spec_create(nullptr, "--lang", CLI_LANGUAGE, ARG_STRING, offsetof(cmd_arguments, lang), false)
 };
