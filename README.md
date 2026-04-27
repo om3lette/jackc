@@ -1,5 +1,24 @@
 # Jackc
 
+## Table of Contents
+
+- [Jackc](#jackc)
+  - [Table of Contents](#table-of-contents)
+  - [How to build](#how-to-build)
+    - [Prerequisites](#prerequisites)
+    - [Just](#just)
+    - [Without Just](#without-just)
+    - [Available presets](#available-presets)
+  - [How to run](#how-to-run)
+    - [Native](#native)
+    - [RARS](#rars)
+  - [Project Structure](#project-structure)
+    - [Core](#core)
+    - [Compiler](#compiler)
+    - [VM Translator](#vm-translator)
+    - [Platform](#platform)
+    - [Examples](#examples)
+
 ## How to build
 
 ### Prerequisites
@@ -108,3 +127,14 @@ This will produce a single assembly file for the program.
 ```bash
 java -jar <PATH_TO_RARS_JAR> <ASM_OUT_DIR>/out.s
 ```
+
+## Project Structure
+
+|                   Component                |        Description           |
+|--------------------------------------------|------------------------------|
+| [platform](platform)                       | Platform-specific code       |
+| [jackc/platform/std](jackc/platform/std)   | jackc std (wraps platform)   |
+| [jackc/core](jackc/core)                   | High-level utils (wraps std) |
+| [jackc/compiler](jackc/compiler)           | Frontend: `.jack` → `.vm`    |
+| [jackc/vm-translator](jackc/vm-translator) | Backend: `.vm` → assembly    |
+| [examples](examples)                       | Example programs             |

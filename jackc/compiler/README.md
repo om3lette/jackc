@@ -11,3 +11,5 @@ Overall steps taken to produce vm-code form `.jack` source:
 The second and the third passes can be merged, but were intentionally separated to simplify the codebase.
 
 All of the steps above support error recovery and error reporing. If the parser encounters an invalid syntax it will try to recover. No fail fast by design. See [error reporting](diagnostics-engine)
+
+> [← Back to jackc](../README.md)
