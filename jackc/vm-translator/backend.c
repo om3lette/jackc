@@ -85,5 +85,7 @@ jackc_backend_return_code jackc_backend_compile(
 
     if (vm_files_cnt == 0)
         return BACKEND_NO_SOURCE_FILES;
+    if (ctx->had_error)
+        return BACKEND_CODE_GEN_FAILED;
     return BACKEND_OK;
 }

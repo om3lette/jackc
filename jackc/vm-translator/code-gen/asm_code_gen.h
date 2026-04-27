@@ -17,6 +17,7 @@ typedef struct {
 
     uint32_t static_idx;
     uint16_t n_locals;
+    bool had_error;
 
     jackc_string static_label;
     jackc_string temp_label;

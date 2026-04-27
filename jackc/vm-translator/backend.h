@@ -19,7 +19,8 @@ typedef enum {
     BACKEND_FAILED_TO_OPEN_SAVE_FILE    = 1004,
     BACKEND_NO_SOURCE_FILES             = 1005,
     BACKEND_SAVE_PATH_TOO_LONG          = 1006,
-    BACKEND_BASE_PATH_TOO_LONG          = 1007
+    BACKEND_BASE_PATH_TOO_LONG          = 1007,
+    BACKEND_CODE_GEN_FAILED             = 1008
 } jackc_backend_return_code;
 
 /**

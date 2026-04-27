@@ -1,7 +1,6 @@
 #include "vm-translator/code-gen/asm_code_gen.h"
 #include "common/type_mappers.h"
 #include "core/allocators/allocators.h"
-#include "core/asserts/jackc_assert.h"
 #include "core/logging/logger.h"
 #include "std/jackc_stdlib.h"
 #include "std/jackc_string.h"
@@ -20,6 +19,7 @@ asm_context* asm_context_init(FD fd, const jackc_config* config, Allocator* allo
     ctx->n_locals = 0;
     ctx->static_label = jackc_string_from_str("_JACKC_STATIC");
     ctx->temp_label = jackc_string_from_str("_JACKC_TMP");
+    ctx->had_error = false;
     ctx->e = (emitter){
         .fd = fd,
         .emit_comments = config->code_comments,
@@ -90,7 +90,8 @@ static void codegen_pop(asm_context* ctx, vm_segment seg, int idx) {
         }
         case SEGMENT_CONSTANT:
             // Parser should have filtered out this case
-            jackc_assert(false && "Invalid operation.");
+            LOG_FATAL("Invalid operation: pop with constant.");
+            ctx->had_error = true;
             return;
         case SEGMENT_STATIC: base_reg = REG_STATIC; break;
         case SEGMENT_ARG: base_reg = REG_ARG; break;
@@ -124,7 +125,7 @@ static void codegen_alu(asm_context* ctx, vm_cmd cmd) {
 
     // Invalid dispatch -> code error
     LOG_FATAL("Invalid command passed to codegen_alu: %d\n", cmd);
-    jackc_assert(false);
+    ctx->had_error = true;
 }
 
 static void codegen_label(asm_context* ctx, const jackc_string* name) {
