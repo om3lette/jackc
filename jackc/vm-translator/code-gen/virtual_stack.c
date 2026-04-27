@@ -1,4 +1,5 @@
 #include "vm-translator/code-gen/virtual_stack.h"
+#include "std/jackc_stdlib.h"
 #include "vm-translator/code-gen/asm_emit.h"
 #include "vm-translator/code-gen/regs.h"
 #include "vm-translator/code-gen/stack_frame.h"
@@ -42,14 +43,31 @@ void vstack_push_imm(const vstack* s, int32_t value) {
     vstack_push_reg(s, REG_SCRATCH);
 }
 
+/**
+ * Checks if the section that the register belongs to is not stack-based.
+ * If this is the case than the byte offset should always be positive as those sections
+ * grow upwards, unlike the stack, which grows downwards by default.
+ */
+static bool is_section_not_stack_based(const char* reg) {
+    return jackc_strcmp(reg, REG_STATIC) == 0
+    || jackc_strcmp(reg, REG_TEMP) == 0
+    || jackc_strcmp(reg, REG_THIS) == 0;
+}
+
 void vstack_push_mem(const vstack* s, const char* base, int word_offset) {
     int byte_offset = frame_offset_bytes(s->cfg, word_offset);
+    if (is_section_not_stack_based(base)) {
+        byte_offset = ABS(byte_offset);
+    }
     asm_emit_lw(s->emit, REG_SCRATCH, byte_offset, base);
     vstack_push_reg(s, REG_SCRATCH);
 }
 
 void vstack_pop_mem(const vstack* s, const char* base, int word_offset) {
     int byte_offset = frame_offset_bytes(s->cfg, word_offset);
+    if (is_section_not_stack_based(base)) {
+        byte_offset = ABS(byte_offset);
+    }
     vstack_pop_reg(s, REG_SCRATCH);
     asm_emit_sw(s->emit, REG_SCRATCH, byte_offset, base);
 }

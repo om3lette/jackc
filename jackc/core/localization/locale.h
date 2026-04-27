@@ -31,6 +31,7 @@ typedef struct {
     const char* options;
     const char* unknown_arg;
     const char* required_arg;
+    const char* see_help_for_more_details;
 
     const jackc_cli_option_translation option_descriptions[CLI_OPTION_COUNT];
 } jackc_cli_translations;
@@ -70,10 +71,29 @@ typedef struct {
 } jackc_diagnostic_translations;
 
 typedef struct {
+    const char* inline_call_to;
+    const char* end_of_inlined_call;
+    const char* save_registers;
+    const char* restore_registers;
+    const char* set_arg_ptr;
+    const char* push_ret_value;
+    const char* pop_ret_value;
+    const char* restore_stack_ptr;
+    const char* allocate_space_for_local_and_setup_local_ptr;
+    const char* init_local_ptr;
+    const char* init_static_ptr;
+    const char* init_tmp_ptr;
+    const char* allocate_space_for_the_upward_growing_stack;
+    const char* prepare_argc_argv;
+    const char* riscv_why_jump_with_branch;
+} jackc_asm_code_comments;
+
+typedef struct {
     const jackc_cli_translations cli;
     const jackc_file_utils_translations files;
     const jackc_diagnostic_translations diagnostics;
     const jackc_msg_translations msgs;
+    const jackc_asm_code_comments asm_code_gen;
 } jackc_locale;
 
 typedef enum {
@@ -85,8 +105,21 @@ typedef enum {
 extern const jackc_locale jackc_locale_en;
 extern const jackc_locale jackc_locale_ru;
 
+/**
+ * Gets the locale for the given language code.
+ *
+ * @param code Language code to get the locale for.
+ * @return Pointer to the locale for the given language code.
+ */
 const jackc_locale* jackc_locale_get(jackc_language_code code);
 
+/**
+ * Reports a file error using the given locale.
+ *
+ * @param locale Locale to use for reporting.
+ * @param code File return code to report.
+ * @param path Path of the file that caused the error.
+ */
 void jackc_report_file_error(const jackc_locale* locale, jackc_file_return_code code, const char* path);
 
 #endif

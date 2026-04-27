@@ -1,0 +1,8 @@
+class Main {
+    function void main() {
+        var int x;
+        let x = tmp() + 2;
+    }
+    
+    function void tmp() {}
+}

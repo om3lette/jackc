@@ -28,8 +28,8 @@ static arg_spec argument_specs[] = {
     arg_spec_create("-s", "--source-dir", CLI_SOURCE_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, source_dir), true),
     arg_spec_create("-o", "--out-dir", CLI_OUT_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, out_dir), true),
     arg_spec_create("-std", "--stdlib-dir", CLI_STD_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, stdlib_dir), true),
-    // arg_spec_create(nullptr, "--reversed-stack", CLI_REVERSED_STACK, ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
-    // arg_spec_create(nullptr, "--stack-size", CLI_STACK_SIZE, ARG_UINT, offsetof(cmd_arguments, stack_size), false),
+    arg_spec_create(nullptr, "--reversed-stack", CLI_REVERSED_STACK, ARG_BOOL, offsetof(cmd_arguments, reversed_stack), false),
+    arg_spec_create(nullptr, "--stack-size", CLI_STACK_SIZE, ARG_UINT, offsetof(cmd_arguments, stack_size), false),
     arg_spec_create(nullptr, "--code-comments", CLI_CODE_COMMENTS, ARG_BOOL, offsetof(cmd_arguments, code_comments), false),
     arg_spec_create(nullptr, "--lang", CLI_LANGUAGE, ARG_STRING, offsetof(cmd_arguments, lang), false)
 };
@@ -47,9 +47,8 @@ int main(int argc, char** argv) {
     }
     const jackc_locale* locale = jackc_locale_get(lang_code);
 
-    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, locale, &allocator)) {
+    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, locale, &allocator))
         jackc_exit(BACKEND_INVALID_ARGUMENT);
-    }
 
     jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size, cmd_args.code_comments);
 

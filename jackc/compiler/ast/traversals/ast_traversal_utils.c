@@ -61,7 +61,13 @@ ast_type resolve_expression_type(const semantic_validity_traversal_context* ctx,
             return resolve_expression_type(ctx, expr->unary.operand);
 
         case EXPR_BINARY: {
-            // Jack is loosely typed - allow any expression combination
+            ast_type left_type = resolve_expression_type(ctx, expr->binary.left);
+            ast_type right_type = resolve_expression_type(ctx, expr->binary.right);
+            
+            // Forbids operations with `void`
+            if (left_type.kind == TYPE_VOID || right_type.kind == TYPE_VOID)
+                return (ast_type) { .kind = TYPE_VOID };
+
             switch (expr->binary.op) {
                 case BINARY_OP_ADD:
                 case BINARY_OP_SUB:

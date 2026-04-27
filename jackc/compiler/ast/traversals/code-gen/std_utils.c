@@ -17,16 +17,16 @@ void emit_std_call(FD fd, std_subroutine_call sub) {
     // Prepare the call by pushing the arguments
     switch (sub.kind) {
         case STD_STRING_NEW:
-            emit_push(fd, SEGMENT_CONSTANT, sub.string_new.length);
+            vm_emit_push(fd, SEGMENT_CONSTANT, sub.string_new.length);
             class_name = STD_STRING_CLASS;
             break;
         case STD_STRING_APPEND_CHAR:
-            emit_push(fd, SEGMENT_CONSTANT, sub.string_append_char.c);
-            emit_push(fd, SEGMENT_TEMP, 0);
+            vm_emit_push(fd, SEGMENT_CONSTANT, sub.string_append_char.c);
+            vm_emit_push(fd, SEGMENT_TEMP, 0);
             class_name = STD_STRING_CLASS;
             break;
         case STD_MEMORY_ALLOC:
-            emit_push(fd, SEGMENT_CONSTANT, sub.memory_alloc.words_to_allocate);
+            vm_emit_push(fd, SEGMENT_CONSTANT, sub.memory_alloc.words_to_allocate);
             class_name = STD_MEMORY_CLASS;
             break;
         case NUMBER_OF_STD_FUNCTIONS:

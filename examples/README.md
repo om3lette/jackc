@@ -10,11 +10,8 @@ Here one can find a subset of programs that can be compiled using `jackc` and ra
 
 ## Compiling examples
 
-1. Apply the pathes
-```bash
-just patch-examples
-```
-2. Compile any of the patched examples using `jackc` . See [README](../README.md) for more details or `jackc --help` for help.
+1. Apply the pathes `just patch-examples`. This will create `examples/patched` directory containing patched programs.
+2. Compile patched examples using `jackc`. See [README](../README.md) for more details or `jackc --help` for help.
 
 ### Bitmap Display
 

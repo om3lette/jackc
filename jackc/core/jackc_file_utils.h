@@ -27,15 +27,37 @@ typedef enum {
  */
 [[ nodiscard ]] jackc_file_return_code jackc_read_file_content(const char* file_path, char** out_file_content, Allocator* allocator);
 
+/**
+ * Returns the filename part of a path.
+ *
+ * @param path Path to file.
+ */
 [[ nodiscard ]] const char* jackc_find_filename(const char* path);
 
+/**
+ * Returns the filename part of a path without the extension.
+ *
+ * @param path Path to file.
+ */
 [[ nodiscard ]] jackc_string jackc_find_filename_no_ext(const char* path);
 
+/**
+ * Returns true if the filename has the given extension.
+ *
+ * @param filename Filename to check.
+ * @param extension Extension to check for.
+ */
 [[ nodiscard ]] bool jackc_has_extension(const char* filename, const char* extension);
 
+/**
+ * Joins a directory path and a file name into a full path.
+ *
+ * @param dir Directory path.
+ * @param file File name.
+ * @param allocator Allocator to use for buffer allocation.
+ */
 [[ nodiscard ]] const char* jackc_join_path(const char* dir, const char* file, Allocator* allocator);
 
-// TODO: Add windows support
 #ifdef __rars__
     // Placeholder. RARS is unable to open directories
     #define DIRECTORY char

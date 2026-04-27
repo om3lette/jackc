@@ -12,7 +12,7 @@
 /**
  * Implementation of jackc_parser_init function.
  */
-vm_parser jackc_parser_init(const jackc_string* buffer) {
+vm_parser vm_parser_init(const jackc_string* buffer) {
     vm_parser parser = {
         .buffer = *buffer,
         .pos = 0,

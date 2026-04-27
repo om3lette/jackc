@@ -1,6 +1,7 @@
 #include "compiler_parser.h"
 #include "compiler/diagnostics-engine/engine.h"
 #include "compiler/lexer/compiler_lexer.h"
+#include "compiler/parser/compiler_parser_internal.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
 
@@ -30,4 +31,9 @@ void jack_sync_context_push(jack_parser* parser, jack_sync_context context) {
 void jack_sync_context_pop(jack_parser* parser, jack_sync_context context) {
     jackc_assert(parser && "Parser is null");
     parser->sync_context &= ~context;
+}
+
+// This acts as a public api to avoid exposing internal parsing functions
+ast_class* jack_parser_parse(jack_parser* parser) {
+    return jack_parser_parse_class(parser);
 }

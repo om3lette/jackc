@@ -15,7 +15,6 @@ add_executable(compiler_lexer_tests
     compiler/lexer/comments.c
     compiler/lexer/operations.c
     compiler/lexer/tabs_and_spaces.c
-    compiler/lexer/line_col_counting.c
     compiler/lexer/unknown_characters.c
     compiler/lexer/string_literals.c
     compiler/lexer/lexer_test_utils.c
@@ -86,6 +85,16 @@ target_link_libraries(compiler_parser_tests
         compiler
 )
 
+add_executable(compiler_ast_tests
+    main.c
+    compiler/ast/are_types_compatible.c
+)
+target_link_libraries(compiler_ast_tests
+    PRIVATE
+        Tau
+        compiler
+)
+
 add_executable(diagnostics_engine_tests
     main.c
     compiler/diagnostics-engine/parsing-errors/error_reporting.c
@@ -138,6 +147,9 @@ set_tests_properties(allocators_tests PROPERTIES LABELS "unit")
 
 add_test(NAME compiler_parser_tests COMMAND compiler_parser_tests)
 set_tests_properties(compiler_parser_tests PROPERTIES LABELS "unit")
+
+add_test(NAME compiler_ast_tests COMMAND compiler_ast_tests)
+set_tests_properties(compiler_ast_tests PROPERTIES LABELS "unit")
 
 add_test(NAME diagnostics_engine_tests COMMAND diagnostics_engine_tests)
 set_tests_properties(diagnostics_engine_tests PROPERTIES LABELS "unit")

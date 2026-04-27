@@ -3,7 +3,7 @@
 #include "vm-translator/parser/vm_parser.h"
 
 static vm_parser init_parser_and_parse_instruction(const char* buffer) {
-    vm_parser parser = jackc_parser_init(&jackc_string_from_str(buffer));
+    vm_parser parser = vm_parser_init(&jackc_string_from_str(buffer));
     return parser;
 }
 

@@ -8,3 +8,5 @@ Overall steps taken to produce assembly from `.vm` source:
 
 - Registers used can be adjusted by redefining [constants](constants.h)
 - Stack growth direction can be toggled by changing `is_stack_growing_upwards` in the [config](../core/config.c)
+
+> [← Back to jackc](../README.md)

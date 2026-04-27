@@ -3,7 +3,7 @@ class Main {
         var int x;
         var char y;
         var boolean z;
-        let x = 2 * Test.new();
+        let x = Test.new();
         let y = Test.new();
         let z = Test.new();
     }

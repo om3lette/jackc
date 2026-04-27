@@ -33,7 +33,7 @@ jackc_backend_return_code jackc_backend_compile(
     if (fd < 0)
         return BACKEND_FAILED_TO_OPEN_SAVE_FILE;
 
-    asm_context* ctx = asm_context_init(fd, config, allocator);
+    asm_context* ctx = asm_context_init(fd, config, allocator, &locale->asm_code_gen);
 
 
     if (std_dir_length + jackc_strlen(STD_ASM_FILENAME) >= PATH_MAX)
@@ -68,7 +68,7 @@ jackc_backend_return_code jackc_backend_compile(
             jackc_report_file_error(locale, file_read_ret_code, source_file_path);
             return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
         }
-        vm_parser parser = jackc_parser_init(&jackc_string_from_str(file_content));
+        vm_parser parser = vm_parser_init(&jackc_string_from_str(file_content));
 
         while (vm_parser_has_more_lines(&parser)) {
             asm_code_gen_process_line(ctx, &parser);
@@ -85,5 +85,7 @@ jackc_backend_return_code jackc_backend_compile(
 
     if (vm_files_cnt == 0)
         return BACKEND_NO_SOURCE_FILES;
+    if (ctx->had_error)
+        return BACKEND_CODE_GEN_FAILED;
     return BACKEND_OK;
 }

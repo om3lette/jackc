@@ -1,5 +1,6 @@
 #include "compiler/ast/ast.h"
 #include "std/jackc_string.h"
+#include "test_ast_types.h"
 #include "test_parser_utils.h"
 #include "tau.h"
 
@@ -69,8 +70,6 @@ typedef struct {
     uint32_t expected_statements_count;
 } subroutine_test_config;
 
-static const jackc_string EMPTY_CLASS_NAME = { .data = nullptr, .length = 0 };
-
 #define REGISTER_TEST(_name, ...)                                                   \
     TEST_F(parser_fixture, _name) {                                                 \
         const subroutine_test_config cfg = (subroutine_test_config){ __VA_ARGS__ }; \
@@ -89,7 +88,7 @@ static const jackc_string EMPTY_CLASS_NAME = { .data = nullptr, .length = 0 };
 REGISTER_TEST(subroutine_test_function, 
     .source = "function void main() {}",
     .kind = SUB_FUNCTION,
-    .return_type = { .kind = TYPE_VOID, .class_name = EMPTY_CLASS_NAME },
+    .return_type = T_VOID,
     .name = "main",
     .expected_arg_count = 0,
     .expected_vars_count = 0,
@@ -98,7 +97,7 @@ REGISTER_TEST(subroutine_test_function,
 REGISTER_TEST(subroutine_test_native_function, 
     .source = "native function void main() {}",
     .kind = SUB_FUNCTION,
-    .return_type = { .kind = TYPE_VOID, .class_name = EMPTY_CLASS_NAME },
+    .return_type = T_VOID,
     .name = "main",
     .expected_arg_count = 0,
     .expected_vars_count = 0,
@@ -107,7 +106,7 @@ REGISTER_TEST(subroutine_test_native_function,
 REGISTER_TEST(subroutine_test_function_many_var_decs, 
     .source = "function void main() { var int x, y; var char a, b; }",
     .kind = SUB_FUNCTION,
-    .return_type = { .kind = TYPE_VOID, .class_name = EMPTY_CLASS_NAME },
+    .return_type = T_VOID,
     .name = "main",
     .expected_arg_count = 0,
     .expected_vars_count = 4,
@@ -116,7 +115,7 @@ REGISTER_TEST(subroutine_test_function_many_var_decs,
 REGISTER_TEST(subroutine_test_method, 
     .source = "method char main() {}",
     .kind = SUB_METHOD,
-    .return_type = { .kind = TYPE_CHAR, .class_name = EMPTY_CLASS_NAME },
+    .return_type = T_CHAR,
     .name = "main",
     .expected_arg_count = 0,
     .expected_vars_count = 0,
@@ -125,7 +124,7 @@ REGISTER_TEST(subroutine_test_method,
 REGISTER_TEST(subroutine_test_constructor, 
     .source = "constructor Number init() {}",
     .kind = SUB_CONSTRUCTOR,
-    .return_type = { .kind = TYPE_CLASS, .class_name = { .data = "Number", .length = 6 } },
+    .return_type = T_CLASS("Number"),
     .name = "init",
     .expected_arg_count = 0,
     .expected_vars_count = 0,
@@ -134,7 +133,7 @@ REGISTER_TEST(subroutine_test_constructor,
 REGISTER_TEST(subroutine_with_arguments, 
     .source = "constructor Number init(int x, int y, boolean abs) {}",
     .kind = SUB_CONSTRUCTOR,
-    .return_type = { .kind = TYPE_CLASS, .class_name = { .data = "Number", .length = 6 } },
+    .return_type = T_CLASS("Number"),
     .name = "init",
     .expected_arg_count = 3,
     .expected_vars_count = 0,
@@ -143,7 +142,7 @@ REGISTER_TEST(subroutine_with_arguments,
 REGISTER_TEST(subroutine_with_arguments_and_vars, 
     .source = "constructor Number init(int x, int y, boolean abs) { var int xy, abs_xy; }",
     .kind = SUB_CONSTRUCTOR,
-    .return_type = { .kind = TYPE_CLASS, .class_name = { .data = "Number", .length = 6 } },
+    .return_type = T_CLASS("Number"),
     .name = "init",
     .expected_arg_count = 3,
     .expected_vars_count = 2,
@@ -152,7 +151,7 @@ REGISTER_TEST(subroutine_with_arguments_and_vars,
 REGISTER_TEST(subroutine_with_arguments_and_vars_and_statements, 
     .source = "function int calculate(int x, int y, boolean abs) { var int xy, abs_xy; let xy = x * y; if (abs) { let abs_xy = Math.abs(xy); } else { let abs_xy = xy; } return abs_xy; }",
     .kind = SUB_FUNCTION,
-    .return_type = { .kind = TYPE_INT, .class_name = EMPTY_CLASS_NAME },
+    .return_type = T_INT,
     .name = "calculate",
     .expected_arg_count = 3,
     .expected_vars_count = 2,

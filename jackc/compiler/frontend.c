@@ -5,7 +5,6 @@
 #include "compiler/function-registry/function_registry.h"
 #include "compiler/lexer/compiler_lexer.h"
 #include "compiler/parser/compiler_parser.h"
-#include "compiler/parser/compiler_parser_internal.h"
 #include "compiler/symtable/compiler_symtable.h"
 #include "core/allocators/allocators.h"
 #include "core/asserts/jackc_assert.h"
@@ -42,13 +41,13 @@ static jackc_parse_result jackc_parse_file(const char* filename, jackc_string so
     );
     jack_parser parser = jack_parser_init(&lexer, &engine, allocator);
 
-    ast_class* ast = jack_parser_parse_class(&parser);
+    ast_class* ast = jack_parser_parse(&parser);
     jackc_diagnostic_engine_report(&engine, lexer.line);
 
     return (jackc_parse_result){ .ast = ast, .lines = lexer.line, .had_error = parser.had_error };
 }
 
-static bool build_global_symtable(
+static bool build_function_registry(
     const jack_source* source_files,
     const jackc_frontend_config* cfg,
     function_registry* func_registry
@@ -171,7 +170,7 @@ static bool generate_vm_code(
 }
 
 jackc_frontend_return_code jackc_frontend_compile(
-    const char* input_paths[],
+    const char* input_dir_paths[],
     uint32_t n_paths,
     const char* output_dir,
     const jackc_frontend_config* config,
@@ -184,7 +183,7 @@ jackc_frontend_return_code jackc_frontend_compile(
     jack_source* source_files = nullptr;
 
     for (size_t i = 0; i < n_paths; ++i) {
-        const char* current_path = input_paths[i];
+        const char* current_path = input_dir_paths[i];
         if (!current_path)
             continue;
 
@@ -237,7 +236,7 @@ jackc_frontend_return_code jackc_frontend_compile(
     // The first AST pass - build symbol table of class names and function signatures
     // Will report Class redeclarations
     function_registry* registry = function_registry_init(allocator);
-    if (build_global_symtable(source_files, config, registry))
+    if (build_function_registry(source_files, config, registry))
         return FRONTEND_SYMBOL_TABLE_BUILD_ERROR;
 
     // The second AST pass - check that program is semantically valid
