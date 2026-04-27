@@ -90,7 +90,7 @@ static void codegen_pop(asm_context* ctx, vm_segment seg, int idx) {
         }
         case SEGMENT_CONSTANT:
             // Parser should have filtered out this case
-            LOG_FATAL("Invalid operation: pop with constant.");
+            LOG_FATAL("Invalid operation: pop with constant.\n");
             ctx->had_error = true;
             return;
         case SEGMENT_STATIC: base_reg = REG_STATIC; break;

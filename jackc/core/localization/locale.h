@@ -70,10 +70,30 @@ typedef struct {
 } jackc_diagnostic_translations;
 
 typedef struct {
+    const char* inline_call_to;
+    const char* end_of_inlined_call;
+    const char* save_registers;
+    const char* restore_registers;
+    const char* set_arg_ptr;
+    const char* push_ret_value;
+    const char* pop_ret_value;
+    const char* restore_stack_ptr;
+    const char* allocate_space_for_local_and_setup_local_ptr;
+    const char* init_local_ptr;
+    const char* init_static_ptr;
+    const char* init_tmp_ptr;
+    const char* allocate_space_for_the_upward_growing_stack;
+    const char* prepare_argc_argv;
+    const char* std_native_start;
+    const char* std_native_end;
+} jackc_asm_code_comments;
+
+typedef struct {
     const jackc_cli_translations cli;
     const jackc_file_utils_translations files;
     const jackc_diagnostic_translations diagnostics;
     const jackc_msg_translations msgs;
+    const jackc_asm_code_comments asm_code_gen;
 } jackc_locale;
 
 typedef enum {
