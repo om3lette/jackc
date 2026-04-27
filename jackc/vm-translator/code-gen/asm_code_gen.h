@@ -4,6 +4,7 @@
 
 #include "core/allocators/allocators.h"
 #include "core/config.h"
+#include "core/localization/locale.h"
 #include "std/jackc_syscalls.h"
 #include "vm-translator/code-gen/stack_frame.h"
 #include "vm-translator/code-gen/virtual_stack.h"
@@ -21,9 +22,16 @@ typedef struct {
 
     jackc_string static_label;
     jackc_string temp_label;
+    
+    const jackc_asm_code_comments* comments;
 } asm_context;
 
-asm_context* asm_context_init(FD fd, const jackc_config* config, Allocator* allocator);
+asm_context* asm_context_init(
+    FD fd,
+    const jackc_config* config,
+    Allocator* allocator,
+    const jackc_asm_code_comments* comments
+);
 
 void asm_code_gen_bootstrap(const asm_context* ctx, const char* std_native_content);
 

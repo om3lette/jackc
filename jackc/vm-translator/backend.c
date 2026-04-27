@@ -33,7 +33,7 @@ jackc_backend_return_code jackc_backend_compile(
     if (fd < 0)
         return BACKEND_FAILED_TO_OPEN_SAVE_FILE;
 
-    asm_context* ctx = asm_context_init(fd, config, allocator);
+    asm_context* ctx = asm_context_init(fd, config, allocator, &locale->asm_code_gen);
 
 
     if (std_dir_length + jackc_strlen(STD_ASM_FILENAME) >= PATH_MAX)

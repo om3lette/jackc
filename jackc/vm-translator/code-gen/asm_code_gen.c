@@ -13,13 +13,19 @@
 #include "vm-translator/parser/vm_parser.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 
-asm_context* asm_context_init(FD fd, const jackc_config* config, Allocator* allocator) {
+asm_context* asm_context_init(
+    FD fd,
+    const jackc_config* config,
+    Allocator* allocator,
+    const jackc_asm_code_comments* comments
+) {
     asm_context* ctx = allocator->alloc(sizeof(asm_context), allocator->context);
     ctx->static_idx = 0;
     ctx->n_locals = 0;
     ctx->static_label = jackc_string_from_str("_JACKC_STATIC");
     ctx->temp_label = jackc_string_from_str("_JACKC_TMP");
     ctx->had_error = false;
+    ctx->comments = comments;
     ctx->e = (emitter){
         .fd = fd,
         .emit_comments = config->code_comments,
@@ -148,14 +154,14 @@ static void codegen_if_goto(asm_context* ctx, const jackc_string* label) {
  */
 static bool codegen_call_aggressive_inline(asm_context* ctx, const jackc_string* name) {
     if (jackc_streq(name, "Memory.peek")) {
-        asm_emit_comment(&ctx->e, "Inlined call to %.*s", name->length, name->data);
+        asm_emit_comment(&ctx->e, ctx->comments->inline_call_to, name->length, name->data);
         asm_emit_lw(&ctx->e, REG_OP1, 0, REG_SP);
         asm_emit_slli(&ctx->e, REG_RES, REG_OP1, ctx->cfg.word_bits);
         asm_emit_lw(&ctx->e, "a0", 0, REG_RES);
         return true;
     }
     if (jackc_streq(name, "Memory.poke")) {
-        asm_emit_comment(&ctx->e, "Inlined call to %.*s", name->length, name->data);
+        asm_emit_comment(&ctx->e, ctx->comments->inline_call_to, name->length, name->data);
         asm_emit_lw(&ctx->e, REG_OP1, 0, REG_SP);
         asm_emit_slli(&ctx->e, REG_RES, REG_OP1, ctx->cfg.word_bits);
         asm_emit_lw(&ctx->e, REG_SCRATCH, frame_offset_bytes(&ctx->cfg, 1), REG_SP);
@@ -163,7 +169,7 @@ static bool codegen_call_aggressive_inline(asm_context* ctx, const jackc_string*
         return true;
     }
     if (jackc_streq(name, "Screen.drawPixel")) {
-        asm_emit_comment(&ctx->e, "Inlined call to %.*s", name->length, name->data);
+        asm_emit_comment(&ctx->e, ctx->comments->inline_call_to, name->length, name->data);
         
         asm_emit_lw(&ctx->e, REG_OP1, 0, REG_SP);
         asm_emit_lw(&ctx->e, REG_OP2, frame_offset_bytes(&ctx->cfg, 1), REG_SP);
@@ -190,7 +196,7 @@ static bool codegen_call_aggressive_inline(asm_context* ctx, const jackc_string*
 
 static void codegen_call(asm_context* ctx, const jackc_string* name, int n_args) {
     if (!codegen_call_aggressive_inline(ctx, name)) {
-        asm_emit_comment(&ctx->e, "Save registers");
+        asm_emit_comment(&ctx->e, ctx->comments->save_registers);
         vstack_alloc(&ctx->s, FRAME_SLOT_COUNT);
         vstack_poke_reg(&ctx->s, REG_LOCAL, FRAME_SLOT_LOCAL);
         vstack_poke_reg(&ctx->s, REG_ARG, FRAME_SLOT_ARG);
@@ -198,13 +204,13 @@ static void codegen_call(asm_context* ctx, const jackc_string* name, int n_args)
         vstack_poke_reg(&ctx->s, REG_THIS, FRAME_SLOT_THIS);
         vstack_poke_reg(&ctx->s, REG_RET_ADDR, FRAME_SLOT_RET_ADDR);
         if (n_args > 0) {
-            asm_emit_comment(&ctx->e, "Set ARG pointer");
+            asm_emit_comment(&ctx->e, ctx->comments->set_arg_ptr);
             asm_emit_addi(&ctx->e, REG_ARG, REG_SP, frame_offset_bytes(&ctx->cfg, FRAME_SLOT_COUNT));
         }
     
         asm_emit_call(&ctx->e, name);
     
-        asm_emit_comment(&ctx->e, "Restore registers");
+        asm_emit_comment(&ctx->e, ctx->comments->restore_registers);
         vstack_peek_reg(&ctx->s, REG_LOCAL, FRAME_SLOT_LOCAL);
         vstack_peek_reg(&ctx->s, REG_ARG, FRAME_SLOT_ARG);
         vstack_peek_reg(&ctx->s, REG_THAT, FRAME_SLOT_THAT);
@@ -213,7 +219,7 @@ static void codegen_call(asm_context* ctx, const jackc_string* name, int n_args)
         // Reserve space for the return value by not deallocating one of the frame slots
         vstack_dealloc(&ctx->s, FRAME_SLOT_COUNT + (uint32_t)n_args - 1);
     } else {
-        asm_emit_comment(&ctx->e, "End of inlined call");
+        asm_emit_comment(&ctx->e, ctx->comments->end_of_inlined_call);
         if (n_args > 1) {
             vstack_dealloc(&ctx->s, (uint32_t)n_args - 1);
         } else if (n_args == 0) {
@@ -221,14 +227,14 @@ static void codegen_call(asm_context* ctx, const jackc_string* name, int n_args)
         }
     }
 
-    asm_emit_comment(&ctx->e, "Put return value on the stack");
+    asm_emit_comment(&ctx->e, ctx->comments->push_ret_value);
     vstack_poke_reg(&ctx->s, REG_RET, 0);
 }
 static void codegen_return(asm_context* ctx) {
-    asm_emit_comment(&ctx->e, "Pop return value from the stack");
+    asm_emit_comment(&ctx->e, ctx->comments->pop_ret_value);
     vstack_peek_reg(&ctx->s, REG_RET, 0);
 
-    asm_emit_comment(&ctx->e, "Restore stack pointer");
+    asm_emit_comment(&ctx->e, ctx->comments->restore_stack_ptr);
     asm_emit_addi(&ctx->e, REG_SP, REG_LOCAL, frame_offset_bytes(&ctx->cfg, ctx->n_locals));
 
     asm_emit_ret(&ctx->e);
@@ -239,10 +245,10 @@ static void codegen_function(asm_context* ctx, const jackc_string* name, int n_l
 
     ctx->n_locals = (uint16_t)n_locals;
     if (n_locals != 0) {
-        asm_emit_comment(&ctx->e, "Allocate space for local variables and setup local ptr");
+        asm_emit_comment(&ctx->e, ctx->comments->allocate_space_for_local_and_setup_local_ptr);
         vstack_alloc(&ctx->s, (uint32_t)n_locals);
     } else {
-        asm_emit_comment(&ctx->e, "Initialize local ptr as a frame anchor");
+        asm_emit_comment(&ctx->e, ctx->comments->init_local_ptr);
     }
     asm_emit_mv(&ctx->e, REG_LOCAL, REG_SP);
 }
@@ -278,14 +284,14 @@ void asm_code_gen_bootstrap(const asm_context* ctx, const char* std_native_conte
 
     // Static/Temp labels will be generated by `finalize`
     // As number of static variables used is calculated during emitting
-    asm_emit_comment(&ctx->e, "Initialize STATIC pointer");
+    asm_emit_comment(&ctx->e, ctx->comments->init_static_ptr);
     asm_emit_la(&ctx->e, REG_STATIC, &ctx->static_label);
-    asm_emit_comment(&ctx->e, "Initialize TEMP pointer");
+    asm_emit_comment(&ctx->e, ctx->comments->init_tmp_ptr);
     asm_emit_la(&ctx->e, REG_TEMP, &ctx->temp_label);
 
     const frame_config* cfg = &ctx->cfg;
     if (cfg->grows_up) {
-        asm_emit_comment(&ctx->e, "Allocate space for the stack (grows upwards)");
+        asm_emit_comment(&ctx->e, ctx->comments->allocate_space_for_the_upward_growing_stack);
 
         // This is a special case when "allocation" is in the opposite direction of actual stack growth
         int n_words = (int)(cfg->stack_size + (cfg->word_size - 1)) / cfg->word_size;

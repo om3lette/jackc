@@ -76,5 +76,21 @@ const jackc_locale jackc_locale_en = {
         .warning = "Warning",
         .note = "Note",
         .engine_overflow = "Diagnostic engine overflowed"
+    },
+    .asm_code_gen = {
+        .inline_call_to = "Inlined call to %.*s",
+        .end_of_inlined_call = "End of inlined call",
+        .save_registers = "Save registers",
+        .restore_registers = "Restore registers",
+        .set_arg_ptr = "Set ARG pointer",
+        .push_ret_value = "Put return value on the stack",
+        .pop_ret_value = "Pop return value from the stack",
+        .restore_stack_ptr = "Restore stack pointer",
+        .allocate_space_for_local_and_setup_local_ptr = "Allocate space for local variables and setup local ptr",
+        .init_local_ptr = "Initialize local ptr as a frame anchor",
+        .init_static_ptr = "Initialize STATIC pointer",
+        .init_tmp_ptr = "Initialize TEMP pointer",
+        .allocate_space_for_the_upward_growing_stack = "Allocate space for the stack (grows upwards)",
+        .prepare_argc_argv = "Prepare argc, argv for Main.main",
     }
 };
