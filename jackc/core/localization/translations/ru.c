@@ -76,5 +76,22 @@ const jackc_locale jackc_locale_ru = {
         .warning = "Предупреждение",
         .note = "Замечание",
         .engine_overflow = "Диагностический модуль переполнен"
+    },
+    .asm_code_gen = {
+        .inline_call_to = "Встраиваемый вызов %.*s",
+        .end_of_inlined_call = "Конец встраиваемого вызова",
+        .save_registers = "Сохранить регистры",
+        .restore_registers = "Восстановить регистры",
+        .set_arg_ptr = "Установить указатель ARG",
+        .push_ret_value = "Поместить возвращаемое значение на стек",
+        .pop_ret_value = "Извлечь возвращаемое значение из стека",
+        .restore_stack_ptr = "Восстановить указатель стека",
+        .allocate_space_for_local_and_setup_local_ptr = "Выделить место для локальных переменных и установить локальный указатель",
+        .init_local_ptr = "Инициализировать локальный указатель как якорь фрейма",
+        .init_static_ptr = "Инициализировать указатель STATIC",
+        .init_tmp_ptr = "Инициализировать указатель TEMP",
+        .allocate_space_for_the_upward_growing_stack = "Выделить место для стека (стек растёт вверх)",
+        .prepare_argc_argv = "Подготовить argc, argv для Main.main",
+        .riscv_why_jump_with_branch = "Ветвление в RISC-V поддерживает прыжки, которые можно записать в 12 бит, j в то же время способен хранить 20 бит"
     }
 };

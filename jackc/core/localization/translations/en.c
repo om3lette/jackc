@@ -92,5 +92,6 @@ const jackc_locale jackc_locale_en = {
         .init_tmp_ptr = "Initialize TEMP pointer",
         .allocate_space_for_the_upward_growing_stack = "Allocate space for the stack (grows upwards)",
         .prepare_argc_argv = "Prepare argc, argv for Main.main",
+        .riscv_why_jump_with_branch = "RISC-V branches only support jumps which fit into 12 bits, while j can handle 20 bits"
     }
 };

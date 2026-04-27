@@ -84,6 +84,7 @@ typedef struct {
     const char* init_tmp_ptr;
     const char* allocate_space_for_the_upward_growing_stack;
     const char* prepare_argc_argv;
+    const char* riscv_why_jump_with_branch;
 } jackc_asm_code_comments;
 
 typedef struct {

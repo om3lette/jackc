@@ -142,6 +142,7 @@ static void codegen_goto(asm_context* ctx, const jackc_string* label) {
 }
 static void codegen_if_goto(asm_context* ctx, const jackc_string* label) {
     vstack_pop_reg(&ctx->s, REG_RES);
+    asm_emit_comment(&ctx->e, ctx->comments->riscv_why_jump_with_branch);
     asm_emit_branch(&ctx->e, BRANCH_NE, REG_RES, REG_ZERO, label);
 }
 
@@ -300,7 +301,7 @@ void asm_code_gen_bootstrap(const asm_context* ctx, const char* std_native_conte
         asm_emit_add(&ctx->e, REG_SP, REG_SP, REG_SCRATCH);
     }
 
-    asm_emit_comment(&ctx->e, "Prepare argc, argv for Main.main");
+    asm_emit_comment(&ctx->e, ctx->comments->prepare_argc_argv);
     vstack_alloc(&ctx->s, 2);
     asm_emit_sw(&ctx->e, "a1", frame_offset_bytes(cfg, 1), REG_SP);
     asm_emit_sw(&ctx->e, "a0", 0, REG_SP);
