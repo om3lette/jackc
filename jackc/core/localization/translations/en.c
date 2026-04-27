@@ -42,6 +42,7 @@ const jackc_locale jackc_locale_en = {
         .options = "Options (* - required):",
         .unknown_arg = "Unknown argument: %s",
         .required_arg = "Required argument '%s' was not provided",
+        .see_help_for_more_details = "See --help for more details.",
         .option_descriptions = {
             {CLI_SOURCE_DIR, "Source files directory"},
             {CLI_OUT_DIR, "Output directory"},

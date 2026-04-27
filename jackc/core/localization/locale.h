@@ -31,6 +31,7 @@ typedef struct {
     const char* options;
     const char* unknown_arg;
     const char* required_arg;
+    const char* see_help_for_more_details;
 
     const jackc_cli_option_translation option_descriptions[CLI_OPTION_COUNT];
 } jackc_cli_translations;

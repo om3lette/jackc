@@ -47,9 +47,8 @@ int main(int argc, char** argv) {
     }
     const jackc_locale* locale = jackc_locale_get(lang_code);
 
-    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, locale, &allocator)) {
+    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, locale, &allocator))
         jackc_exit(BACKEND_INVALID_ARGUMENT);
-    }
 
     jackc_config config = jackc_config_create(cmd_args.reversed_stack, cmd_args.stack_size, cmd_args.code_comments);
 

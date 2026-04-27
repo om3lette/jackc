@@ -42,6 +42,7 @@ const jackc_locale jackc_locale_ru = {
         .options = "Параметры (* - обязательно):",
         .unknown_arg = "Неизвестный аргумент: %s",
         .required_arg = "Обязательный аргумент '%s' не был предоставлен",
+        .see_help_for_more_details = "Более подробную информацию смотрите в --help.",
         .option_descriptions = {
             {CLI_SOURCE_DIR, "Директория с исходным кодом"},
             {CLI_OUT_DIR, "Директория для сохранения выходных файлов"},

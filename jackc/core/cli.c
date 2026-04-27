@@ -90,6 +90,9 @@ bool parse_args(
             are_required_fields_filled = false;
         }
     }
+    if (!are_required_fields_filled) {
+        jackc_printf("%s\n", locale->cli.see_help_for_more_details);
+    }
     return !are_required_fields_filled;
 }
 

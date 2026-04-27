@@ -36,9 +36,8 @@ int main(int argc, char** argv) {
     }
     const jackc_locale* locale = jackc_locale_get(lang_code);
 
-    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, locale, &allocator)) {
+    if (parse_args(&cmd_args, argument_specs, sizeof(argument_specs) / sizeof(arg_spec), argc, argv, locale, &allocator))
         jackc_exit(FRONTEND_INVALID_ARGUMENT);
-    }
 
     const char* input_paths[] = { cmd_args.common.source_dir, cmd_args.common.stdlib_dir };
 
