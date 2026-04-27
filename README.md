@@ -13,11 +13,6 @@
     - [Native](#native)
     - [RARS](#rars)
   - [Project Structure](#project-structure)
-    - [Core](#core)
-    - [Compiler](#compiler)
-    - [VM Translator](#vm-translator)
-    - [Platform](#platform)
-    - [Examples](#examples)
 
 ## How to build
 
@@ -133,7 +128,7 @@ java -jar <PATH_TO_RARS_JAR> <ASM_OUT_DIR>/out.s
 |                   Component                |        Description           |
 |--------------------------------------------|------------------------------|
 | [platform](platform)                       | Platform-specific code       |
-| [jackc/platform/std](jackc/platform/std)   | jackc std (wraps platform)   |
+| [jackc/platform/std](platform/std)   | jackc std (wraps platform)   |
 | [jackc/core](jackc/core)                   | High-level utils (wraps std) |
 | [jackc/compiler](jackc/compiler)           | Frontend: `.jack` → `.vm`    |
 | [jackc/vm-translator](jackc/vm-translator) | Backend: `.vm` → assembly    |
