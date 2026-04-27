@@ -21,7 +21,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Just
-        run: choco install just --version 1.50.0
+        uses: extractions/setup-just@v4
+        with:
+          just-version: "1.47.1"
 
       - name: Install compiler
         run: choco install ${{ matrix.config.package }} --version ${{ matrix.config.version }} -y
