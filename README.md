@@ -90,9 +90,6 @@ Run an executable
 2. Build the project using the `rars` preset (or using `just rars`)
 3. Move `jackc_backend.s`, `jackc_frontend.s` from `build-riscv` to the CWD
 
-> [!IMPORTANT]
-> `jackc` in RARS has some limitations. One of which requires stdlib to be inside of the source dir in order for it to be located by `scripts/locate-jack-files` or the internals of `scripts/jackc_compile.sh`. This is, indeed, the exact opposite of what was said in "Native" section.
-
 #### "One" step compilation
 
 ```bash
@@ -104,7 +101,7 @@ This is a shortcut for what is described below
 
 RARS has no functionality to edit or view directories content, therefore this functionality has to be substituted. Note that a standalone executable has no such weakness and will retrieve all source files by itself.
 
-1. Run `./scripts/locate-jack-files.sh <SOURCES_DIR>` to generate a list of `.jack` files to compile
+1. Run `./scripts/locate-jack-files.sh <SOURCES_DIR> <STD_DIR>` to generate a list of `.jack` files to compile
 2. Execute `jackc_frontend.s`
 ```bash
 java -jar <PATH_TO_RARS_JAR> jackc_frontend.s pa jack-sources.txt <VM_OUT_DIR>

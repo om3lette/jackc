@@ -68,9 +68,9 @@ jobs:
       - name: Compile Pong
         run: |
           just patch-examples && \
-          mkdir examples/output && cp -r stdlib examples/patched/pong && \
+          mkdir examples/output && \
           chmod +x scripts/jackc_compile.sh && \
-          ./scripts/jackc_compile.sh tests/e2e/libs/rars.jar examples/patched/pong examples/output examples/patched/pong/stdlib
+          ./scripts/jackc_compile.sh tests/e2e/libs/rars.jar examples/patched/pong examples/output stdlib
 
       - name: Run Pong
         run: java -jar tests/e2e/libs/rars.jar output/out.asm
