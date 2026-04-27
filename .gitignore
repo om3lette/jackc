@@ -32,6 +32,7 @@ tests/e2e/tests/**/*.asm
 
 examples/out
 examples/output
+examples/patched
 examples/**/*.vm
 examples/**/*.asm
 examples/**/*.s

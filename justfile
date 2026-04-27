@@ -47,9 +47,16 @@ clean:
     if (test-path cmake-build-release) { remove-item -r cmake-build-release }
 
 [group('build')]
+[working-directory: 'examples']
 patch-examples:
-    git -C examples/pong apply --ignore-whitespace ../pong.patch
-    git -C examples/nand2tetris-games/GASteroids apply --ignore-whitespace ../../gasteroids.patch
+    @git submodule update --init
+    @rm -r patched && mkdir patched
+    
+    @cp -r nand2tetris-games/GASteroids patched && rm patched/GASteroids/*.vm patched/GASteroids/*.py
+    @cp -r pong patched
+    
+    git -C patched/pong apply --ignore-whitespace ../../pong.patch
+    git -C patched/GASteroids apply --ignore-whitespace ../../gasteroids.patch
 
 # Run tests
 [group('test')]
