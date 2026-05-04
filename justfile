@@ -42,19 +42,38 @@ clean:
 [windows]
 [group('build')]
 clean:
-    if (test-path build) { remove-item -r build }
-    if (test-path build-riscv) { remove-item -r build-riscv }
-    if (test-path cmake-build-release) { remove-item -r cmake-build-release }
+    if (Test-Path build) { Remove-Item -r build }
+    if (Test-Path build-riscv) { Remove-Item -r build-riscv }
+    if (Test-Path cmake-build-release) { Remove-Item -r cmake-build-release }
 
+# Patches example projects to run in RARS
 [group('build')]
+[unix]
 [working-directory: 'examples']
 patch-examples:
     @git submodule update --init
     @rm -rf patched && mkdir patched
-    
+
     @cp -r nand2tetris-games/GASteroids patched && rm patched/GASteroids/*.vm patched/GASteroids/*.py
     @cp -r pong patched
-    
+
+    git -C patched/pong apply --ignore-whitespace ../../pong.patch
+    git -C patched/GASteroids apply --ignore-whitespace ../../gasteroids.patch
+
+# Patches example projects to run in RARS
+[group('build')]
+[windows]
+[working-directory: 'examples']
+patch-examples:
+    @git submodule update --init
+    @if (Test-Path patched) { Remove-Item -Recurse -Force patched }
+    @New-Item -ItemType Directory -Force patched | Out-Null
+
+    @Copy-Item -Recurse nand2tetris-games/GASteroids patched
+    @Remove-Item patched/GASteroids/*.vm
+    @Remove-Item patched/GASteroids/*.py
+    @Copy-Item -Recurse pong patched
+
     git -C patched/pong apply --ignore-whitespace ../../pong.patch
     git -C patched/GASteroids apply --ignore-whitespace ../../gasteroids.patch
 
