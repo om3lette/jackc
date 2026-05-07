@@ -10,6 +10,33 @@
 #include "core/jackc_file_utils.h"
 #include "vm-translator/parser/vm_parser_utils.h"
 
+static bool handle_vm_file(
+    const char* source_file_path,
+    asm_context* ctx,
+    const jackc_locale* locale,
+    Allocator* allocator
+) {    
+    char* file_content = nullptr;
+    jackc_file_return_code file_read_ret_code = jackc_read_file_content(source_file_path, &file_content, allocator);
+    if (file_read_ret_code != FILE_OK) {
+        jackc_report_file_error(locale, file_read_ret_code, source_file_path);
+        return true;
+    }
+    vm_parser parser = vm_parser_init(&jackc_string_from_str(file_content));
+
+    while (vm_parser_has_more_lines(&parser)) {
+        asm_code_gen_process_line(ctx, &parser);
+        vm_parser_advance(&parser);
+        if (!is_valid_state(&parser)) {
+            jackc_printf(locale->msgs.parser_failed_with_exit_code, parser.status);
+            jackc_putchar('\n');
+            break;
+        }
+    }
+    asm_code_gen_process_line(ctx, &parser);
+    return false;
+}
+
 jackc_backend_return_code jackc_backend_compile(
     const char* base_path,
     const char* output_dir,
@@ -40,9 +67,8 @@ jackc_backend_return_code jackc_backend_compile(
         return BACKEND_BASE_PATH_TOO_LONG;
     jackc_sprintf(file_path, "%s%c%s", std_path, DELIMITER, STD_ASM_FILENAME);
 
-    jackc_file_return_code source_file_ret_code, file_read_ret_code;
     char* std_native_content = nullptr;
-    file_read_ret_code = jackc_read_file_content(file_path, &std_native_content, allocator);
+    jackc_file_return_code file_read_ret_code = jackc_read_file_content(file_path, &std_native_content, allocator);
     if (file_read_ret_code != FILE_OK) {
         jackc_report_file_error(locale, file_read_ret_code, file_path);
         return BACKEND_FAILED_TO_OPEN_STD_NATIVE;
@@ -50,36 +76,26 @@ jackc_backend_return_code jackc_backend_compile(
     asm_code_gen_bootstrap(ctx, std_native_content);
 
     size_t vm_files_cnt = 0;
-    const char* source_file_path = nullptr;
-    jackc_file_return_code iter_ret_code = FILE_OK;
-    jackc_dir_iterator iter;
-    if ((iter_ret_code = jackc_dir_iterator_create(base_path, allocator, &iter)) != FILE_OK) {
-        jackc_report_file_error(locale, iter_ret_code, base_path);
-        return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
-    }
-    while (
-        (source_file_ret_code = jackc_dir_iterator_next_file_with_ext(&iter, ".vm", &source_file_path)) == FILE_OK
-    ) {
-        ++vm_files_cnt;
 
-        char* file_content = nullptr;
-        file_read_ret_code = jackc_read_file_content(source_file_path, &file_content, allocator);
-        if (file_read_ret_code != FILE_OK) {
-            jackc_report_file_error(locale, file_read_ret_code, source_file_path);
+    if (jackc_has_extension(base_path, ".vm")) {
+        ++vm_files_cnt;
+        if (handle_vm_file(base_path, ctx, locale, allocator))
+            return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
+    } else {
+        const char* source_file_path = nullptr;
+        jackc_file_return_code source_file_ret_code = FILE_OK;
+        jackc_file_return_code iter_ret_code = FILE_OK;
+        jackc_dir_iterator iter;
+        if ((iter_ret_code = jackc_dir_iterator_create(base_path, allocator, &iter)) != FILE_OK) {
+            jackc_report_file_error(locale, iter_ret_code, base_path);
             return BACKEND_FAILED_TO_OPEN_SOURCE_FILE;
         }
-        vm_parser parser = vm_parser_init(&jackc_string_from_str(file_content));
-
-        while (vm_parser_has_more_lines(&parser)) {
-            asm_code_gen_process_line(ctx, &parser);
-            vm_parser_advance(&parser);
-            if (!is_valid_state(&parser)) {
-                jackc_printf(locale->msgs.parser_failed_with_exit_code, parser.status);
-                jackc_putchar('\n');
-                break;
-            }
+        while (
+            (source_file_ret_code = jackc_dir_iterator_next_file_with_ext(&iter, ".vm", &source_file_path)) == FILE_OK
+        ) {
+            ++vm_files_cnt;
+            ctx->had_error |= handle_vm_file(source_file_path, ctx, locale, allocator);
         }
-        asm_code_gen_process_line(ctx, &parser);
     }
     asm_code_gen_finalize(ctx);
 

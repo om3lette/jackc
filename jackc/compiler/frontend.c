@@ -169,6 +169,44 @@ static bool generate_vm_code(
     return had_error;
 }
 
+typedef struct {
+    bool syntax_error;
+    bool failed_to_open_source_file;
+} frontend_error_ctx;
+
+static void handle_source_file(
+    const char* source_file_path,
+    const jackc_frontend_config* config,
+    frontend_error_ctx* state,
+    jack_source** source_files,
+    Allocator* allocator
+) {
+    jackc_file_return_code file_read_ret_code;
+    char* file_content_raw = nullptr;
+    if ((file_read_ret_code = jackc_read_file_content(source_file_path, &file_content_raw, allocator)) != FILE_OK) {
+        jackc_report_file_error(config->locale, file_read_ret_code, source_file_path);
+        state->failed_to_open_source_file = true;
+        return;
+    }
+
+    jackc_string file_content = jackc_string_from_str(file_content_raw);
+    jackc_parse_result result = jackc_parse_file(source_file_path, file_content, config, allocator);
+    
+    state->syntax_error |= result.had_error;
+    if (!result.ast) {
+        return;
+    }
+
+    *source_files = jack_source_add(
+        *source_files,
+        result.ast,
+        source_file_path,
+        file_content,
+        result.lines,
+        allocator
+    );
+}
+
 jackc_frontend_return_code jackc_frontend_compile(
     const char* input_dir_paths[],
     uint32_t n_paths,
@@ -178,15 +216,21 @@ jackc_frontend_return_code jackc_frontend_compile(
 ) {
     const char* source_file_path = nullptr;
 
-    bool had_syntax_error = false;
-    bool failed_to_open_source_file = false;
     jack_source* source_files = nullptr;
 
+    frontend_error_ctx frontend_errors = { false, false };
     for (size_t i = 0; i < n_paths; ++i) {
         const char* current_path = input_dir_paths[i];
         if (!current_path)
             continue;
 
+        // Single .jack file
+        if (jackc_has_extension(current_path, ".jack")) {
+            handle_source_file(current_path, config, &frontend_errors, &source_files, allocator);
+            continue;
+        }
+
+        // Directory to search for .jack files
         jackc_file_return_code iter_ret_code = FILE_OK;
         jackc_dir_iterator iter;
         if ((iter_ret_code = jackc_dir_iterator_create(current_path, allocator, &iter)) != FILE_OK) {
@@ -194,43 +238,22 @@ jackc_frontend_return_code jackc_frontend_compile(
             continue;
         }
 
-        jackc_file_return_code source_file_ret_code, file_read_ret_code;
+        jackc_file_return_code source_file_ret_code = FILE_OK;
         while (
             (source_file_ret_code = jackc_dir_iterator_next_file_with_ext(&iter, ".jack", &source_file_path)) == FILE_OK
         ) {
-            char* file_content_raw = nullptr;
-            if ((file_read_ret_code = jackc_read_file_content(source_file_path, &file_content_raw, allocator)) != FILE_OK) {
-                jackc_report_file_error(config->locale, file_read_ret_code, source_file_path);
-                failed_to_open_source_file = true;
-                continue;
-            }
-
-            jackc_string file_content = jackc_string_from_str(file_content_raw);
-            jackc_parse_result result = jackc_parse_file(source_file_path, file_content, config, allocator);
-
-            had_syntax_error |= result.had_error;
-            if (!result.ast)
-                continue;
-
-            source_files = jack_source_add(
-                source_files,
-                result.ast,
-                source_file_path,
-                file_content,
-                result.lines,
-                allocator
-            );
+            handle_source_file(source_file_path, config, &frontend_errors, &source_files, allocator);
+            jackc_report_file_error(config->locale, source_file_ret_code, current_path);
         }
-        jackc_report_file_error(config->locale, source_file_ret_code, current_path);
     }
     // Report syntax error before source files
     // Because if all files had an error there will be no source files, which will cause
     // FRONTEND_NO_SOURCE_FILES to be mistakenly returned
-    if (had_syntax_error)
+    if (frontend_errors.syntax_error)
         return FRONTEND_SYNTAX_ERROR;
     if (!source_files)
         return FRONTEND_NO_SOURCE_FILES;
-    if (failed_to_open_source_file)
+    if (frontend_errors.failed_to_open_source_file)
         return FRONTEND_FAILED_TO_OPEN_SOURCE_FILE;
 
     // The first AST pass - build symbol table of class names and function signatures

@@ -11,7 +11,7 @@
 #endif
 
 typedef enum {
-    CLI_SOURCE_DIR,
+    CLI_SOURCE,
     CLI_OUT_DIR,
     CLI_STD_DIR,
     CLI_CODE_COMMENTS,

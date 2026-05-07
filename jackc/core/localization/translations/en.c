@@ -44,7 +44,7 @@ const jackc_locale jackc_locale_en = {
         .required_arg = "Required argument '%s' was not provided",
         .see_help_for_more_details = "See --help for more details.",
         .option_descriptions = {
-            {CLI_SOURCE_DIR, "Source files directory"},
+            {CLI_SOURCE, "Directory to search for source files in or a source file path"},
             {CLI_OUT_DIR, "Output directory"},
             {CLI_STD_DIR, "Path to the stdlib directory"},
             {CLI_CODE_COMMENTS,  "Enables generation of code comments"},

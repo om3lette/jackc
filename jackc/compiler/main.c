@@ -18,7 +18,7 @@ static cmd_arguments cmd_args = {
     .lang = nullptr
 };
 static arg_spec argument_specs[] = {
-    arg_spec_create("-s", "--source-dir", CLI_SOURCE_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, source_dir), true),
+    arg_spec_create("-s", "--source", CLI_SOURCE, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, source_dir), true),
     arg_spec_create("-o", "--out-dir", CLI_OUT_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, out_dir), true),
     arg_spec_create("-std", "--stdlib-dir", CLI_STD_DIR, ARG_STRING, offsetof(cmd_arguments, common) + offsetof(jackc_cli_args, stdlib_dir), true),
     arg_spec_create(nullptr, "--lang", CLI_LANGUAGE, ARG_STRING, offsetof(cmd_arguments, lang), false)
