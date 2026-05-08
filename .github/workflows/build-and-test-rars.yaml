@@ -14,7 +14,7 @@ jobs:
         config:
           - {
               compiler: riscv32-unknown-elf-gcc,
-              version: 2026.01.09,
+              version: 2025.11.27,
               std: 23,
               build_type: Release,
             }
